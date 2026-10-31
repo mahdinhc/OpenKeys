@@ -1,0 +1,402 @@
+package com.openkeys.keyboard
+
+import android.content.BroadcastReceiver
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.SharedPreferences
+import android.inputmethodservice.InputMethodService
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
+import android.text.InputType
+import android.view.KeyEvent
+import android.view.View
+import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import org.json.JSONObject
+
+class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.Listener {
+
+    companion object { const val ACTION_VOICE = "com.openkeys.keyboard.VOICE_RESULT" }
+
+    private lateinit var prefs: Prefs
+    private lateinit var repo: LayoutRepo
+    private lateinit var suggest: SuggestEngine
+    private lateinit var root: LinearLayout
+    private lateinit var content: FrameLayout
+    private lateinit var kb: KeyboardView
+    private lateinit var bar: SuggestionBar
+    private lateinit var emoji: EmojiPanel
+    private lateinit var clip: ClipboardPanel
+    private var viewReady = false
+
+    private var theme = Theme.DARK
+    private var enabled: List<LayoutDef> = emptyList()
+    private var idx = 0
+    private var forced: LayoutDef? = null
+    private var layout: LayoutDef? = null
+    private var translit: Transliterator? = null
+    private var dict: WordDict? = null
+
+    private val composing = StringBuilder()
+    private var noSuggest = false
+    private var lastSpace = 0L
+    private var lastCorrection: Pair<String, String>? = null
+    private var lastWord = ""
+    private var lastSwipe: String? = null
+    private val main = Handler(Looper.getMainLooper())
+
+    private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> main.post { reloadAll() } }
+    private val clipListener = ClipboardManager.OnPrimaryClipChangedListener {
+        try {
+            val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val t = cm.primaryClip?.getItemAt(0)?.coerceToText(this)?.toString()
+            if (!t.isNullOrBlank()) ClipStore.add(this, t)
+        } catch (e: Exception) { }
+    }
+    private val voiceReceiver = object : BroadcastReceiver() {
+        override fun onReceive(c: Context?, i: Intent?) {
+            val t = i?.getStringExtra("text") ?: return
+            commitComposing(false); currentInputConnection?.commitText(t, 1)
+        }
+    }
+
+    // ------------------------------------------------------------ lifecycle
+    override fun onCreate() {
+        super.onCreate()
+        prefs = Prefs(this); repo = LayoutRepo(this); suggest = SuggestEngine(this)
+        prefs.sp.registerOnSharedPreferenceChangeListener(prefListener)
+        (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).addPrimaryClipChangedListener(clipListener)
+        val f = IntentFilter(ACTION_VOICE)
+        if (Build.VERSION.SDK_INT >= 33) registerReceiver(voiceReceiver, f, Context.RECEIVER_NOT_EXPORTED)
+        else registerReceiver(voiceReceiver, f)
+    }
+
+    override fun onDestroy() {
+        prefs.sp.unregisterOnSharedPreferenceChangeListener(prefListener)
+        try { (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).removePrimaryClipChangedListener(clipListener) } catch (e: Exception) { }
+        try { unregisterReceiver(voiceReceiver) } catch (e: Exception) { }
+        suggest.flush()
+        super.onDestroy()
+    }
+
+    override fun onEvaluateFullscreenMode() = false
+
+    override fun onCreateInputView(): View {
+        root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; clipChildren = false; clipToPadding = false }
+        bar = SuggestionBar(this).also { it.listener = this }
+        content = FrameLayout(this).apply { clipChildren = false }
+        kb = KeyboardView(this).also { it.listener = this }
+        emoji = EmojiPanel(this, object : EmojiPanel.Callback {
+            override fun onEmoji(e: String) { commitComposing(false); currentInputConnection?.commitText(e, 1); ClipStore.addEmoji(this@OpenKeysIME, e) }
+            override fun onBack() = showKeyboard()
+            override fun onBackspace() = onDelete()
+        })
+        clip = ClipboardPanel(this, object : ClipboardPanel.Callback {
+            override fun onPaste(s: String) { commitComposing(false); currentInputConnection?.commitText(s, 1) }
+            override fun onBack() = showKeyboard()
+        })
+        content.addView(kb, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        emoji.visibility = View.GONE; clip.visibility = View.GONE
+        content.addView(emoji, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        content.addView(clip, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        root.addView(bar, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dpi(44f)))
+        root.addView(content, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
+            val nav = if (Build.VERSION.SDK_INT >= 35) insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom else 0
+            v.setPadding(0, 0, 0, nav + dpi(prefs.int("bottomPad", 0).toFloat()))
+            insets
+        }
+        viewReady = true
+        reloadAll()
+        return root
+    }
+
+    private fun reloadAll() {
+        if (!viewReady) return
+        prefs.reload(); repo.invalidate()
+        theme = Theme.from(prefs)
+        root.setBackgroundColor(theme.bg)
+        root.setPadding(0, 0, 0, dpi(prefs.int("bottomPad", 0).toFloat()))
+        bar.applyTheme(theme); emoji.applyTheme(theme); clip.applyTheme(theme)
+        kb.apply {
+            theme = this@OpenKeysIME.theme
+            heightScale = prefs.int("heightScale", 100); fontScale = prefs.int("fontScale", 100)
+            radiusDp = prefs.int("keyRadius", 8); gapDp = prefs.int("keyGap", 4)
+            showHints = prefs.bool("showHints", true); popupPreview = prefs.bool("popupPreview", true)
+            swipeOn = prefs.bool("swipeTyping", true); hapticOn = prefs.bool("haptic", true)
+            hapticMs = prefs.int("hapticMs", 12); soundOn = prefs.bool("sound", false)
+            longPressMs = prefs.int("longPressMs", 350); numberRow = prefs.bool("numberRow", false)
+            oneHanded = prefs.str("oneHanded", "off")
+        }
+        enabled = prefs.enabledLayouts().mapNotNull { repo.get(it) }.ifEmpty { listOfNotNull(repo.get("en_qwerty")) }
+        if (idx >= enabled.size) idx = 0
+        val l = forced?.let { repo.get(it.id) } ?: enabled.getOrNull(idx)
+        if (l != null) setLayout(l)
+    }
+
+    override fun onStartInputView(info: EditorInfo, restarting: Boolean) {
+        super.onStartInputView(info, restarting)
+        composing.setLength(0); lastCorrection = null; lastSwipe = null; lastWord = ""
+        val cls = info.inputType and InputType.TYPE_MASK_CLASS
+        val v = info.inputType and InputType.TYPE_MASK_VARIATION
+        val flags = info.inputType and InputType.TYPE_MASK_FLAGS
+        noSuggest = cls != InputType.TYPE_CLASS_TEXT || (flags and InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS) != 0 ||
+            v == InputType.TYPE_TEXT_VARIATION_PASSWORD || v == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD ||
+            v == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD || v == InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS ||
+            v == InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS || v == InputType.TYPE_TEXT_VARIATION_URI
+        forced = if (cls == InputType.TYPE_CLASS_NUMBER || cls == InputType.TYPE_CLASS_PHONE || cls == InputType.TYPE_CLASS_DATETIME) repo.get("numeric") else null
+        kb.enterLabel = when (info.imeOptions and EditorInfo.IME_MASK_ACTION) {
+            EditorInfo.IME_ACTION_GO -> "Go"; EditorInfo.IME_ACTION_SEARCH -> "🔍"
+            EditorInfo.IME_ACTION_SEND -> "➤"; EditorInfo.IME_ACTION_NEXT -> "Next"
+            EditorInfo.IME_ACTION_DONE -> "Done"; else -> "⏎"
+        }
+        (forced ?: enabled.getOrNull(idx))?.let { setLayout(it) }
+        showKeyboard(); updateAutoCaps(); updateSuggestions()
+    }
+
+    override fun onFinishInputView(finishingInput: Boolean) {
+        commitComposing(false); suggest.flush()
+        super.onFinishInputView(finishingInput)
+    }
+
+    override fun onUpdateSelection(oss: Int, ose: Int, nss: Int, nse: Int, cs: Int, ce: Int) {
+        super.onUpdateSelection(oss, ose, nss, nse, cs, ce)
+        if (!viewReady) return
+        if (composing.isNotEmpty() && (cs == -1 || nss != ce)) {
+            composing.setLength(0); currentInputConnection?.finishComposingText(); updateSuggestions()
+        } else if (composing.isEmpty()) updateAutoCaps()
+    }
+
+    // ------------------------------------------------------------ layout / panels
+    private fun setLayout(def: LayoutDef) {
+        commitComposing(false)
+        layout = def; translit = def.translit; dict = suggest.dict(def.dict)
+        kb.setLayout(def)
+        updateSuggestions(); updateAutoCaps()
+    }
+
+    private fun showKeyboard() { kb.visibility = View.VISIBLE; emoji.visibility = View.GONE; clip.visibility = View.GONE }
+
+    private fun showPanel(p: View) {
+        val h = kb.height
+        p.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, h)
+        kb.visibility = View.INVISIBLE; emoji.visibility = View.GONE; clip.visibility = View.GONE
+        p.visibility = View.VISIBLE
+    }
+
+    private fun nextLayout() {
+        if (forced != null || enabled.size < 2) return
+        idx = (idx + 1) % enabled.size
+        setLayout(enabled[idx])
+    }
+
+    // ------------------------------------------------------------ composing helpers
+    private fun isWordCp(cp: Int): Boolean {
+        if (Character.isLetter(cp) || cp == 0x27 || cp == 0x200C || cp == 0x200D) return true
+        val t = Character.getType(cp)
+        return t == Character.NON_SPACING_MARK.toInt() || t == Character.COMBINING_SPACING_MARK.toInt() || t == Character.ENCLOSING_MARK.toInt()
+    }
+
+    private fun isWordInput(s: String): Boolean {
+        translit?.let { tr -> return s.all { tr.accepts(it) } }
+        if (noSuggest) return false
+        var i = 0
+        while (i < s.length) { val cp = s.codePointAt(i); if (!isWordCp(cp)) return false; i += Character.charCount(cp) }
+        return s.isNotEmpty()
+    }
+
+    private fun display(): String = translit?.convert(composing.toString()) ?: composing.toString()
+
+    private fun learn(w: String) {
+        if (prefs.bool("learnWords", true) && !noSuggest) dict?.learn(w, lastWord)
+        lastWord = w
+    }
+
+    private fun commitComposing(auto: Boolean) {
+        if (composing.isEmpty()) return
+        var w = display()
+        lastCorrection = null
+        if (auto && !noSuggest) {
+            val sc = prefs.shortcuts()[w.lowercase()]
+            if (sc != null) w = sc
+            else if (translit == null && prefs.bool("autocorrect", true) && prefs.bool("suggestions", true)) {
+                dict?.correct(w)?.let { c -> val fixed = matchCase(w, c); lastCorrection = w to fixed; w = fixed }
+            }
+        }
+        currentInputConnection?.commitText(w, 1)
+        composing.setLength(0)
+        learn(w)
+    }
+
+    private fun updateSuggestions() {
+        if (!viewReady) return
+        if (noSuggest || !prefs.bool("suggestions", true)) { bar.setSuggestions(emptyList()); return }
+        val d = dict
+        if (composing.isNotEmpty()) {
+            val typed = display()
+            val comp = d?.complete(typed, 4) ?: emptyList()
+            val fix = if (prefs.bool("autocorrect", true) && translit == null) d?.correct(typed)?.let { matchCase(typed, it) } else null
+            val best = fix ?: comp.firstOrNull()
+            val out = ArrayList<String>(); out.add(typed)
+            if (best != null) out.add(best)
+            comp.filter { it != best && it != typed }.take(3 - out.size).forEach { out.add(it) }
+            bar.setSuggestions(out)
+        } else {
+            bar.setSuggestions(if (lastWord.isNotEmpty()) d?.next(lastWord, 3) ?: emptyList() else emptyList())
+        }
+    }
+
+    private fun updateAutoCaps() {
+        val l = layout ?: return
+        if (!viewReady || !l.autoCap || !prefs.bool("autoCap", true) || kb.layerName != "base") return
+        val ei = currentInputEditorInfo ?: return
+        if ((ei.inputType and InputType.TYPE_MASK_CLASS) != InputType.TYPE_CLASS_TEXT) return
+        if (kb.shiftState == 2 || (kb.shiftState == 1 && !kb.autoShifted)) return
+        val mode = currentInputConnection?.getCursorCapsMode(ei.inputType) ?: 0
+        kb.setShift(if (mode != 0) 1 else 0, true)
+    }
+
+    // ------------------------------------------------------------ KeyboardView.Listener
+    override fun onText(text: String, letterLayer: Boolean) {
+        val ic = currentInputConnection ?: return
+        lastSwipe = null
+        if (letterLayer && isWordInput(text)) {
+            composing.append(text)
+            ic.setComposingText(display(), 1)
+            lastCorrection = null
+            updateSuggestions()
+            return
+        }
+        commitComposing(true)
+        lastCorrection = null; lastSpace = 0
+        ic.commitText(text, 1)
+        lastWord = ""
+        updateSuggestions()
+    }
+
+    override fun onSpecial(type: String) {
+        when (type) {
+            "space" -> onSpace()
+            "enter" -> onEnter()
+            "lang" -> nextLayout()
+            "picker" -> (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).showInputMethodPicker()
+            "emoji" -> { emoji.open(); showPanel(emoji) }
+            "clip" -> { clip.refresh(); showPanel(clip) }
+            "mic" -> startVoice()
+        }
+    }
+
+    private fun onSpace() {
+        val ic = currentInputConnection ?: return
+        lastSwipe = null
+        val had = composing.isNotEmpty()
+        commitComposing(true)
+        val now = SystemClock.uptimeMillis()
+        if (!had && !noSuggest && prefs.bool("doubleSpacePeriod", true) && now - lastSpace < 500) {
+            val b = ic.getTextBeforeCursor(2, 0)?.toString()
+            if (b != null && b.length == 2 && b[1] == ' ' && !b[0].isWhitespace() && !".!?,;:।".contains(b[0])) {
+                ic.deleteSurroundingText(1, 0)
+                ic.commitText((layout?.sentenceEnd ?: ".") + " ", 1)
+                lastSpace = 0; lastCorrection = null
+                return
+            }
+        }
+        ic.commitText(" ", 1)
+        lastSpace = now
+        updateSuggestions()
+    }
+
+    private fun onEnter() {
+        commitComposing(true); lastCorrection = null; lastSwipe = null
+        val ic = currentInputConnection ?: return
+        val ei = currentInputEditorInfo ?: return
+        val action = ei.imeOptions and EditorInfo.IME_MASK_ACTION
+        val multi = (ei.inputType and InputType.TYPE_TEXT_FLAG_MULTI_LINE) != 0
+        if (!multi && (ei.imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION) == 0 &&
+            action != EditorInfo.IME_ACTION_NONE && action != EditorInfo.IME_ACTION_UNSPECIFIED)
+            ic.performEditorAction(action)
+        else sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
+        lastWord = ""; updateSuggestions()
+    }
+
+    override fun onDelete() {
+        val ic = currentInputConnection ?: return
+        lastSwipe = null
+        if (composing.isNotEmpty()) {
+            composing.setLength(composing.length - 1)
+            if (composing.isEmpty()) ic.commitText("", 1) else ic.setComposingText(display(), 1)
+            updateSuggestions(); return
+        }
+        lastCorrection?.let { (orig, fixed) ->
+            lastCorrection = null
+            if (ic.getTextBeforeCursor(fixed.length + 1, 0)?.toString() == "$fixed ") {
+                ic.deleteSurroundingText(fixed.length + 1, 0)
+                composing.append(orig); ic.setComposingText(orig, 1); updateSuggestions(); return
+            }
+        }
+        if (!ic.getSelectedText(0).isNullOrEmpty()) ic.commitText("", 1)
+        else sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL)
+        lastSpace = 0
+    }
+
+    override fun onCursorMove(steps: Int) {
+        commitComposing(false)
+        repeat(Math.abs(steps)) { sendDownUpKeyEvents(if (steps < 0) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT) }
+    }
+
+    override fun onSwipe(path: String, shifted: Boolean) {
+        val ic = currentInputConnection ?: return
+        commitComposing(true)
+        val c = dict?.swipe(path, 3) ?: emptyList()
+        if (c.isEmpty()) return
+        val words = c.map { if (shifted) it.replaceFirstChar { ch -> ch.uppercase() } else it }
+        val before = ic.getTextBeforeCursor(1, 0)?.toString()
+        if (!before.isNullOrEmpty() && !before[0].isWhitespace() && !"([{\"'".contains(before[0])) ic.commitText(" ", 1)
+        ic.commitText(words[0] + " ", 1)
+        lastSwipe = words[0] + " "; lastWord = words[0]
+        bar.setSuggestions(listOf(words.getOrElse(1) { "" }, words[0], words.getOrElse(2) { "" }).let { if (words.size < 2) words else it })
+    }
+
+    override fun onLayerChange(name: String) { if (name == "base") updateAutoCaps() }
+
+    // ------------------------------------------------------------ SuggestionBar.Listener
+    override fun onPick(s: String) {
+        val ic = currentInputConnection ?: return
+        if (composing.isNotEmpty()) {
+            composing.setLength(0); lastCorrection = null
+            ic.commitText("$s ", 1); learn(s)
+        } else {
+            lastSwipe?.let { ic.deleteSurroundingText(it.length, 0) }
+            ic.commitText("$s ", 1); lastSwipe = null; lastWord = s
+        }
+        updateSuggestions()
+    }
+
+    override fun onTool(name: String) {
+        when (name) {
+            "emoji" -> onSpecial("emoji")
+            "clip" -> onSpecial("clip")
+            "mic" -> startVoice()
+            "hand" -> {
+                val next = when (prefs.str("oneHanded", "off")) { "off" -> "right"; "right" -> "left"; else -> "off" }
+                prefs.save(JSONObject(prefs.raw()).put("oneHanded", next).toString())
+            }
+            "settings" -> startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        }
+    }
+
+    private fun startVoice() {
+        val loc = layout?.locale ?: "en"
+        val tag = when (loc) { "en" -> "en-US"; "bn" -> "bn-BD"; else -> loc }
+        startActivity(Intent(this, VoiceActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK).putExtra("lang", tag))
+    }
+}
