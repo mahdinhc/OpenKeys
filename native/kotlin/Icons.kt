@@ -26,7 +26,7 @@ object Icons {
             ic.keys().forEach { m[it] = ic.getString(it) }
             defs = m
             outline = jsonStrings(o.optJSONArray("outline")).toSet()
-        } catch (e: Exception) { }
+        } catch (e: Exception) { DevLog.e(ctx, "Icons", "icons.json failed to load", e) }
     }
 
     private fun path(name: String): Path? {

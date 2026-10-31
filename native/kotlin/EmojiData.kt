@@ -45,7 +45,7 @@ object EmojiData {
                         out.add(EmojiItem(s, p[0].toInt(), p[2] == "1", kw))
                     }
                 }
-            } catch (e: Exception) { }
+            } catch (e: Exception) { DevLog.e(app, "Emoji", "emoji.txt failed to load", e) }
             toneSet = out.filter { it.mod }.map { it.s }.toHashSet()
             items = out
             main.post {

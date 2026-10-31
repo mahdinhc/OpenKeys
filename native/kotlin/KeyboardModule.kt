@@ -41,7 +41,7 @@ class KeyboardModule(private val rc: ReactApplicationContext) : ReactContextBase
             } catch (e: Exception) { File(rc.filesDir, "fonts/custom.ttf").delete(); pr.reject("E_FONT", "Not a valid font file") }
         }
     }
-    init { rc.addActivityEventListener(actListener) }
+    init { rc.addActivityEventListener(actListener); DevLog.installCrashHandler(rc) }
 
     private val synth = Synth()
     private var player: MelodyPlayer? = null
@@ -74,6 +74,11 @@ class KeyboardModule(private val rc: ReactApplicationContext) : ReactContextBase
     @ReactMethod fun logClear(pw: String, p: Promise) = try { TypeLog.clear(rc, pw); p.resolve(true) } catch (e: Exception) { p.reject("E_LOG", e.message, e) }
     @ReactMethod fun logExport(pw: String, p: Promise) = try { p.resolve(TypeLog.export(rc, pw)) } catch (e: Exception) { p.reject("E_LOG", e.message, e) }
     @ReactMethod fun logImport(json: String, pw: String, p: Promise) = try { p.resolve(TypeLog.import(rc, json, pw)) } catch (e: Exception) { p.reject("E_LOG", e.message ?: "Import failed", e) }
+
+    // ---- developer debug log (plain text, never contains typed text; only written while enabled)
+    @ReactMethod fun debugLogRead(maxChars: Int, p: Promise) = try { p.resolve(DevLog.read(rc, maxChars.coerceIn(1000, 200_000))) } catch (e: Exception) { p.reject("E_DEBUGLOG", e.message, e) }
+    @ReactMethod fun debugLogClear(p: Promise) = try { DevLog.clear(rc); p.resolve(true) } catch (e: Exception) { p.reject("E_DEBUGLOG", e.message, e) }
+    @ReactMethod fun debugLogWrite(msg: String, p: Promise) = try { DevLog.i(rc, "App", msg); p.resolve(true) } catch (e: Exception) { p.reject("E_DEBUGLOG", e.message, e) }
 
     @ReactMethod fun getStatus(p: Promise) = try {
         val imm = rc.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager

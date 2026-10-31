@@ -36,6 +36,14 @@ class SuggestionBar(ctx: Context) : LinearLayout(ctx) {
     private val slots = ArrayList<TextView>()
     private val tools = ArrayList<IconView>()
 
+    // NOTE: these MUST be declared before the init block below. Kotlin runs property initialisers and init blocks in
+    // source order, and init calls setTools()/render(), which use them. Declared after init they were still null ->
+    // NullPointerException in the constructor -> the keyboard crashed as soon as it launched.
+    private val toolNames = ArrayList<String>()
+    private var mode = "abc"
+    private var iconScale = 0.5f
+    private val toolIcons = mapOf("emoji" to "emoji", "clip" to "clipboard", "piano" to "piano", "hand" to "one_hand", "settings" to "settings")
+
     init {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
@@ -72,11 +80,6 @@ class SuggestionBar(ctx: Context) : LinearLayout(ctx) {
         addView(micBg, LayoutParams(ctx.dpi(56f), h))
         render()
     }
-
-    private val toolNames = ArrayList<String>()
-    private var mode = "abc"
-    private var iconScale = 0.5f
-    private val toolIcons = mapOf("emoji" to "emoji", "clip" to "clipboard", "piano" to "piano", "hand" to "one_hand", "settings" to "settings")
 
     fun setTools(names: List<String>, scale: Float = 0.5f) {
         iconScale = scale

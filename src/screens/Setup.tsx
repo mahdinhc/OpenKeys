@@ -10,7 +10,7 @@ export default function Setup({cfg, update}: any) {
     const now = Date.now(); const r = taps.current;
     r.n = now - r.t > 2000 ? 1 : r.n + 1; r.t = now;
     if (r.n >= 10) {
-      r.n = 0; const on = !cfg.devMode; update({devMode: on, ...(on ? {} : {devLog: false})});
+      r.n = 0; const on = !cfg.devMode; update({devMode: on, ...(on ? {} : {devLog: false, devDebugLog: false})});
       ToastAndroid.show(on ? 'Developer options enabled' : 'Developer options disabled', ToastAndroid.SHORT);
     } else if (r.n >= 4) ToastAndroid.show(`${10 - r.n} taps to ${cfg.devMode ? 'disable' : 'enable'} developer options`, ToastAndroid.SHORT);
   };

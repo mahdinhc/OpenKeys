@@ -132,17 +132,17 @@ class LayoutRepo(private val ctx: Context) {
 
     fun builtinJson(id: String): JSONObject? = try {
         JSONObject(ctx.assets.open("layouts/$id.json").bufferedReader().use { it.readText() })
-    } catch (e: Exception) { null }
+    } catch (e: Exception) { DevLog.e(ctx, "Layout", "built-in layout '$id' could not be read", e); null }
 
     fun customJson(id: String): JSONObject? = try {
         val f = File(dir, "$id.json"); if (f.exists()) JSONObject(f.readText()) else null
-    } catch (e: Exception) { null }
+    } catch (e: Exception) { DevLog.e(ctx, "Layout", "custom layout '$id' is not valid JSON", e); null }
 
     /** User files override built-ins with the same id. */
     fun get(id: String): LayoutDef? {
         cache[id]?.let { return it }
         val j = customJson(id) ?: builtinJson(id) ?: return null
-        return try { LayoutDef(j).also { cache[id] = it } } catch (e: Exception) { null }
+        return try { LayoutDef(j).also { cache[id] = it } } catch (e: Exception) { DevLog.e(ctx, "Layout", "layout '$id' failed to parse", e); null }
     }
 
     fun save(json: JSONObject) {

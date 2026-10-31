@@ -27,5 +27,8 @@ export const Native = {
   logClear: (pw: string): Promise<boolean> => N.logClear(pw),
   logExport: (pw: string): Promise<string> => N.logExport(pw),
   logImport: (json: string, pw: string): Promise<number> => N.logImport(json, pw),
+  debugLogRead: (maxChars: number): Promise<string> => N.debugLogRead(maxChars),
+  debugLogClear: (): Promise<boolean> => N.debugLogClear(),
+  debugLogWrite: (msg: string): Promise<boolean> => N.debugLogWrite(msg),
   clearUserDictionary: (): Promise<boolean> => N.clearUserDictionary(),
 };

@@ -9,7 +9,7 @@ export type Config = {
   numberRow: boolean; swipeTyping: boolean; learnWords: boolean;
   fontFamily: string; fontBold: boolean; customFontName: string;
   emojiCols: number; emojiSize: number; emojiHeaders: boolean; emojiRecents: boolean; emojiHidden: string[];
-  devMode: boolean; devLog: boolean;
+  devMode: boolean; devLog: boolean; devDebugLog: boolean;
   topTools: string[]; topIconSize: number; emojiHeight: number; pianoHeight: number;
   pianoWave: string; pianoAttack: number; pianoDecay: number; pianoSustain: number; pianoRelease: number;
   pianoVolume: number; pianoCutoff: number; pianoVibRate: number; pianoVibDepth: number; pianoDetune: number; pianoGate: number;
@@ -31,7 +31,7 @@ export const DEFAULTS: Config = {
   numberRow: true, swipeTyping: true, learnWords: true,
   fontFamily: 'default', fontBold: false, customFontName: '',
   emojiCols: 8, emojiSize: 100, emojiHeaders: true, emojiRecents: true, emojiHidden: [],
-  devMode: false, devLog: false,
+  devMode: false, devLog: false, devDebugLog: false,
   topTools: ['emoji', 'clip', 'piano', 'settings'], topIconSize: 50, emojiHeight: 100, pianoHeight: 100,
   pianoWave: 'sine', pianoAttack: 5, pianoDecay: 120, pianoSustain: 60, pianoRelease: 200,
   pianoVolume: 80, pianoCutoff: 100, pianoVibRate: 5, pianoVibDepth: 0, pianoDetune: 0, pianoGate: 0,

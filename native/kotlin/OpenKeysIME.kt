@@ -83,6 +83,9 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     // ------------------------------------------------------------ lifecycle
     override fun onCreate() {
         super.onCreate()
+        DevLog.installCrashHandler(this)
+        DevLog.session(this, "keyboard service created")
+        DevLog.d(this, "IME", "onCreate")
         prefs = Prefs(this); repo = LayoutRepo(this); suggest = SuggestEngine(this)
         Icons.load(this)
         EmojiData.load(this)
@@ -94,6 +97,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     }
 
     override fun onDestroy() {
+        DevLog.d(this, "IME", "onDestroy")
         prefs.sp.unregisterOnSharedPreferenceChangeListener(prefListener)
         try { (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).removePrimaryClipChangedListener(clipListener) } catch (e: Exception) { }
         try { unregisterReceiver(voiceReceiver) } catch (e: Exception) { }
@@ -121,6 +125,27 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     override fun onEvaluateFullscreenMode() = false
 
     override fun onCreateInputView(): View {
+        DevLog.d(this, "IME", "onCreateInputView: building keyboard view")
+        return try {
+            buildInputView().also { DevLog.d(this, "IME", "onCreateInputView: done") }
+        } catch (e: Exception) {
+            // Never take the whole IME process down because the view failed to build: log it and show the error
+            // right in the keyboard area so it is visible even when the debug log is off.
+            viewReady = false
+            DevLog.e(this, "IME", "onCreateInputView FAILED", e)
+            errorView(e)
+        }
+    }
+
+    private fun errorView(e: Throwable): View = android.widget.TextView(this).apply {
+        setBackgroundColor(0xFF2B2E32.toInt()); setTextColor(0xFFF28B82.toInt()); textSize = 12f
+        setPadding(dpi(14f), dpi(14f), dpi(14f), dpi(14f)); minHeight = dpi(160f)
+        text = "OpenKeys failed to start\n${e.javaClass.simpleName}: ${e.message}\n" +
+            e.stackTrace.take(6).joinToString("\n") { "  at ${it.className.substringAfterLast('.')}.${it.methodName}:${it.lineNumber}" } +
+            "\n\nTurn on Developer > Debug log in the OpenKeys app for the full trace."
+    }
+
+    private fun buildInputView(): View {
         val mp = ViewGroup.LayoutParams.MATCH_PARENT
         root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; clipChildren = false; clipToPadding = false }
         bar = SuggestionBar(this).also { it.listener = this }
@@ -195,6 +220,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
 
     private fun reloadAll() {
         if (!viewReady) return
+        DevLog.d(this, "IME", "reloadAll")
         prefs.reload(); repo.invalidate()
         theme = Theme.from(prefs)
         root.setBackgroundColor(theme.bg)
@@ -217,10 +243,13 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         if (idx >= enabled.size) idx = 0
         val l = forced?.let { repo.get(it.id) } ?: enabled.getOrNull(idx)
         if (l != null) setLayout(l)
+        DevLog.d(this, "IME", "reloadAll done: layouts=${enabled.joinToString(",") { it.id }} active=${l?.id}")
     }
 
     override fun onStartInputView(info: EditorInfo, restarting: Boolean) {
         super.onStartInputView(info, restarting)
+        DevLog.d(this, "IME", "onStartInputView pkg=${info.packageName} inputType=0x${Integer.toHexString(info.inputType)} imeOptions=0x${Integer.toHexString(info.imeOptions)} restarting=$restarting viewReady=$viewReady")
+        if (!viewReady) return   // the view failed to build (see errorView) - nothing to drive
         composing.setLength(0); lastCorrection = null; lastSwipe = null; lastWord = ""
         searching = false; query.setLength(0); strip.visibility = View.GONE; bar.setSearch(false, "")
         val cls = info.inputType and InputType.TYPE_MASK_CLASS
@@ -245,6 +274,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
+        DevLog.d(this, "IME", "onFinishInputView finishing=$finishingInput")
         commitComposing(false); suggest.flush()
         super.onFinishInputView(finishingInput)
     }
@@ -279,7 +309,9 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         p.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (kbH * pct / 100f).toInt())
         kb.visibility = View.GONE; emoji.visibility = View.GONE; clip.visibility = View.GONE; piano.visibility = View.GONE
         p.visibility = View.VISIBLE
-        bar.setMode(when (p) { emoji -> "emoji"; clip -> "clip"; else -> "piano" })
+        val pn = when (p) { emoji -> "emoji"; clip -> "clip"; else -> "piano" }
+        DevLog.d(this, "IME", "showPanel $pn")
+        bar.setMode(pn)
     }
 
     override fun onSelectLayout(index: Int) {

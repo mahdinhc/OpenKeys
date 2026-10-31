@@ -34,3 +34,12 @@ Layout DSL (one row per line): `a` · `a|à|á` long-press · `ক=\u0995\u09CD`
 `{stack=+;-;*;/:0.62:3}` tall multi-key column spanning 3 rows.
 Mode `translit` adds JSON rules (`consonants`, `vowels` [independent, sign], `marks`, `joiner`, `virama`) for any Indic-style script.
 Dictionaries: drop `native/assets/dict/<code>.txt` (one word per line, most common first, or `word<TAB>freq`).
+
+## Developer options
+Tap the version number on **Setup** 10 times to show the **Developer** tab. It has two separate sections:
+
+* **Debug log** - switch on *Enable debug log* to record keyboard start-up steps, swallowed errors and uncaught-exception
+  stack traces (written to `files/devlog/debug.log`, rotated at ~200 KB). View, share or clear it in the app. It never
+  contains typed text. Turn it on *before* reproducing a crash, reopen the keyboard, then press *Refresh*.
+  Also visible with `adb logcat -s OpenKeys*`.
+* **Key logs** - the password-protected, encrypted typing log (date/hour organised, export/import).
