@@ -20,6 +20,7 @@ export function parseRow(row: string): PKey[] {
       const weight = w ? parseFloat(w) : sp ? sp[1] : 1.4;
       if (name === 'pipe') return {label: '|', weight: weight || 1, special: false, pad: false};
       if (name === 'eq') return {label: '=', weight: weight || 1, special: false, pad: false};
+      if (name === 'js') { const sp2 = head.split('=')[1] || 'js'; return {label: sp2.includes('~') ? sp2.split('~')[1] : sp2.split('~')[0], weight: w ? parseFloat(w) : 1, special: true, pad: false}; }
       if (name === 'layer') { const lp = head.split('=')[1] || '?'; return {label: lp.includes('~') ? lp.split('~')[1] : lp, weight, special: true, pad: false}; }
       if (name === 'stack') return {label: (head.split('=')[1] || '').replace(/;/g, ' '), weight: w ? parseFloat(w) : 1, special: true, pad: false};
       return {label: sp ? sp[0] : t, weight, special: true, pad: name === 'pad'};

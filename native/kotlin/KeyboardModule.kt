@@ -113,7 +113,7 @@ class KeyboardModule(private val rc: ReactApplicationContext) : ReactContextBase
 
     @ReactMethod fun exportBackup(p: Promise) = try {
         p.resolve(JSONObject().put("app", "openkeys").put("config", JSONObject(Prefs(rc).raw()))
-            .put("layouts", LayoutRepo(rc).customAll()).toString(2))
+            .put("layouts", LayoutRepo(rc).customAll()).put("plugins", PluginStore(rc).exportAll()).toString(2))
     } catch (e: Exception) { p.reject("E_EXPORT", e) }
 
     @ReactMethod fun importBackup(json: String, p: Promise) = try {
@@ -122,12 +122,63 @@ class KeyboardModule(private val rc: ReactApplicationContext) : ReactContextBase
         val a = o.optJSONArray("layouts") ?: JSONArray()
         for (i in 0 until a.length()) repo.save(a.getJSONObject(i))
         o.optJSONObject("config")?.let { Prefs(rc).save(it.toString()) }
+        val ps = o.optJSONArray("plugins")
+        if (ps != null) {
+            val st = PluginStore(rc)
+            for (i in 0 until ps.length()) {
+                val pj = ps.getJSONObject(i)
+                val pid = pj.getString("id")
+                st.save(pid, pj.getString("code"))
+                st.setEnabled(pid, pj.optBoolean("enabled", true))
+                pj.optJSONObject("settings")?.let { st.setSettings(pid, it.toString()) }
+            }
+        }
         Prefs(rc).touch(); p.resolve(true)
     } catch (e: Exception) { p.reject("E_IMPORT", e.message ?: "Invalid backup", e) }
 
     @ReactMethod fun clearUserDictionary(p: Promise) = try {
         SuggestEngine(rc).clearUser(); p.resolve(true)
     } catch (e: Exception) { p.reject("E_DICT", e) }
+
+    // ---- plugins (JavaScript files run by the keyboard, see plugins/README.md)
+    @ReactMethod fun getPlugins(p: Promise) = try {
+        val st = PluginStore(rc)
+        val a = JSONArray()
+        for (id in st.ids()) {
+            val o = JSONObject().put("id", id).put("enabled", st.enabled(id))
+                .put("settings", try { JSONObject(st.settings(id)) } catch (e: Exception) { JSONObject() })
+            val m = st.meta(id)
+            if (m != null) try { o.put("meta", JSONObject(m)) } catch (e: Exception) { }
+            a.put(o)
+        }
+        p.resolve(a.toString())
+    } catch (e: Exception) { p.reject("E_PLUGINS", e) }
+
+    @ReactMethod fun getPluginCode(id: String, p: Promise) = p.resolve(PluginStore(rc).code(id) ?: "")
+
+    @ReactMethod fun savePlugin(id: String, code: String, p: Promise) = try {
+        PluginStore(rc).save(id, code); p.resolve(true)
+    } catch (e: Exception) { p.reject("E_PLUGIN", e.message ?: "Invalid plugin", e) }
+
+    @ReactMethod fun deletePlugin(id: String, p: Promise) = try {
+        PluginStore(rc).delete(id); p.resolve(true)
+    } catch (e: Exception) { p.reject("E_PLUGIN", e) }
+
+    @ReactMethod fun setPluginEnabled(id: String, on: Boolean, p: Promise) = try {
+        PluginStore(rc).setEnabled(id, on); p.resolve(true)
+    } catch (e: Exception) { p.reject("E_PLUGIN", e) }
+
+    @ReactMethod fun setPluginSettings(id: String, json: String, p: Promise) = try {
+        PluginStore(rc).setSettings(id, json); p.resolve(true)
+    } catch (e: Exception) { p.reject("E_PLUGIN", e.message ?: "Invalid settings", e) }
+
+    @ReactMethod fun getBundledPlugins(p: Promise) = try {
+        p.resolve(PluginStore(rc).bundled().toString())
+    } catch (e: Exception) { p.reject("E_PLUGINS", e) }
+
+    @ReactMethod fun getPluginLog(p: Promise) = p.resolve(PluginLog.dump())
+
+    @ReactMethod fun clearPluginLog(p: Promise) { PluginLog.clear(); p.resolve(true) }
 
     @ReactMethod fun addListener(name: String) {}
     @ReactMethod fun removeListeners(count: Int) {}

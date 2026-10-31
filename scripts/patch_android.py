@@ -55,3 +55,30 @@ if "KeyboardPackage" not in t:
         sys.exit("Could not patch MainApplication.kt (template changed?) - add KeyboardPackage() manually")
     p.write_text(t.replace(marker, "add(com.openkeys.keyboard.KeyboardPackage())"), encoding="utf-8")
 print("patched manifest + MainApplication")
+
+# ---- Plugin system extras (idempotent) ------------------------------------
+import re
+s = mf.read_text(encoding="utf-8")
+changed = False
+if "android.permission.INTERNET" not in s:
+    s = s.replace("<application", '<uses-permission android:name="android.permission.INTERNET"/>\n    <application', 1)
+    changed = True
+# plugins may fetch plain http:// URLs: force cleartext on (the RN template may already set it via a placeholder)
+if "usesCleartextTraffic" in s:
+    s2 = re.sub(r'android:usesCleartextTraffic="[^"]*"', 'android:usesCleartextTraffic="true"', s)
+    changed = changed or s2 != s
+    s = s2
+else:
+    s = s.replace("<application", '<application android:usesCleartextTraffic="true"', 1)
+    changed = True
+if changed:
+    mf.write_text(s, encoding="utf-8")
+
+gr = pathlib.Path("android/app/build.gradle")
+g = gr.read_text(encoding="utf-8")
+if "quickjs-android" not in g:
+    g2 = re.sub(r"dependencies\s*\{", 'dependencies {\n    implementation("app.cash.quickjs:quickjs-android:0.9.2")', g, count=1)
+    if g2 == g:
+        sys.exit("Could not add the QuickJS dependency to android/app/build.gradle - add it manually")
+    gr.write_text(g2, encoding="utf-8")
+print("patched plugin runtime dependency + permissions")

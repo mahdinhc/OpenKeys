@@ -21,6 +21,7 @@ data class KeyDef(
  *   {mod=ctrl~Ctrl} sticky modifier (ctrl|alt|meta; tap = next key, double tap = lock)
  *   {key=ctrl+shift+z~Redo} / {key=DPAD_UP~Up} key event, optionally with modifiers
  *   {act=copy~Copy} copy | cut | paste | selectall
+ *   {js=plugin.action~Label} runs a plugin action (label defaults to the action's icon)
  *   ":w" after a special sets its width weight
  */
 object LayoutParser {
@@ -60,6 +61,10 @@ object LayoutParser {
                 "mod", "key", "act" -> {
                     val spec = param ?: ""
                     return KeyDef(if (spec.contains("~")) spec.substringAfter("~") else spec, "", none, w ?: 1f, name, spec.substringBefore("~"))
+                }
+                "js" -> {
+                    val spec = param ?: ""
+                    return KeyDef(if (spec.contains("~")) spec.substringAfter("~") else "", "", none, w ?: 1f, "js", spec.substringBefore("~"))
                 }
                 "stack" -> KeyDef("", "", (param ?: "").split(";").filter { it.isNotEmpty() }, w ?: 1f, "stack", null, span)
                 "lang" -> KeyDef("🌐", "", none, w ?: 1f, "lang")

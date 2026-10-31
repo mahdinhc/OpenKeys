@@ -26,6 +26,15 @@ input-type aware (no suggestions in passwords/email/URL, Enter action icon).
 
 GIF search / stickers are not included (they need a third-party GIF service and API key).
 
+## Plugins (JavaScript)
+Drop a single `.js` file into the app's **Plugins** tab (or install from a URL) and it can add toolbar buttons and layout keys,
+rewrite words as you commit them, add suggestions, react to typing, open panels, call HTTP APIs and keep settings.
+The keyboard embeds QuickJS (`app.cash.quickjs`) and runs all plugins on one background thread; the Kotlin side is
+`native/kotlin/PluginHost.kt` (+ `PluginPanel.kt`), the JS runtime is `native/assets/plugin_prelude.js`.
+See **`plugins/README.md`** for the API and the nine sample plugins (camel-case button, case tools, text expander, auto-pair,
+snippets, clean paste, online suggestions…). `node scripts/test_plugins.js` tests the runtime and samples without a device
+(it also runs in CI before the build).
+
 ## Languages
 Built-in: English (QWERTY), Bengali Phonetic (Avro-style), Bengali Bijoy-style. Add any language in **Languages → Add**.
 

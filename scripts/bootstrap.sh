@@ -30,6 +30,8 @@ mkdir -p "$PKG_DIR" android/app/src/main/res android/app/src/main/assets
 cp -f native/kotlin/*.kt "$PKG_DIR/"
 cp -rf native/res/. android/app/src/main/res/
 cp -rf native/assets/. android/app/src/main/assets/
+mkdir -p android/app/src/main/assets/plugins
+cp -f plugins/*.js android/app/src/main/assets/plugins/   # sample plugins offered in the app
 python3 scripts/patch_android.py
 
 # Legacy bridge modules are the most robust choice for the settings module.

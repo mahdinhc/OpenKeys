@@ -28,6 +28,9 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Test plugin runtime
+        run: node scripts/test_plugins.js
+
       # Generates the React Native Android scaffold (if android/ is missing),
       # copies the native keyboard sources into it and patches the manifest.
       - name: Bootstrap project

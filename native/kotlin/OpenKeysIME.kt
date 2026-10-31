@@ -16,6 +16,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.text.InputType
+import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
@@ -47,7 +48,15 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     private lateinit var emoji: EmojiPanel
     private lateinit var clip: ClipboardPanel
     private lateinit var piano: PianoPanel
+    private lateinit var pp: PluginPanel
+    private lateinit var plugins: PluginHost
     private var viewReady = false
+
+    // plugins
+    private var pluginTools: List<Pair<String, String>> = emptyList()
+    private var pluginSug: List<String> = emptyList()
+    private var sugSeq = 0
+    private var lastSugKey = ""
 
     private var theme = Theme.DARK
     private var enabled: List<LayoutDef> = emptyList()
@@ -72,6 +81,9 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     private val main = Handler(Looper.getMainLooper())
 
     private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> main.post { reloadAll() } }
+    private val pluginPrefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == "rev") main.post { safePlugins { plugins.reload() } }
+    }
     private val clipListener = ClipboardManager.OnPrimaryClipChangedListener { handleClipChanged() }
     private val voiceReceiver = object : BroadcastReceiver() {
         override fun onReceive(c: Context?, i: Intent?) {
@@ -107,6 +119,9 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         EmojiData.load(this)
         Thread { try { suggest.dict("en"); suggest.dict("bn") } catch (e: Exception) { } }.start()
         prefs.sp.registerOnSharedPreferenceChangeListener(prefListener)
+        plugins = PluginHost(this, pluginEnv)
+        PluginStore(this).sp.registerOnSharedPreferenceChangeListener(pluginPrefListener)
+        safePlugins { plugins.reload() }
         (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).addPrimaryClipChangedListener(clipListener)
         val f = IntentFilter(ACTION_VOICE)
         if (Build.VERSION.SDK_INT >= 33) registerReceiver(voiceReceiver, f, Context.RECEIVER_NOT_EXPORTED)
@@ -116,6 +131,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     override fun onDestroy() {
         DevLog.d(this, "IME", "onDestroy")
         prefs.sp.unregisterOnSharedPreferenceChangeListener(prefListener)
+        safePlugins { PluginStore(this).sp.unregisterOnSharedPreferenceChangeListener(pluginPrefListener); plugins.shutdown() }
         try { (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).removePrimaryClipChangedListener(clipListener) } catch (e: Exception) { }
         try { unregisterReceiver(voiceReceiver) } catch (e: Exception) { }
         suggest.flush(); TypeLog.flushNow(this)
@@ -190,12 +206,20 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             override fun onBackspace() = onDelete()
             override fun onEnter() = this@OpenKeysIME.onEnter()
         })
+        pp = PluginPanel(this, object : PluginPanel.Callback {
+            override fun onItem(plugin: String, index: Int, text: String?) {
+                if (text != null) { commitComposing(false); currentInputConnection?.commitText(text, 1) }
+                else plugins.runAsync("panel", JSONObject().put("plugin", plugin).put("index", index).put("ctx", pluginCtx(true)))
+            }
+            override fun onBack() = showKeyboard()
+        })
         content.addView(kb, FrameLayout.LayoutParams(mp, ViewGroup.LayoutParams.WRAP_CONTENT))
-        emoji.visibility = View.GONE; clip.visibility = View.GONE
+        emoji.visibility = View.GONE; clip.visibility = View.GONE; pp.visibility = View.GONE
         content.addView(emoji, FrameLayout.LayoutParams(mp, mp))
         content.addView(clip, FrameLayout.LayoutParams(mp, mp))
         piano.visibility = View.GONE
         content.addView(piano, FrameLayout.LayoutParams(mp, mp))
+        content.addView(pp, FrameLayout.LayoutParams(mp, mp))
         root.addView(bar, LinearLayout.LayoutParams(mp, dpi(48f)))
         root.addView(strip, LinearLayout.LayoutParams(mp, dpi(52f)))
         root.addView(content, LinearLayout.LayoutParams(mp, ViewGroup.LayoutParams.WRAP_CONTENT))
@@ -243,7 +267,8 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         root.setBackgroundColor(theme.bg)
         root.setPadding(0, 0, 0, dpi(prefs.int("bottomPad", 0).toFloat()))
         bar.setTools(topTools(), prefs.int("topIconSize", 50).coerceIn(30, 80) / 100f)
-        bar.applyTheme(theme); piano.applyTheme(theme); emoji.applyTheme(theme); clip.applyTheme(theme); strip.applyTheme(theme)
+        bar.setPluginTools(pluginTools)
+        bar.applyTheme(theme); piano.applyTheme(theme); emoji.applyTheme(theme); clip.applyTheme(theme); strip.applyTheme(theme); pp.applyTheme(theme)
         kb.apply {
             theme = this@OpenKeysIME.theme
             heightScale = prefs.int("heightScale", 100); fontScale = prefs.int("fontScale", 100)
@@ -269,6 +294,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         DevLog.d(this, "IME", "onStartInputView pkg=${info.packageName} inputType=0x${Integer.toHexString(info.inputType)} imeOptions=0x${Integer.toHexString(info.imeOptions)} restarting=$restarting viewReady=$viewReady")
         if (!viewReady) return   // the view failed to build (see errorView) - nothing to drive
         composing.setLength(0); lastCorrection = null; lastSwipe = null; lastWord = ""
+        pluginSug = emptyList(); lastSugKey = ""
         searching = false; query.setLength(0); strip.visibility = View.GONE; bar.setSearch(false, "")
         val cls = info.inputType and InputType.TYPE_MASK_CLASS
         val v = info.inputType and InputType.TYPE_MASK_VARIATION
@@ -289,6 +315,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         }
         (forced ?: enabled.getOrNull(idx))?.let { setLayout(it) }
         showKeyboard(); updateAutoCaps(); updateSuggestions()
+        if (plugins.hasHook("onStartInput")) plugins.runAsync("onStartInput", JSONObject().put("ctx", pluginCtx(false)))
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
@@ -315,7 +342,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     }
 
     private fun showKeyboard() {
-        piano.silence(); kb.visibility = View.VISIBLE; emoji.visibility = View.GONE; clip.visibility = View.GONE; piano.visibility = View.GONE
+        piano.silence(); kb.visibility = View.VISIBLE; emoji.visibility = View.GONE; clip.visibility = View.GONE; piano.visibility = View.GONE; pp.visibility = View.GONE
         bar.setMode("abc")
     }
 
@@ -325,9 +352,9 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         if (kbH == 0) kbH = dpi(260f)
         val pct = when (p) { emoji -> prefs.int("emojiHeight", 100); piano -> prefs.int("pianoHeight", 100); else -> 100 }.coerceIn(50, 170)
         p.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (kbH * pct / 100f).toInt())
-        kb.visibility = View.GONE; emoji.visibility = View.GONE; clip.visibility = View.GONE; piano.visibility = View.GONE
+        kb.visibility = View.GONE; emoji.visibility = View.GONE; clip.visibility = View.GONE; piano.visibility = View.GONE; pp.visibility = View.GONE
         p.visibility = View.VISIBLE
-        val pn = when (p) { emoji -> "emoji"; clip -> "clip"; else -> "piano" }
+        val pn = when (p) { emoji -> "emoji"; clip -> "clip"; pp -> "plugin"; else -> "piano" }
         DevLog.d(this, "IME", "showPanel $pn")
         bar.setMode(pn)
     }
@@ -413,6 +440,10 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             else if (translit == null && prefs.bool("autocorrect", true) && prefs.bool("suggestions", true)) {
                 dict?.correct(w, lastWord)?.let { c -> val fixed = matchCase(w, c); lastCorrection = w to fixed; w = fixed }
             }
+            if (plugins.hasHook("onCommit")) {
+                val r = plugins.runSync("onCommit", JSONObject().put("word", w).put("ctx", pluginCtx(false)))
+                if (r != null && r.has("text")) w = r.optString("text", w)
+            }
         }
         currentInputConnection?.commitText(w, 1)
         composing.setLength(0)
@@ -423,9 +454,19 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
 
     private fun isEmojiStr(s: String) = s.isNotEmpty() && !s[0].isLetterOrDigit() && s.codePointAt(0) > 0x2000
 
-    private fun updateSuggestions() {
+    private fun updateSuggestions(fromPlugin: Boolean = false) {
         if (!viewReady) return
         if (searching || noSuggest || !prefs.bool("suggestions", true)) { bar.setSuggestions(emptyList()); return }
+        if (!fromPlugin) {
+            val k = display() + "\u0000" + lastWord
+            if (k != lastSugKey) {
+                lastSugKey = k; pluginSug = emptyList()
+                if (plugins.hasHook("suggest")) {
+                    sugSeq++
+                    plugins.runAsync("suggest", JSONObject().put("seq", sugSeq).put("ctx", pluginCtx(false)))
+                }
+            }
+        }
         val d = dict
         val emojiOn = prefs.bool("emojiSuggest", true) && translit == null
         if (composing.isNotEmpty()) {
@@ -442,14 +483,24 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             comp.filter { it !in out }.forEach { if (out.size < 3) out.add(it) }
             if (out.size < 3 && fix == null && translit == null) d?.fixes(typed, 2, lastWord)?.forEach { if (it !in out && out.size < 3) out.add(it) }
             if (out.size < 3 && emo.isNotEmpty()) emo.forEach { if (it !in out && out.size < 3) out.add(it) }
-            bar.setSuggestions(out)
+            bar.setSuggestions(mergeSug(out))
         } else if (lastWord.isNotEmpty()) {
             val nx = d?.next(lastWord, 3) ?: emptyList()
             val emo = if (emojiOn) EmojiData.forWord(lastWord, 2) else emptyList()
             val out = arrayOf(nx.getOrNull(0) ?: "", emo.getOrNull(0) ?: nx.getOrNull(1) ?: "",
                 emo.getOrNull(1) ?: nx.getOrNull(if (emo.isEmpty()) 2 else 1) ?: "")
-            bar.setSuggestions(if (out.all { it.isEmpty() }) emptyList() else out.toList())
-        } else bar.setSuggestions(emptyList())
+            bar.setSuggestions(mergeSug(if (out.all { it.isEmpty() }) emptyList() else out.toList()))
+        } else bar.setSuggestions(mergeSug(emptyList()))
+    }
+
+    /** Plugin suggestions go right after the typed word (or first when nothing is being typed). */
+    private fun mergeSug(base: List<String>): List<String> {
+        if (pluginSug.isEmpty()) return base
+        val out = ArrayList<String>()
+        if (composing.isNotEmpty() && base.isNotEmpty()) out.add(base[0])
+        for (x in pluginSug) if (x.isNotEmpty() && x !in out && out.size < 3) out.add(x)
+        for (x in base) if (x.isNotEmpty() && x !in out && out.size < 3) out.add(x)
+        return out
     }
 
     private fun updateAutoCaps() {
@@ -470,6 +521,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         }
         val ic = currentInputConnection ?: return
         lastSwipe = null; lg(text)
+        if (plugins.hasHook("onText")) plugins.runAsync("onText", JSONObject().put("text", text).put("ctx", pluginCtx(false)))
         if (letterLayer && isWordInput(text)) {
             composing.append(text)
             ic.setComposingText(display(), 1)
@@ -495,7 +547,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             "clip" -> { clip.refresh(); showPanel(clip) }
             "piano" -> if (!searching) { piano.open(prefs); showPanel(piano) }
             "mic" -> startVoice()
-            else -> if (type.startsWith("act:")) doAct(type.substring(4))
+            else -> if (type.startsWith("act:")) doAct(type.substring(4)) else if (type.startsWith("js:")) runAction(type.substring(3))
         }
     }
 
@@ -644,6 +696,105 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
                 prefs.save(JSONObject(prefs.raw()).put("oneHanded", next).toString())
             }
             "settings" -> startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            else -> if (name.startsWith("js:")) runAction(name.substring(3))
+        }
+    }
+
+    // ------------------------------------------------------------ plugins
+    /** The plugin runtime must never take the keyboard down. */
+    private fun safePlugins(f: () -> Unit) {
+        try { f() } catch (e: Throwable) { DevLog.e(this, "Plugins", "plugin runtime error", e); PluginLog.add("host", "error", e.toString()) }
+    }
+
+    /** Toolbar button or {js=...} key. Takes a full snapshot (selection, text around the cursor) on the UI thread first. */
+    private fun runAction(key: String) {
+        if (searching) return
+        commitComposing(false)
+        plugins.runAsync("action", JSONObject().put("key", key).put("ctx", pluginCtx(true)))
+    }
+
+    /** Context handed to plugin hooks. Must be built on the main thread. */
+    private fun pluginCtx(full: Boolean): JSONObject {
+        val ic = currentInputConnection
+        val ei = currentInputEditorInfo
+        val o = JSONObject()
+        o.put("word", display())
+        o.put("prev", lastWord)
+        o.put("before", ic?.getTextBeforeCursor(100, 0)?.toString() ?: "")
+        o.put("package", ei?.packageName ?: "")
+        o.put("inputType", ei?.inputType ?: 0)
+        o.put("layout", layout?.id ?: "")
+        o.put("locale", layout?.locale ?: "")
+        o.put("noSuggest", noSuggest)
+        o.put("secure", isPasswordField)
+        if (full) {
+            o.put("after", ic?.getTextAfterCursor(100, 0)?.toString() ?: "")
+            o.put("selected", ic?.getSelectedText(0)?.toString() ?: "")
+        }
+        return o
+    }
+
+    private val pluginEnv = object : PluginEnv {
+        override fun commit(text: String, back: Int) {
+            commitComposing(false)
+            currentInputConnection?.commitText(text, 1)
+            if (back > 0) onCursorMove(-back)
+        }
+        override fun deleteAround(before: Int, after: Int) {
+            commitComposing(false)
+            currentInputConnection?.deleteSurroundingText(before, after)
+        }
+        override fun sendKey(name: String) {
+            commitComposing(false)
+            val code = when (name.lowercase()) {
+                "enter" -> KeyEvent.KEYCODE_ENTER
+                "del", "backspace" -> KeyEvent.KEYCODE_DEL
+                "forwarddel" -> KeyEvent.KEYCODE_FORWARD_DEL
+                "tab" -> KeyEvent.KEYCODE_TAB
+                "esc" -> KeyEvent.KEYCODE_ESCAPE
+                "left" -> KeyEvent.KEYCODE_DPAD_LEFT
+                "right" -> KeyEvent.KEYCODE_DPAD_RIGHT
+                "up" -> KeyEvent.KEYCODE_DPAD_UP
+                "down" -> KeyEvent.KEYCODE_DPAD_DOWN
+                "home" -> KeyEvent.KEYCODE_MOVE_HOME
+                "end" -> KeyEvent.KEYCODE_MOVE_END
+                else -> return
+            }
+            sendDownUpKeyEvents(code)
+        }
+        override fun editAction(name: String) {
+            commitComposing(false)
+            val id = when (name) {
+                "selectAll" -> android.R.id.selectAll
+                "copy" -> android.R.id.copy
+                "cut" -> android.R.id.cut
+                "paste" -> android.R.id.paste
+                else -> return
+            }
+            currentInputConnection?.performContextMenuAction(id)
+        }
+        override fun moveCursor(n: Int) { onCursorMove(n) }
+        override fun toast(text: String) { Toast.makeText(this@OpenKeysIME, text, Toast.LENGTH_SHORT).show() }
+        override fun haptic() { if (viewReady) kb.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP) }
+        override fun switchLayout(id: String) {
+            val i = enabled.indexOfFirst { it.id == id }
+            if (i >= 0) onSelectLayout(i)
+            else Toast.makeText(this@OpenKeysIME, "Layout \"$id\" is not enabled", Toast.LENGTH_SHORT).show()
+        }
+        override fun openPanel(plugin: String, spec: JSONObject) {
+            if (!viewReady) return
+            pp.show(plugin, spec)
+            this@OpenKeysIME.showPanel(pp)
+        }
+        override fun closePanel() { if (viewReady) showKeyboard() }
+        override fun pluginSuggestions(seq: Int, list: List<String>) {
+            if (seq != sugSeq) return
+            pluginSug = (pluginSug + list).distinct()
+            updateSuggestions(true)
+        }
+        override fun pluginsLoaded(tools: List<Pair<String, String>>) {
+            pluginTools = tools
+            if (viewReady) bar.setPluginTools(tools)
         }
     }
 

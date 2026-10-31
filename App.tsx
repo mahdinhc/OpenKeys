@@ -8,6 +8,7 @@ import Languages from './src/screens/Languages';
 import Appearance from './src/screens/Appearance';
 import Typing from './src/screens/Typing';
 import Piano from './src/screens/Piano';
+import Plugins from './src/screens/Plugins';
 import Developer from './src/screens/Developer';
 
 const BASE_TABS = [
@@ -16,6 +17,7 @@ const BASE_TABS = [
   ['look', 'Appearance', 'palette'],
   ['type', 'Typing', 'edit'],
   ['piano', 'Piano', 'piano'],
+  ['plug', 'Plugins', 'apps'],
 ] as const;
 const DEV_TAB = ['dev', 'Developer', 'settings'] as const;
 
@@ -40,6 +42,7 @@ export default function App() {
         {cfg && tab === 'look' && <Appearance cfg={cfg} update={update} />}
         {cfg && tab === 'type' && <Typing cfg={cfg} update={update} />}
         {cfg && tab === 'piano' && <Piano cfg={cfg} update={update} />}
+        {cfg && tab === 'plug' && <Plugins />}
         {cfg && cfg.devMode && tab === 'dev' && <Developer cfg={cfg} update={update} />}
       </View>
       <View style={{flexDirection: 'row', borderTopWidth: 1, borderColor: C.line, backgroundColor: C.card}}>

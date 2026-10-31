@@ -31,4 +31,14 @@ export const Native = {
   debugLogClear: (): Promise<boolean> => N.debugLogClear(),
   debugLogWrite: (msg: string): Promise<boolean> => N.debugLogWrite(msg),
   clearUserDictionary: (): Promise<boolean> => N.clearUserDictionary(),
+  // plugins
+  getPlugins: async (): Promise<any[]> => JSON.parse(await N.getPlugins()),
+  getPluginCode: (id: string): Promise<string> => N.getPluginCode(id),
+  savePlugin: (id: string, code: string): Promise<boolean> => N.savePlugin(id, code),
+  deletePlugin: (id: string): Promise<boolean> => N.deletePlugin(id),
+  setPluginEnabled: (id: string, on: boolean): Promise<boolean> => N.setPluginEnabled(id, on),
+  setPluginSettings: (id: string, values: any): Promise<boolean> => N.setPluginSettings(id, JSON.stringify(values)),
+  getBundledPlugins: async (): Promise<{id: string; code: string}[]> => JSON.parse(await N.getBundledPlugins()),
+  getPluginLog: (): Promise<string> => N.getPluginLog(),
+  clearPluginLog: (): Promise<boolean> => N.clearPluginLog(),
 };

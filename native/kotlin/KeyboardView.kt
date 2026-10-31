@@ -229,6 +229,8 @@ class KeyboardView(ctx: Context) : View(ctx) {
                     centered(c, "1 2", rc.centerX(), rc.centerY() - s2 * 0.62f, s2, theme.keyText, rc.width() * 0.6f)
                     centered(c, "3 4", rc.centerX(), rc.centerY() + s2 * 0.62f, s2, theme.keyText, rc.width() * 0.6f)
                 }
+                k.type == "js" ->
+                    centered(c, if (k.label.isNotEmpty()) k.label else PluginIcons.label(k.param ?: ""), rc.centerX(), rc.centerY(), fs * 0.7f, theme.keyText, rc.width() * 0.88f)
                 k.type == "mod" || k.type == "key" || k.type == "act" ->
                     centered(c, k.label, rc.centerX(), rc.centerY(), fs * 0.62f, if (k.type == "mod" && mods.getOrElse(modIdx(k.param)) { 0 } > 0) theme.accentText else theme.keyText, rc.width() * 0.88f)
                 k.type == "layer" -> centered(c, k.label, rc.centerX(), rc.centerY(), fs * 0.7f, theme.hint.let { if (isPill(k)) theme.hint else theme.keyText }, rc.width() * 0.8f)
@@ -568,6 +570,7 @@ class KeyboardView(ctx: Context) : View(ctx) {
                 "del", "key" -> {}
                 "mod" -> toggleMod(k.param)
                 "act" -> listener?.onSpecial("act:" + (k.param ?: ""))
+                "js" -> listener?.onSpecial("js:" + (k.param ?: ""))
                 "space" -> if (anyMod()) fireCode(KeyEvent.KEYCODE_SPACE) else listener?.onSpecial("space")
                 "enter" -> if (anyMod()) fireCode(KeyEvent.KEYCODE_ENTER) else listener?.onSpecial("enter")
                 else -> listener?.onSpecial(k.type)

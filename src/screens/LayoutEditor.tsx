@@ -110,7 +110,7 @@ export default function LayoutEditor({initial, cfg, update, onDone}: any) {
         <Field label="Number row (optional)" mono value={numRow} onChangeText={setNumRow} placeholder="১|1 ২|2 ৩|3 …" />
         <Text style={{color: C.sub, fontSize: 12, lineHeight: 18}}>
           a · a|à|á (long-press) · ক=\u0995\u09CD (label ক outputs ক্) · \u{'{1F600}'} any code point{'\n'}
-          {'{shift} {del} {enter} {space:4} {sym} {sym2} {abc} {lang} {emoji} {mic} {pad:0.5} {layer=name}'}{'\n'}
+          {'{shift} {del} {enter} {space:4} {sym} {sym2} {abc} {lang} {emoji} {mic} {pad:0.5} {layer=name} {js=plugin.action~Label}'}{'\n'}
           “shift” layer is optional: without it letters are upper-cased automatically.
         </Text>
       </Card>
