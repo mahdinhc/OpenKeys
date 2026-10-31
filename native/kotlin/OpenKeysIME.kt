@@ -31,6 +31,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.inputmethod.EditorInfoCompat
 import androidx.core.view.inputmethod.InputConnectionCompat
 import androidx.core.view.inputmethod.InputContentInfoCompat
+import org.json.JSONArray
 import org.json.JSONObject
 
 class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.Listener {
@@ -49,6 +50,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     private lateinit var clip: ClipboardPanel
     private lateinit var piano: PianoPanel
     private lateinit var pp: PluginPanel
+    private lateinit var cv: CanvasPanel
     private lateinit var plugins: PluginHost
     private var viewReady = false
 
@@ -213,6 +215,12 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             }
             override fun onBack() = showKeyboard()
         })
+        cv = CanvasPanel(this, object : CanvasPanel.Callback {
+            override fun onEvent(o: JSONObject) = plugins.runAsync("canvas", o)
+            override fun onBack() = showKeyboard()
+            override fun onInsert(file: String) = pasteImage(Clip(file, "image", file, false, System.currentTimeMillis()))
+        })
+        cv.visibility = View.GONE
         content.addView(kb, FrameLayout.LayoutParams(mp, ViewGroup.LayoutParams.WRAP_CONTENT))
         emoji.visibility = View.GONE; clip.visibility = View.GONE; pp.visibility = View.GONE
         content.addView(emoji, FrameLayout.LayoutParams(mp, mp))
@@ -220,6 +228,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         piano.visibility = View.GONE
         content.addView(piano, FrameLayout.LayoutParams(mp, mp))
         content.addView(pp, FrameLayout.LayoutParams(mp, mp))
+        content.addView(cv, FrameLayout.LayoutParams(mp, mp))
         root.addView(bar, LinearLayout.LayoutParams(mp, dpi(48f)))
         root.addView(strip, LinearLayout.LayoutParams(mp, dpi(52f)))
         root.addView(content, LinearLayout.LayoutParams(mp, ViewGroup.LayoutParams.WRAP_CONTENT))
@@ -268,7 +277,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         root.setPadding(0, 0, 0, dpi(prefs.int("bottomPad", 0).toFloat()))
         bar.setTools(topTools(), prefs.int("topIconSize", 50).coerceIn(30, 80) / 100f)
         bar.setPluginTools(pluginTools)
-        bar.applyTheme(theme); piano.applyTheme(theme); emoji.applyTheme(theme); clip.applyTheme(theme); strip.applyTheme(theme); pp.applyTheme(theme)
+        bar.applyTheme(theme); piano.applyTheme(theme); emoji.applyTheme(theme); clip.applyTheme(theme); strip.applyTheme(theme); pp.applyTheme(theme); cv.applyTheme(theme)
         kb.apply {
             theme = this@OpenKeysIME.theme
             heightScale = prefs.int("heightScale", 100); fontScale = prefs.int("fontScale", 100)
@@ -342,19 +351,22 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     }
 
     private fun showKeyboard() {
-        piano.silence(); kb.visibility = View.VISIBLE; emoji.visibility = View.GONE; clip.visibility = View.GONE; piano.visibility = View.GONE; pp.visibility = View.GONE
+        if (cv.visibility == View.VISIBLE) cv.closed()
+        piano.silence(); cv.visibility = View.GONE; kb.visibility = View.VISIBLE; emoji.visibility = View.GONE; clip.visibility = View.GONE; piano.visibility = View.GONE; pp.visibility = View.GONE
         bar.setMode("abc")
     }
 
     private var kbH = 0
     private fun showPanel(p: View) {
+        if (p !== cv && cv.visibility == View.VISIBLE) cv.closed()
+        cv.visibility = View.GONE
         if (kb.visibility == View.VISIBLE && kb.height > 0) kbH = kb.height
         if (kbH == 0) kbH = dpi(260f)
         val pct = when (p) { emoji -> prefs.int("emojiHeight", 100); piano -> prefs.int("pianoHeight", 100); else -> 100 }.coerceIn(50, 170)
         p.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (kbH * pct / 100f).toInt())
         kb.visibility = View.GONE; emoji.visibility = View.GONE; clip.visibility = View.GONE; piano.visibility = View.GONE; pp.visibility = View.GONE
         p.visibility = View.VISIBLE
-        val pn = when (p) { emoji -> "emoji"; clip -> "clip"; pp -> "plugin"; else -> "piano" }
+        val pn = when (p) { emoji -> "emoji"; clip -> "clip"; pp, cv -> "plugin"; else -> "piano" }
         DevLog.d(this, "IME", "showPanel $pn")
         bar.setMode(pn)
     }
@@ -787,6 +799,17 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             this@OpenKeysIME.showPanel(pp)
         }
         override fun closePanel() { if (viewReady) showKeyboard() }
+        override fun openCanvas(plugin: String, cid: Int, spec: JSONObject) {
+            if (!viewReady) return
+            cv.show(plugin, cid, spec)
+            this@OpenKeysIME.showPanel(cv)
+        }
+        override fun canvasOps(plugin: String, cid: Int, ops: JSONArray) {
+            if (viewReady && cv.plugin == plugin && cv.cid == cid) cv.apply(ops)
+        }
+        override fun canvasClose(plugin: String, cid: Int) {
+            if (viewReady && cv.visibility == View.VISIBLE && cv.plugin == plugin && cv.cid == cid) showKeyboard()
+        }
         override fun pluginSuggestions(seq: Int, list: List<String>) {
             if (seq != sugSeq) return
             pluginSug = (pluginSug + list).distinct()

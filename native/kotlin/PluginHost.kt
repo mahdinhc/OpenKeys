@@ -128,6 +128,9 @@ interface PluginEnv {
     fun switchLayout(id: String)
     fun openPanel(plugin: String, spec: JSONObject)
     fun closePanel()
+    fun openCanvas(plugin: String, cid: Int, spec: JSONObject)
+    fun canvasOps(plugin: String, cid: Int, ops: JSONArray)
+    fun canvasClose(plugin: String, cid: Int)
     fun pluginSuggestions(seq: Int, list: List<String>)
     /** [key, icon] pairs for the toolbar. */
     fun pluginsLoaded(tools: List<Pair<String, String>>)
@@ -295,6 +298,14 @@ class PluginHost(private val ctx: Context, private val env: PluginEnv) {
                 "panel" -> {
                     if (o.optBoolean("close")) main.post { env.closePanel() }
                     else { val p = o.getString("plugin"); val spec = o.getJSONObject("spec"); main.post { env.openPanel(p, spec) } }
+                }
+                "canvas" -> {
+                    val p = o.getString("plugin"); val cid = o.getInt("cid")
+                    when (o.getString("op")) {
+                        "open" -> { val spec = o.getJSONObject("spec"); main.post { env.openCanvas(p, cid, spec) } }
+                        "ops" -> { val ops = o.getJSONArray("ops"); main.post { env.canvasOps(p, cid, ops) } }
+                        "close" -> main.post { env.canvasClose(p, cid) }
+                    }
                 }
                 "suggest" -> {
                     val seq = o.getInt("seq")

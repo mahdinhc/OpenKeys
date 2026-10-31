@@ -54,6 +54,40 @@ or `{label, onTap() {...}}`. The panel closes after a tap unless `keepOpen: true
 
 **Globals:** `console.log/warn/error` (→ Plugins → *Show log*), `setTimeout`, `setInterval`, `clearTimeout`, `clearInterval`.
 
+## Canvas — `keys.canvas(spec)`
+A drawing surface that replaces the keyboard (like `keys.panel`). Ops are **batched** and painted onto a **persistent bitmap**, so you
+only send what changes. Coordinates and sizes are **dp**; colors are `#rgb`, `#rrggbb`, `#rrggbbaa`, `rgba(r,g,b,a)` or CSS names.
+Returns `c`. See `plugins/draw.js`.
+
+```js
+const c = keys.canvas({
+  title: "Demo", background: "#fff",
+  buttons: [{label: "Clear", onTap() { c.clear(); }}],       // scrolling button row; use c.buttons([...]) to update (active: true highlights)
+  onResize(w, h) { /* size known / changed; c.width, c.height */ },
+  onTouch(e) { /* e = {type: "down"|"move"|"up"|"cancel", id, x, y, pressure, stylus}  (multi-touch: one event per pointer id) */ },
+  onClose() { /* user left the canvas */ },
+});
+```
+| draw | |
+|---|---|
+| `c.line(x1,y1,x2,y2,o)` `c.rect(x,y,w,h,o)` `c.circle(x,y,r,o)` `c.oval(x,y,w,h,o)` `c.dot(x,y,o)` | shapes |
+| `c.path(points,o)` | `[[x,y],...]`, `[{x,y},...]` or flat `[x,y,...]`; `o.smooth`, `o.closed` |
+| `c.text(str,x,y,o)` | `o.size, color, align:"left\|center\|right", bold` (y = baseline) |
+| `o` (shapes) | `color`/`stroke`, `fill`, `width`, `radius` (rect), `cap` (`round\|butt\|square`), `erase: true` (cuts transparent holes) |
+| `c.defaults` | `{color, width, size}` used when `o` omits them |
+| `c.clear()` `c.background(color)` `c.title(t)` | |
+| `c.save()` / `c.restore()` | bitmap snapshot stack (30) → cheap **undo** |
+| `c.insertImage({transparent})` | PNG of the canvas into the text field (copied to clipboard if the app refuses images) |
+| `c.flush()` `c.close()` `c.closed` | ops are flushed automatically when your callback returns; `flush()` is only needed inside long loops |
+
+Animation: draw from `setInterval`. Only one canvas is open at a time; opening another (or a panel) calls the old one's `onClose`.
+
+## Plugins talking to each other
+* `plugin({ api: {...} })` + `keys.use("other-id")` → that plugin's `api` (or `null`). Load order is alphabetical, so call `keys.use` at run time or in `onLoad`.
+* `onLoad()` hook: runs once after **all** plugins are loaded.
+* `keys.on(event, fn)` · `keys.off(event, fn?)` · `keys.emit(event, data)` — event bus across plugins.
+* `keys.run("plugin.action")` — run another action (toolbar/actions entry) directly.
+
 ## Behaviour worth knowing
 
 * All plugins share one JS engine on a background thread. Typing never waits on it, except `onCommit` (30 ms cap).
@@ -67,4 +101,4 @@ or `{label, onTap() {...}}`. The panel closes after a tap unless `keepOpen: true
 ## Samples
 `hello` (template) · `camel-case` (🐫 button) · `case-tools` (Aa panel: UPPER/lower/Title/snake/kebab/camel/Pascal) ·
 `text-expander` (`zzdate`, `zztime`, `zzuuid`, `zzsig`) · `auto-pair` (brackets/quotes) · `snippets` (📝 panel) ·
-`word-count` · `clean-paste` (🧹 strips tracking params) · `online-suggest` (Datamuse completions via `keys.http`)
+`word-count` · `clean-paste` (🧹 strips tracking params) · `online-suggest` (Datamuse completions via `keys.http`) · `draw` (🎨 drawing pad built on `keys.canvas`)

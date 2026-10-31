@@ -234,4 +234,87 @@ test('syntactically broken plugin source is rejected at evaluate time (what Kotl
   assert.throws(() => vm.runInContext(wrap('broken', 'plugin({ name: '), sb));
 });
 
+
+// ---------------------------------------------------------------- canvas + cross-plugin
+test('keys.canvas: open, batched ops, touch/resize/button routing, close', () => {
+  const rt = makeRuntime({cv: `plugin({name:"C", toolbar:[{run(){
+    globalThis.log = [];
+    const c = keys.canvas({title:"T", onResize(w,h){ log.push('r'+w+'x'+h); c.rect(0,0,w,h,{fill:'#fff'}); },
+      onTouch(e){ log.push(e.type+e.x); c.line(0,0,e.x,e.y); c.dot(e.x,e.y); },
+      onClose(){ log.push('closed'); },
+      buttons:[{label:"B", onTap(){ log.push('btn'); }}]});
+    globalThis.c = c;
+  }}]});`});
+  rt.reset();
+  rt.dispatch('action', {key: 'cv.run', ctx: {}});
+  const open = rt.take('canvas');
+  assert.strictEqual(open[0].op, 'open');
+  assert.strictEqual(open[1].op, 'ops');                       // buttons, flushed when the hook returned
+  assert.strictEqual(open[1].ops[0].o, 'ui');
+  const cid = open[0].cid;
+  rt.dispatch('canvas', {plugin: 'cv', cid, size: {w: 300, h: 150}});
+  let ops = rt.take('canvas')[0].ops;
+  assert.deepStrictEqual([ops[0].o, ops[0].w, ops[0].f], ['rect', 300, '#fff']);
+  rt.dispatch('canvas', {plugin: 'cv', cid, pts: [{t: 'down', id: 0, x: 5, y: 6, p: 1}, {t: 'move', id: 0, x: 7, y: 8, p: 1}]});
+  ops = rt.take('canvas')[0].ops;                               // 2 events -> ONE batch of 4 ops
+  assert.deepStrictEqual(ops.map((o) => o.o), ['line', 'path', 'line', 'path']);
+  assert.deepStrictEqual(ops[1].pts, [5, 6]);
+  rt.dispatch('canvas', {plugin: 'cv', cid, btn: 0});
+  rt.dispatch('canvas', {plugin: 'cv', cid: cid + 99, btn: 0});  // stale canvas id is ignored
+  rt.dispatch('canvas', {plugin: 'cv', cid, closed: true});
+  rt.dispatch('canvas', {plugin: 'cv', cid, pts: [{t: 'down', id: 0, x: 1, y: 1, p: 1}]});
+  assert.strictEqual(rt.take('canvas').length, 0);              // nothing after close
+  assert.strictEqual(vm.runInContext('log.join()', rt.sandbox), ['r300x150', 'down5', 'move7', 'btn', 'closed'].join());
+});
+
+test('keys.canvas: opening a second canvas closes the first; save/restore/text/erase ops', () => {
+  const rt = makeRuntime({cv: `plugin({name:"C", toolbar:[{run(){
+    const c = keys.canvas({onClose(){ keys.toast('old closed'); }});
+    c.save(); c.text("hi", 1, 2, {size: 20, align: 'center'}); c.line(0,0,1,1,{erase:true,width:9}); c.restore();
+    c.path([[0,0],[1,1],{x:2,y:2}], {smooth:true, closed:true, fill:'red'});
+  }}]});`});
+  rt.reset();
+  rt.dispatch('action', {key: 'cv.run', ctx: {}});
+  const ops = rt.take('canvas').find((c) => c.op === 'ops').ops;
+  assert.deepStrictEqual(ops.map((o) => o.o), ['save', 'text', 'line', 'restore', 'path']);
+  assert.strictEqual(ops[1].size, 20);
+  assert.strictEqual(ops[2].erase, 1);
+  assert.deepStrictEqual(ops[4].pts, [0, 0, 1, 1, 2, 2]);
+  assert.strictEqual(ops[4].f, 'red');
+  assert.strictEqual(ops[4].s, undefined);                      // fill only -> no outline
+  rt.dispatch('action', {key: 'cv.run', ctx: {}});              // reopen
+  assert.ok(rt.take('toast').some((t) => t.text === 'old closed'));
+});
+
+test('draw plugin: pen draws with undo snapshot, eraser erases, send inserts the image', () => {
+  const rt = makeRuntime({draw: load('draw')});
+  rt.reset();
+  rt.dispatch('action', {key: 'draw.open', ctx: {}});
+  const cid = rt.take('canvas')[0].cid;
+  rt.dispatch('canvas', {plugin: 'draw', cid, pts: [{t: 'down', id: 0, x: 5, y: 6, p: 1}, {t: 'move', id: 0, x: 9, y: 9, p: 1}, {t: 'up', id: 0, x: 9, y: 9, p: 1}]});
+  let ops = rt.take('canvas')[0].ops;
+  assert.deepStrictEqual(ops.map((o) => o.o), ['save', 'path', 'line']);
+  assert.strictEqual(ops[2].s, '#000000');
+  rt.dispatch('canvas', {plugin: 'draw', cid, btn: 1});          // 🧽
+  rt.reset();
+  rt.dispatch('canvas', {plugin: 'draw', cid, pts: [{t: 'down', id: 0, x: 1, y: 1, p: 1}, {t: 'move', id: 0, x: 2, y: 2, p: 1}, {t: 'up', id: 0, x: 2, y: 2, p: 1}]});
+  ops = rt.take('canvas')[0].ops;
+  assert.ok(ops.filter((o) => o.o === 'line').every((o) => o.erase === 1 && o.lw === 12));
+  rt.reset();
+  rt.dispatch('canvas', {plugin: 'draw', cid, btn: 16});         // 📤 (last button)
+  assert.strictEqual(rt.take('canvas')[0].ops[0].o, 'insert');
+});
+
+test('keys.use / api / onLoad / on / emit / run', () => {
+  const rt = makeRuntime({
+    a: 'plugin({name:"A", api:{twice(x){return x*2;}}, onLoad(){ keys.on("ping", (d) => keys.toast("got " + d)); }});',
+    b: 'plugin({name:"B", onLoad(){ keys.toast("api " + keys.use("a").twice(21)); }, toolbar:[{id:"go", run(){ keys.emit("ping", 7); keys.run("b.other"); }}], actions:[{id:"other", run(){ keys.toast("other"); }}]});',
+  });
+  rt.meta();                                                    // the host calls this once after loading -> onLoad
+  assert.ok(rt.take('toast').some((t) => t.text === 'api 42'));
+  rt.dispatch('action', {key: 'b.go', ctx: {}});
+  assert.deepStrictEqual(rt.take('toast').map((t) => t.text), ['got 7', 'other']);
+  assert.strictEqual(vm.runInContext('1', rt.sandbox), 1);
+});
+
 console.log('\n' + passed + ' tests passed');
