@@ -120,11 +120,14 @@ class PluginStore(private val ctx: Context) {
 interface PluginEnv {
     fun commit(text: String, back: Int)
     fun deleteAround(before: Int, after: Int)
-    fun sendKey(name: String)
+    fun sendKey(name: String, mods: JSONObject?)
     fun editAction(name: String)
     fun moveCursor(n: Int)
     fun toast(text: String)
     fun haptic()
+    fun vibrate(ms: Int)
+    fun openUrl(url: String)
+    fun themeJson(): String
     fun switchLayout(id: String)
     fun openPanel(plugin: String, spec: JSONObject)
     fun closePanel()
@@ -289,7 +292,22 @@ class PluginHost(private val ctx: Context, private val env: PluginEnv) {
             when (fn) {
                 "commit" -> { val t = o.getString("text"); val b = o.optInt("back", 0); main.post { env.commit(t, b) } }
                 "delete" -> { val b = o.optInt("before", 0); val a = o.optInt("after", 0); main.post { env.deleteAround(b, a) } }
-                "key" -> { val n = o.getString("name"); main.post { env.sendKey(n) } }
+                "key" -> { val n = o.getString("name"); val m = o.optJSONObject("mods"); main.post { env.sendKey(n, m) } }
+                "vibrate" -> { val ms = o.optInt("ms", 20); main.post { env.vibrate(ms) } }
+                "openUrl" -> { val u = o.getString("url"); main.post { env.openUrl(u) } }
+                "theme" -> return env.themeJson()
+                "storeKeys" -> {
+                    val pre = "s:" + o.getString("plugin") + ":"
+                    val a = JSONArray(); for (k in store.data.all.keys) if (k.startsWith(pre)) a.put(k.substring(pre.length)); return a.toString()
+                }
+                "storeClear" -> { val pre = "s:" + o.getString("plugin") + ":"; val ed = store.data.edit(); for (k in store.data.all.keys) if (k.startsWith(pre)) ed.remove(k); ed.apply() }
+                "measure" -> {
+                    val face = when (o.optString("font")) { "serif" -> android.graphics.Typeface.SERIF; "mono" -> android.graphics.Typeface.MONOSPACE; else -> android.graphics.Typeface.DEFAULT }
+                    val st = (if (o.optBoolean("bold")) android.graphics.Typeface.BOLD else 0) or (if (o.optBoolean("italic")) android.graphics.Typeface.ITALIC else 0)
+                    val p = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+                    p.textSize = o.optDouble("size", 16.0).toFloat(); p.typeface = if (st == 0) face else android.graphics.Typeface.create(face, st)
+                    return p.measureText(o.optString("text")).toString()
+                }
                 "edit" -> { val n = o.getString("name"); main.post { env.editAction(n) } }
                 "move" -> { val n = o.optInt("n", 0); main.post { env.moveCursor(n) } }
                 "toast" -> { val t = o.optString("text"); main.post { env.toast(t) } }

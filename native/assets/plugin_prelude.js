@@ -115,62 +115,125 @@
     pts.forEach((p) => { if (Array.isArray(p)) o.push(+p[0], +p[1]); else o.push(+p.x, +p.y); });
     return o;
   };
-  const openCanvas = (rec, spec) => {
+  const val = (v) => (v !== null && typeof v === 'object') ? v : String(v);
+  const norm = (st) => (st || []).map((x, i, arr) => Array.isArray(x) ? [+x[0], String(x[1])] : [arr.length > 1 ? i / (arr.length - 1) : 0, String(x)]);
+  const openCanvas = (rec, spec, t) => {
     spec = spec || {};
     if (activeCv) endCv(activeCv, true);
-    const cv = {cid: ++cvSeq, rec: rec, spec: spec, q: [], cbs: [], closed: false, w: 0, h: 0};
+    const cv = {cid: ++cvSeq, rec: rec, spec: spec, q: [], cbs: [], closed: false, w: 0, h: 0, snaps: {}, snapSeq: 0};
     activeCv = cv;
     const D = {color: '#000000', width: 2, size: 16};
     const push = (o) => { if (!cv.closed) cv.q.push(o); };
-    const shape = (t, g, o) => {
+    const shape = (k, g, o) => {
       o = o || {};
-      const op = Object.assign({o: t}, g);
+      const op = Object.assign({o: k}, g);
       const stroke = o.stroke !== undefined ? o.stroke : o.color;
-      if (o.fill !== undefined) op.f = String(o.fill);
-      if (stroke !== undefined) op.s = String(stroke); else if (o.fill === undefined) op.s = D.color;
+      if (o.fill !== undefined) op.f = val(o.fill);
+      if (stroke !== undefined) op.s = val(stroke); else if (o.fill === undefined) op.s = D.color;
       op.lw = o.width !== undefined ? +o.width : D.width;
       if (o.erase) op.erase = 1;
-      if (o.cap) op.cap = o.cap;
+      ['cap', 'join', 'alpha', 'blend', 'dash', 'shadow'].forEach((n) => { if (o[n] !== undefined) op[n] = o[n]; });
       if (o.radius) op.r = +o.radius;
       if (o.closed) op.closed = 1;
       if (o.smooth) op.smooth = 1;
       push(op);
     };
+    const tf = (k, g) => push(Object.assign({o: 'tf', k: k}, g));
     const setButtons = (list) => {
       cv.cbs = [];
       push({o: 'ui', buttons: (list || []).map((b, i) => { cv.cbs[i] = b.onTap; return {label: String(b.label), active: !!b.active}; })});
     };
+    const rad = (deg) => deg * Math.PI / 180;
     const api = {
       defaults: D,
       get width() { return cv.w; },
       get height() { return cv.h; },
       get closed() { return cv.closed; },
+      // --- basics
       clear: () => push({o: 'clear'}),
       background: (c) => push({o: 'bg', c: String(c)}),
       line: (x1, y1, x2, y2, o) => shape('line', {x1: x1, y1: y1, x2: x2, y2: y2}, o),
       rect: (x, y, w, h, o) => shape('rect', {x: x, y: y, w: w, h: h}, o),
       circle: (x, y, r, o) => shape('circle', {x: x, y: y, r: r}, o),
       oval: (x, y, w, h, o) => shape('oval', {x: x, y: y, w: w, h: h}, o),
+      arc: (x, y, w, h, start, sweep, o) => shape('arc', {x: x, y: y, w: w, h: h, a0: start, sweep: sweep, center: o && o.pie ? 1 : 0}, o),
       path: (pts, o) => shape('path', {pts: flat(pts)}, o),
       dot: (x, y, o) => shape('path', {pts: [x, y]}, o),
-      text: (t, x, y, o) => {
+      // quadratic (6 numbers) or cubic (8 numbers) bezier curve: bezier(x0,y0,cx,cy,x1,y1) / bezier(x0,y0,c1x,c1y,c2x,c2y,x1,y1)
+      bezier: (...a) => { const o = (a.length === 7 || a.length === 9) ? a.pop() : undefined; shape('bezier', {pts: a.map(Number)}, o); },
+      polygon: (cx, cy, r, sides, o) => {
+        const p = [], rot = rad(((o && o.rotation) || 0) - 90);
+        for (let i = 0; i < sides; i++) p.push(cx + r * Math.cos(rot + 2 * Math.PI * i / sides), cy + r * Math.sin(rot + 2 * Math.PI * i / sides));
+        shape('path', {pts: p}, Object.assign({closed: true}, o));
+      },
+      star: (cx, cy, r1, r2, n, o) => {
+        const p = [], rot = rad(((o && o.rotation) || 0) - 90);
+        for (let i = 0; i < n * 2; i++) { const r = i % 2 ? r2 : r1, a = rot + Math.PI * i / n; p.push(cx + r * Math.cos(a), cy + r * Math.sin(a)); }
+        shape('path', {pts: p}, Object.assign({closed: true}, o));
+      },
+      clearRect: (x, y, w, h) => shape('rect', {x: x, y: y, w: w, h: h}, {fill: '#000', erase: true}),
+      fillAll: (c, o) => shape('rect', {x: -5000, y: -5000, w: 10000, h: 10000}, Object.assign({fill: c}, o)),
+      grid: (step, o) => {
         o = o || {};
-        const op = {o: 'text', t: String(t), x: x, y: y, size: o.size || D.size, c: String(o.color || o.fill || D.color)};
-        if (o.align) op.align = o.align;
+        const W = cv.w || 600, H = cv.h || 300;
+        for (let x = 0; x <= W; x += step) shape('line', {x1: x, y1: 0, x2: x, y2: H}, Object.assign({width: 0.5, color: '#00000030'}, o));
+        for (let y = 0; y <= H; y += step) shape('line', {x1: 0, y1: y, x2: W, y2: y}, Object.assign({width: 0.5, color: '#00000030'}, o));
+      },
+      // --- text.   o: size, color|fill, stroke, width, align, bold, italic, font: "sans"|"serif"|"mono", shadow, alpha ...
+      text: (str, x, y, o) => {
+        o = o || {};
+        const op = {o: 'text', t: String(str), x: x, y: y, size: o.size || D.size, c: val(o.color || o.fill || D.color)};
+        if (o.stroke !== undefined) { op.s = val(o.stroke); op.lw = o.width || 1; }
+        ['align', 'font', 'alpha', 'blend', 'shadow'].forEach((n) => { if (o[n] !== undefined) op[n] = o[n]; });
         if (o.bold) op.bold = 1;
+        if (o.italic) op.italic = 1;
         if (o.erase) op.erase = 1;
         push(op);
       },
+      measureText: (str, size, o) => {
+        o = o || {};
+        return parseFloat(H.call('measure', JSON.stringify({text: String(str), size: size || D.size, bold: !!o.bold, italic: !!o.italic, font: o.font}))) || 0;
+      },
+      // --- gradients: use as fill / stroke / text color
+      linearGradient: (x1, y1, x2, y2, stops) => ({type: 'linear', x1: x1, y1: y1, x2: x2, y2: y2, stops: norm(stops)}),
+      radialGradient: (x, y, r, stops) => ({type: 'radial', x: x, y: y, r: r, stops: norm(stops)}),
+      sweepGradient: (x, y, stops) => ({type: 'sweep', x: x, y: y, stops: norm(stops)}),
+      // --- transforms + clipping (affect everything drawn afterwards)
+      translate: (x, y) => tf('translate', {x: x, y: y}),
+      rotate: (deg, x, y) => tf('rotate', x === undefined ? {a: deg} : {a: deg, x: x, y: y}),
+      scale: (sx, sy, px, py) => tf('scale', px === undefined ? {x: sx, y: sy === undefined ? sx : sy} : {x: sx, y: sy, px: px, py: py}),
+      resetTransform: () => tf('reset'),
+      push: () => tf('push'),      // save transform + clip
+      pop: () => tf('pop'),        // restore them
+      clipRect: (x, y, w, h) => tf('clipRect', {x: x, y: y, w: w, h: h}),
+      clipCircle: (x, y, r) => tf('clipCircle', {x: x, y: y, r: r}),
+      clipReset: () => tf('clipReset'),
+      // --- pixels
+      flood: (x, y, color, tolerance) => push({o: 'flood', x: x, y: y, c: String(color), tol: tolerance === undefined ? 24 : tolerance}),   // bucket fill
+      image: (src, x, y, w, h, o) => push({o: 'image', src: String(src), x: x, y: y, w: w, h: h, alpha: o && o.alpha}),   // data: URL, base64 or http(s) URL
       save: () => push({o: 'save'}),        // snapshot the bitmap (max 30) ...
       restore: () => push({o: 'restore'}),  // ... and go back to the latest one (undo)
-      title: (t) => push({o: 'title', t: String(t)}),
-      buttons: setButtons,
+      snapshot: (cb, o) => { const id = ++cv.snapSeq; cv.snaps[id] = cb; push({o: 'snap', id: id, max: (o && o.max) || 0, transparent: !!(o && o.transparent)}); },  // cb(dataUrl)
       insertImage: (opt) => push({o: 'insert', transparent: !!(opt && opt.transparent)}),
+      // --- UI / lifecycle
+      title: (str) => push({o: 'title', t: String(str)}),
+      buttons: setButtons,
+      toolbar: (show) => push({o: 'bar', show: show !== false}),
+      animate: (fn, fps) => {
+        let last = Date.now();
+        const id = t.setInterval(() => {
+          if (cv.closed) { t.clearInterval(id); return; }
+          const n = Date.now(), dt = n - last; last = n;
+          fn(dt, api);
+        }, Math.max(10, Math.round(1000 / (fps || 30))));
+        return () => t.clearInterval(id);
+      },
       flush: () => flushCv(cv),
       close: () => { if (activeCv === cv) { host('canvas', {op: 'close', plugin: rec.id, cid: cv.cid}); endCv(cv, false); } },
     };
-    host('canvas', {op: 'open', plugin: rec.id, cid: cv.cid, spec: {title: spec.title || '', bg: spec.background || spec.bg || '#ffffff'}});
+    host('canvas', {op: 'open', plugin: rec.id, cid: cv.cid, spec: {title: spec.title || '', bg: spec.background || spec.bg || '#ffffff', height: spec.height || 100}});
     if (spec.buttons) setButtons(spec.buttons);
+    if (spec.toolbar === false) api.toolbar(false);
     return api;
   };
 
@@ -202,7 +265,12 @@
       deleteBefore: (n) => host('delete', {before: n | 0, after: 0}),
       deleteAfter: (n) => host('delete', {before: 0, after: n | 0}),
       replaceBefore: (n, s) => { host('delete', {before: n | 0, after: 0}); host('commit', {text: String(s), back: 0}); },
-      sendKey: (name) => host('key', {name: String(name)}),
+      sendKey: (name, mods) => host('key', {name: String(name), mods: mods || null}),   // mods: {ctrl, alt, shift, meta}
+      replaceAll: (s) => { host('edit', {name: 'selectAll'}); host('commit', {text: String(s), back: 0}); },
+      suggest: (list) => host('suggest', {seq: -1, plugin: id, list: (Array.isArray(list) ? list : []).map(String).slice(0, 5)}),
+      theme: () => { try { return JSON.parse(H.call('theme', '')); } catch (e) { return {}; } },
+      vibrate: (ms) => host('vibrate', {ms: ms === undefined ? 20 : ms | 0}),
+      openUrl: (url) => host('openUrl', {url: String(url)}),
       moveCursor: (n) => host('move', {n: n | 0}),
       selectAll: edit('selectAll'), copy: edit('copy'), cut: edit('cut'), paste: edit('paste'),
       // --- reading text (snapshot taken when the hook/action started)
@@ -216,7 +284,7 @@
       haptic: () => host('haptic'),
       switchLayout: (lid) => host('layout', {id: String(lid)}),
       panel: (spec) => openPanel(rec, spec),
-      canvas: (spec) => openCanvas(rec, spec),
+      canvas: (spec) => openCanvas(rec, spec, t),
       on: busOn(rec), off: busOff(rec), emit: busEmit, use: useApi, run: runAction,
       closePanel: () => host('panel', {plugin: id, close: true}),
       clipboard: {
@@ -231,6 +299,8 @@
         },
         set: (k, v) => host('storeSet', {plugin: id, key: String(k), value: v === undefined ? 'null' : JSON.stringify(v)}),
         remove: (k) => host('storeDel', {plugin: id, key: String(k)}),
+        keys: () => { try { return JSON.parse(H.call('storeKeys', JSON.stringify({plugin: id}))); } catch (e) { return []; } },
+        clear: () => host('storeClear', {plugin: id}),
       },
       settings: rec.settings,
       http: http,
@@ -261,7 +331,7 @@
       });
       (rec.def.toolbar || []).forEach((it) => addAction(it, true));
       (rec.def.actions || []).forEach((it) => addAction(it, false));
-      ['onCommit', 'onText', 'suggest', 'onStartInput'].forEach((n) => { if (typeof rec.def[n] === 'function') rec.hooks.push(n); });
+      ['onCommit', 'onText', 'suggest', 'onStartInput', 'onSelection', 'onFinishInput'].forEach((n) => { if (typeof rec.def[n] === 'function') rec.hooks.push(n); });
     };
 
     try {
@@ -348,6 +418,23 @@
     });
   };
 
+  // selection/cursor moved: a = {start, end, ctx}
+  h.onSelection = (a) => {
+    active().forEach((r) => {
+      if (typeof r.def.onSelection !== 'function') return;
+      setCtx(a.ctx);
+      try { r.def.onSelection(a.ctx, a.start, a.end); } catch (e) { fail(r, 'onSelection', e); }
+    });
+  };
+
+  h.onFinishInput = (a) => {
+    active().forEach((r) => {
+      if (typeof r.def.onFinishInput !== 'function') return;
+      setCtx(a.ctx);
+      try { r.def.onFinishInput(a.ctx); } catch (e) { fail(r, 'onFinishInput', e); }
+    });
+  };
+
   // toolbar button / layout key pressed. key = "<pluginId>.<actionId>"
   h.action = (a) => {
     const dot = String(a.key).indexOf('.');
@@ -385,6 +472,7 @@
           try { spec.onTouch({type: p.t, id: p.id, x: p.x, y: p.y, pressure: p.p, stylus: !!p.s}); } catch (e) { fail(cv.rec, 'canvas onTouch', e); }
         });
       }
+      if (a.snap !== undefined) { const f = cv.snaps[a.snap]; delete cv.snaps[a.snap]; if (typeof f === 'function') f(a.data); }
       if (a.btn !== undefined) { const f = cv.cbs[a.btn]; if (typeof f === 'function') f(); }
       if (a.closed) endCv(cv, true);
     } catch (e) { fail(cv.rec, 'canvas', e); }

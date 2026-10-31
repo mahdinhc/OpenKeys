@@ -71,6 +71,7 @@ class KeyboardView(ctx: Context) : View(ctx) {
     var showHints = true; var popupPreview = true; var swipeOn = true
     var hapticOn = true; var hapticMs = 12; var soundOn = false; var longPressMs = 350
     var numberRow = true; var oneHanded = "off"
+    var keyAlpha = 100; var keyBorder = 0; var keyShadow = true
     var numAlts: Map<String, List<String>> = emptyMap()   // digit -> long-press alternatives (customisable in settings)
     var typeface: Typeface? = null
         set(v) { field = v; txt.typeface = v ?: Typeface.DEFAULT; invalidate() }
@@ -198,8 +199,11 @@ class KeyboardView(ctx: Context) : View(ctx) {
             var pressed = false
             for (i in 0 until ptrs.size()) if (ptrs.valueAt(i).cell === cell) pressed = true
             val rad = if (isPill(k)) min(rc.width(), rc.height()) / 2 else r
-            fill.color = 0x38000000
-            c.drawRoundRect(rc.left, rc.top + sh, rc.right, rc.bottom + sh, rad, rad, fill)
+            if (keyShadow && keyAlpha > 30) {
+                fill.color = 0x38000000
+                fill.alpha = fill.alpha * keyAlpha / 100
+                c.drawRoundRect(rc.left, rc.top + sh, rc.right, rc.bottom + sh, rad, rad, fill)
+            }
             fill.color = when {
                 k.type == "enter" -> theme.accent
                 k.type == "mod" && mods.getOrElse(modIdx(k.param)) { 0 } > 0 -> theme.accent
@@ -207,7 +211,12 @@ class KeyboardView(ctx: Context) : View(ctx) {
                 k.type == "char" || k.type == "space" -> theme.key
                 else -> theme.special
             }
+            fill.alpha = fill.alpha * keyAlpha / 100
             c.drawRoundRect(rc, rad, rad, fill)
+            if (keyBorder > 0) {
+                stroke.color = theme.hint; stroke.alpha = 120; stroke.strokeWidth = context.dpf(keyBorder.toFloat())
+                c.drawRoundRect(rc, rad, rad, stroke)
+            }
             val fg = if (k.type == "enter") theme.accentText else theme.keyText
             val icon = keyIcon(k)
             when {

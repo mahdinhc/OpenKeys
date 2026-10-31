@@ -295,14 +295,28 @@ test('draw plugin: pen draws with undo snapshot, eraser erases, send inserts the
   let ops = rt.take('canvas')[0].ops;
   assert.deepStrictEqual(ops.map((o) => o.o), ['save', 'path', 'line']);
   assert.strictEqual(ops[2].s, '#000000');
-  rt.dispatch('canvas', {plugin: 'draw', cid, btn: 1});          // 🧽
+  rt.dispatch('canvas', {plugin: 'draw', cid, btn: 2});          // 🧽 (tool index 2)
   rt.reset();
   rt.dispatch('canvas', {plugin: 'draw', cid, pts: [{t: 'down', id: 0, x: 1, y: 1, p: 1}, {t: 'move', id: 0, x: 2, y: 2, p: 1}, {t: 'up', id: 0, x: 2, y: 2, p: 1}]});
   ops = rt.take('canvas')[0].ops;
   assert.ok(ops.filter((o) => o.o === 'line').every((o) => o.erase === 1 && o.lw === 12));
+  rt.dispatch('canvas', {plugin: 'draw', cid, btn: 3});          // 🪣 fill tool
   rt.reset();
-  rt.dispatch('canvas', {plugin: 'draw', cid, btn: 16});         // 📤 (last button)
+  rt.dispatch('canvas', {plugin: 'draw', cid, pts: [{t: 'down', id: 0, x: 10, y: 20, p: 1}, {t: 'up', id: 0, x: 10, y: 20, p: 1}]});
+  ops = rt.take('canvas')[0].ops;
+  assert.deepStrictEqual(ops.map((o) => o.o), ['save', 'flood']);
+  assert.deepStrictEqual([ops[1].x, ops[1].y], [10, 20]);
+  rt.dispatch('canvas', {plugin: 'draw', cid, btn: 5});          // ▭ rect: live preview = restore, save, rect
+  rt.reset();
+  rt.dispatch('canvas', {plugin: 'draw', cid, pts: [{t: 'down', id: 0, x: 1, y: 1, p: 1}, {t: 'move', id: 0, x: 9, y: 7, p: 1}, {t: 'up', id: 0, x: 9, y: 7, p: 1}]});
+  ops = rt.take('canvas')[0].ops;
+  assert.deepStrictEqual(ops.map((o) => o.o), ['save', 'restore', 'save', 'rect']);
+  assert.deepStrictEqual([ops[3].w, ops[3].h], [8, 6]);
+  rt.dispatch('canvas', {plugin: 'draw', cid, btn: 0});          // back to pen
+  rt.reset();
+  rt.dispatch('canvas', {plugin: 'draw', cid, btn: 7 + 12 + 4 + 3});   // 📤 (last button)
   assert.strictEqual(rt.take('canvas')[0].ops[0].o, 'insert');
+  assert.strictEqual(rt.meta().plugins[0].error, undefined);
 });
 
 test('keys.use / api / onLoad / on / emit / run', () => {
@@ -315,6 +329,73 @@ test('keys.use / api / onLoad / on / emit / run', () => {
   rt.dispatch('action', {key: 'b.go', ctx: {}});
   assert.deepStrictEqual(rt.take('toast').map((t) => t.text), ['got 7', 'other']);
   assert.strictEqual(vm.runInContext('1', rt.sandbox), 1);
+});
+
+test('canvas: gradients, transforms, clip, arc/bezier/polygon/star, image, snapshot, measureText, animate', () => {
+  const rt = makeRuntime({g: `plugin({name:"G", toolbar:[{run(){
+    const c = keys.canvas({height: 150, toolbar: false});
+    globalThis.c = c; globalThis.snap = null;
+    c.push(); c.translate(10, 20); c.rotate(45); c.scale(2); c.clipRect(0,0,5,5); c.clipCircle(1,1,2);
+    c.rect(0,0,10,10,{fill: c.linearGradient(0,0,10,0,['#f00','#00f']), alpha:.5, blend:'multiply', dash:[4,2], shadow:{blur:3}});
+    c.circle(1,1,1,{fill: c.radialGradient(1,1,5,[[0,'#fff'],[1,'#000']])});
+    c.pop(); c.resetTransform(); c.clipReset();
+    c.arc(0,0,10,10,0,90,{pie:true,fill:'red'}); c.bezier(0,0,1,1,2,2); c.bezier(0,0,1,1,2,2,3,3,{color:'#0f0'});
+    c.polygon(0,0,5,6); c.star(0,0,5,2,5,{fill:'#ff0'}); c.flood(1,2,'#0f0'); c.image('data:image/png;base64,AAAA',0,0,10,10,{alpha:.5});
+    c.text('hi',0,0,{font:'mono',italic:true,bold:true,stroke:'#fff',fill:c.sweepGradient(0,0,['#f00','#0f0'])});
+    c.clearRect(0,0,1,1); c.fillAll('#123'); c.snapshot((d) => { globalThis.snap = d; }, {max: 64});
+    globalThis.w = c.measureText('abc', 10);
+    globalThis.n = 0; globalThis.stop = c.animate((dt) => { n++; c.dot(n, n); }, 20);
+  }}]});`});
+  rt.reset();
+  rt.dispatch('action', {key: 'g.run', ctx: {}});
+  const calls = rt.take('canvas');
+  assert.strictEqual(calls[0].spec.height, 150);
+  const ops = calls.find((x) => x.op === 'ops').ops;
+  const names = ops.map((o) => o.o + (o.k ? ':' + o.k : ''));
+  assert.deepStrictEqual(names.slice(0, 8), ['bar', 'tf:push', 'tf:translate', 'tf:rotate', 'tf:scale', 'tf:clipRect', 'tf:clipCircle', 'rect']);
+  const rect = ops.find((o) => o.o === 'rect');
+  assert.deepStrictEqual(rect.f.stops, [[0, '#f00'], [1, '#00f']]);
+  assert.strictEqual(rect.blend, 'multiply');
+  assert.deepStrictEqual(rect.dash, [4, 2]);
+  assert.strictEqual(ops.find((o) => o.o === 'arc').center, 1);
+  assert.strictEqual(ops.filter((o) => o.o === 'bezier').map((o) => o.pts.length).join(), '6,8');
+  assert.strictEqual(ops.filter((o) => o.o === 'path' && o.closed).map((o) => o.pts.length).join(), '12,20');   // hexagon, 5-point star
+  assert.strictEqual(ops.find((o) => o.o === 'flood').tol, 24);
+  const tx = ops.find((o) => o.o === 'text');
+  assert.deepStrictEqual([tx.font, tx.italic, tx.bold, tx.s, tx.c.type], ['mono', 1, 1, '#fff', 'sweep']);
+  assert.strictEqual(ops.find((o) => o.o === 'rect' && o.erase).erase, 1);
+  const snap = ops.find((o) => o.o === 'snap');
+  rt.dispatch('canvas', {plugin: 'g', cid: calls[0].cid, snap: snap.id, data: 'data:image/png;base64,XYZ'});
+  assert.strictEqual(vm.runInContext('snap', rt.sandbox), 'data:image/png;base64,XYZ');
+  // animate = setInterval
+  const iv = rt.pendingTimers.find((t) => t.repeat);
+  assert.strictEqual(iv.ms, 50);
+  rt.reset();
+  rt.dispatch('__timer', String(rt.pendingTimers.indexOf(iv) + 1));
+  assert.strictEqual(rt.take('canvas')[0].ops[0].o, 'path');
+});
+
+test('new keys api: sendKey mods, replaceAll, suggest, theme, vibrate, openUrl, storage keys/clear, selection hooks', () => {
+  const rt = makeRuntime({k: `plugin({name:"K",
+    onSelection(ctx, s, e){ keys.toast('sel ' + s + '-' + e); },
+    onFinishInput(){ keys.toast('done'); },
+    toolbar:[{run(){
+      keys.sendKey('c', {ctrl: true}); keys.replaceAll('x'); keys.suggest(['a','b']); keys.vibrate(30); keys.openUrl('https://e.x');
+      keys.storage.set('a', 1); keys.storage.set('b', 2); keys.toast(JSON.stringify(keys.storage.keys())); keys.storage.clear();
+    }}]});`});
+  assert.deepStrictEqual(rt.meta().plugins[0].hooks, ['onSelection', 'onFinishInput']);
+  rt.reset();
+  rt.dispatch('action', {key: 'k.run', ctx: {}});
+  assert.deepStrictEqual(rt.take('key')[0], {name: 'c', mods: {ctrl: true}});
+  rt.reset();
+  rt.dispatch('action', {key: 'k.run', ctx: {}});
+  const fns = rt.calls.map((c) => c.fn);
+  assert.ok(['edit', 'commit', 'suggest', 'vibrate', 'openUrl', 'storeClear', 'storeKeys'].every((f) => fns.includes(f)));
+  assert.strictEqual(rt.calls.find((c) => c.fn === 'suggest').o.seq, -1);
+  rt.reset();
+  rt.dispatch('onSelection', {start: 1, end: 3, ctx: {}});
+  rt.dispatch('onFinishInput', {ctx: {}});
+  assert.deepStrictEqual(rt.take('toast').map((t) => t.text), ['sel 1-3', 'done']);
 });
 
 console.log('\n' + passed + ' tests passed');

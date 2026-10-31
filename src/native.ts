@@ -19,6 +19,8 @@ export const Native = {
   stopMelody: (): Promise<boolean> => N.stopMelody(),
   pickFont: (): Promise<string> => N.pickFont(),
   clearFont: (): Promise<boolean> => N.clearFont(),
+  pickBackground: async (): Promise<{name: string; path: string; rev: number} | null> => { const r = await N.pickBackground(); return r ? JSON.parse(r) : null; },
+  clearBackground: (): Promise<boolean> => N.clearBackground(),
   logHasPassword: (): Promise<boolean> => N.logHasPassword(),
   logSetPassword: (o: string, n: string): Promise<boolean> => N.logSetPassword(o, n),
   logVerify: (pw: string): Promise<boolean> => N.logVerify(pw),

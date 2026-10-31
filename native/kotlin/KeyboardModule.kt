@@ -24,8 +24,10 @@ class KeyboardModule(private val rc: ReactApplicationContext) : ReactContextBase
     override fun getName() = "OpenKeys"
 
     private var fontPromise: Promise? = null
+    private var bgPromise: Promise? = null
     private val actListener: ActivityEventListener = object : BaseActivityEventListener() {
         override fun onActivityResult(a: Activity, req: Int, res: Int, data: Intent?) {
+            if (req == 7702) { pickedBackground(res, data); return }
             if (req != 7701) return
             val pr = fontPromise ?: return; fontPromise = null
             val uri: Uri? = data?.data
@@ -41,6 +43,32 @@ class KeyboardModule(private val rc: ReactApplicationContext) : ReactContextBase
             } catch (e: Exception) { File(rc.filesDir, "fonts/custom.ttf").delete(); pr.reject("E_FONT", "Not a valid font file") }
         }
     }
+    private fun pickedBackground(res: Int, data: Intent?) {
+        val pr = bgPromise ?: return; bgPromise = null
+        val uri: Uri? = data?.data
+        if (res != Activity.RESULT_OK || uri == null) { pr.resolve(""); return }
+        try {
+            val dir = File(rc.filesDir, "bg").also { it.mkdirs() }
+            dir.listFiles()?.forEach { it.delete() }
+            val out = File(dir, "bg_" + System.currentTimeMillis() + ".img")
+            rc.contentResolver.openInputStream(uri)!!.use { i -> out.outputStream().use { o -> i.copyTo(o) } }
+            val o = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            android.graphics.BitmapFactory.decodeFile(out.path, o)
+            if (o.outWidth <= 0) { out.delete(); pr.reject("E_BG", "Not a valid image"); return }
+            var name = "image"
+            rc.contentResolver.query(uri, null, null, null, null)?.use { c -> if (c.moveToFirst()) { val i = c.getColumnIndex("_display_name"); if (i >= 0) name = c.getString(i) } }
+            pr.resolve(JSONObject().put("name", name).put("path", out.path).put("rev", System.currentTimeMillis()).toString())
+        } catch (e: Exception) { pr.reject("E_BG", e.message ?: "Could not read the image") }
+    }
+
+    @ReactMethod fun pickBackground(p: Promise) {
+        val a = currentActivity ?: return p.reject("E_BG", "No activity")
+        bgPromise = p
+        a.startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("image/*"), 7702)
+    }
+
+    @ReactMethod fun clearBackground(p: Promise) { File(rc.filesDir, "bg").listFiles()?.forEach { it.delete() }; p.resolve(true) }
+
     init { rc.addActivityEventListener(actListener); DevLog.installCrashHandler(rc) }
 
     private val synth = Synth()

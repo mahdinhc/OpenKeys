@@ -51,6 +51,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     private lateinit var piano: PianoPanel
     private lateinit var pp: PluginPanel
     private lateinit var cv: CanvasPanel
+    private var cvPct = 100
     private lateinit var plugins: PluginHost
     private var viewReady = false
 
@@ -249,17 +250,24 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
 
     private fun buildTypeface(): Typeface {
         val bold = prefs.bool("fontBold", false)
+        val italic = prefs.bool("fontItalic", false)
         val base: Typeface = when (prefs.str("fontFamily", "default")) {
             "serif" -> Typeface.SERIF
             "mono" -> Typeface.MONOSPACE
+            "light" -> Typeface.create("sans-serif-light", Typeface.NORMAL)
+            "medium" -> Typeface.create("sans-serif-medium", Typeface.NORMAL)
+            "black" -> Typeface.create("sans-serif-black", Typeface.NORMAL)
             "condensed" -> Typeface.create("sans-serif-condensed", Typeface.NORMAL)
-            "casual" -> Typeface.create("casual", Typeface.NORMAL)
-            "cursive" -> Typeface.create("cursive", Typeface.NORMAL)
-            "custom" -> File(filesDir, "fonts/custom.ttf").let { f -> if (f.exists()) try { Typeface.createFromFile(f) } catch (e: Exception) { Typeface.DEFAULT } else Typeface.DEFAULT }
-            else -> Typeface.DEFAULT
+            "custom" -> File(filesDir, "fonts/custom.ttf").let { f ->
+                if (f.exists()) try { Typeface.createFromFile(f) } catch (e: Exception) { Typeface.DEFAULT } else Typeface.DEFAULT
+            }
+            else -> Typeface.DEFAULT   // "default" and the removed casual/cursive ids
         }
-        return if (bold) Typeface.create(base, Typeface.BOLD) else base
+        val style = (if (bold) Typeface.BOLD else 0) or (if (italic) Typeface.ITALIC else 0)
+        return if (style == 0) base else Typeface.create(base, style)
     }
+
+    private val bgDraw = BgDrawable()
 
     // ---- developer typing log
     private var logOn = false
@@ -272,12 +280,19 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         if (!viewReady) return
         DevLog.d(this, "IME", "reloadAll")
         prefs.reload(); repo.invalidate()
-        theme = Theme.from(prefs)
-        root.setBackgroundColor(theme.bg)
+        val night = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        theme = Theme.from(prefs, night)
+        val bgs = BgStyle(prefs)
+        val img = bgs.active
+        bgDraw.set(bgs, theme.bg)
+        if (img) root.background = bgDraw else root.setBackgroundColor(theme.bg)
+        // with an image: keys area + top bar are see-through, panels keep `panels`% of the theme color
+        val seeThrough = if (img) theme.withBg(0) else theme
+        val panelTheme = if (img) theme.withBg((theme.bg and 0xFFFFFF) or ((bgs.panels * 255 / 100) shl 24)) else theme
         root.setPadding(0, 0, 0, dpi(prefs.int("bottomPad", 0).toFloat()))
         bar.setTools(topTools(), prefs.int("topIconSize", 50).coerceIn(30, 80) / 100f)
         bar.setPluginTools(pluginTools)
-        bar.applyTheme(theme); piano.applyTheme(theme); emoji.applyTheme(theme); clip.applyTheme(theme); strip.applyTheme(theme); pp.applyTheme(theme); cv.applyTheme(theme)
+        bar.applyTheme(seeThrough); piano.applyTheme(panelTheme); emoji.applyTheme(panelTheme); clip.applyTheme(panelTheme); strip.applyTheme(seeThrough); pp.applyTheme(panelTheme); cv.applyTheme(panelTheme)
         kb.apply {
             theme = this@OpenKeysIME.theme
             heightScale = prefs.int("heightScale", 100); fontScale = prefs.int("fontScale", 100)
@@ -288,6 +303,8 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             longPressMs = prefs.int("longPressMs", 350); numberRow = prefs.bool("numberRow", true); numAlts = prefs.numberAlts()
             oneHanded = prefs.str("oneHanded", "off")
             typeface = buildTypeface()
+            keyAlpha = prefs.int("keyAlpha", 100).coerceIn(0, 100); keyBorder = prefs.int("keyBorder", 0).coerceIn(0, 6)
+            keyShadow = prefs.bool("keyShadow", true)
         }
         logOn = prefs.bool("devMode", false) && prefs.bool("devLog", false) && TypeLog.hasPassword(this)
         enabled = prefs.enabledLayouts().mapNotNull { repo.get(it) }.ifEmpty { listOfNotNull(repo.get("en_qwerty")) }
@@ -330,12 +347,14 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     override fun onFinishInputView(finishingInput: Boolean) {
         DevLog.d(this, "IME", "onFinishInputView finishing=$finishingInput")
         commitComposing(false); suggest.flush()
+        if (viewReady && plugins.hasHook("onFinishInput")) plugins.runAsync("onFinishInput", JSONObject().put("ctx", pluginCtx(false)))
         super.onFinishInputView(finishingInput)
     }
 
     override fun onUpdateSelection(oss: Int, ose: Int, nss: Int, nse: Int, cs: Int, ce: Int) {
         super.onUpdateSelection(oss, ose, nss, nse, cs, ce)
         if (!viewReady) return
+        if (plugins.hasHook("onSelection")) plugins.runAsync("onSelection", JSONObject().put("start", nss).put("end", nse).put("ctx", pluginCtx(true)))
         if (composing.isNotEmpty() && (cs == -1 || nss != ce)) {
             composing.setLength(0); currentInputConnection?.finishComposingText(); updateSuggestions()
         } else if (composing.isEmpty()) updateAutoCaps()
@@ -362,7 +381,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         cv.visibility = View.GONE
         if (kb.visibility == View.VISIBLE && kb.height > 0) kbH = kb.height
         if (kbH == 0) kbH = dpi(260f)
-        val pct = when (p) { emoji -> prefs.int("emojiHeight", 100); piano -> prefs.int("pianoHeight", 100); else -> 100 }.coerceIn(50, 170)
+        val pct = when (p) { emoji -> prefs.int("emojiHeight", 100); piano -> prefs.int("pianoHeight", 100); cv -> cvPct; else -> 100 }.coerceIn(50, 260)
         p.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (kbH * pct / 100f).toInt())
         kb.visibility = View.GONE; emoji.visibility = View.GONE; clip.visibility = View.GONE; piano.visibility = View.GONE; pp.visibility = View.GONE
         p.visibility = View.VISIBLE
@@ -756,7 +775,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             commitComposing(false)
             currentInputConnection?.deleteSurroundingText(before, after)
         }
-        override fun sendKey(name: String) {
+        override fun sendKey(name: String, mods: JSONObject?) {
             commitComposing(false)
             val code = when (name.lowercase()) {
                 "enter" -> KeyEvent.KEYCODE_ENTER
@@ -770,7 +789,25 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
                 "down" -> KeyEvent.KEYCODE_DPAD_DOWN
                 "home" -> KeyEvent.KEYCODE_MOVE_HOME
                 "end" -> KeyEvent.KEYCODE_MOVE_END
-                else -> return
+                "space" -> KeyEvent.KEYCODE_SPACE
+                "pageup" -> KeyEvent.KEYCODE_PAGE_UP
+                "pagedown" -> KeyEvent.KEYCODE_PAGE_DOWN
+                "insert" -> KeyEvent.KEYCODE_INSERT
+                else -> KeyEvent.keyCodeFromString("KEYCODE_" + name.uppercase()).let { if (it == KeyEvent.KEYCODE_UNKNOWN) return else it }   // a-z, 0-9, f1-f12 ...
+            }
+            var meta = 0
+            if (mods != null) {
+                if (mods.optBoolean("ctrl")) meta = meta or KeyEvent.META_CTRL_ON or KeyEvent.META_CTRL_LEFT_ON
+                if (mods.optBoolean("alt")) meta = meta or KeyEvent.META_ALT_ON or KeyEvent.META_ALT_LEFT_ON
+                if (mods.optBoolean("shift")) meta = meta or KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON
+                if (mods.optBoolean("meta")) meta = meta or KeyEvent.META_META_ON or KeyEvent.META_META_LEFT_ON
+            }
+            if (meta != 0) {
+                val ic = currentInputConnection ?: return
+                val t = android.os.SystemClock.uptimeMillis()
+                ic.sendKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_DOWN, code, 0, meta))
+                ic.sendKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_UP, code, 0, meta))
+                return
             }
             sendDownUpKeyEvents(code)
         }
@@ -787,6 +824,18 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         }
         override fun moveCursor(n: Int) { onCursorMove(n) }
         override fun toast(text: String) { Toast.makeText(this@OpenKeysIME, text, Toast.LENGTH_SHORT).show() }
+        override fun vibrate(ms: Int) {
+            try {
+                @Suppress("DEPRECATION") val v = getSystemService(Context.VIBRATOR_SERVICE) as? android.os.Vibrator
+                @Suppress("DEPRECATION") v?.vibrate(ms.toLong().coerceIn(1, 500))
+            } catch (e: Exception) { }
+        }
+        override fun openUrl(url: String) {
+            try {
+                startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url)).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+            } catch (e: Exception) { Toast.makeText(this@OpenKeysIME, "Can't open $url", Toast.LENGTH_SHORT).show() }
+        }
+        override fun themeJson(): String = theme.toJson().toString()
         override fun haptic() { if (viewReady) kb.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP) }
         override fun switchLayout(id: String) {
             val i = enabled.indexOfFirst { it.id == id }
@@ -801,6 +850,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         override fun closePanel() { if (viewReady) showKeyboard() }
         override fun openCanvas(plugin: String, cid: Int, spec: JSONObject) {
             if (!viewReady) return
+            cvPct = spec.optInt("height", 100)
             cv.show(plugin, cid, spec)
             this@OpenKeysIME.showPanel(cv)
         }
@@ -811,7 +861,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             if (viewReady && cv.visibility == View.VISIBLE && cv.plugin == plugin && cv.cid == cid) showKeyboard()
         }
         override fun pluginSuggestions(seq: Int, list: List<String>) {
-            if (seq != sugSeq) return
+            if (seq != -1 && seq != sugSeq) return   // -1 = keys.suggest(): always applies to the current word
             pluginSug = (pluginSug + list).distinct()
             updateSuggestions(true)
         }
