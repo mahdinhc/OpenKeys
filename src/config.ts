@@ -10,6 +10,7 @@ export type Config = {
   fontFamily: string; fontBold: boolean; customFontName: string;
   emojiCols: number; emojiSize: number; emojiHeaders: boolean; emojiRecents: boolean; emojiHidden: string[];
   devMode: boolean; devLog: boolean;
+  topTools: string[]; topIconSize: number; emojiHeight: number; pianoHeight: number;
   pianoWave: string; pianoAttack: number; pianoDecay: number; pianoSustain: number; pianoRelease: number;
   pianoVolume: number; pianoCutoff: number; pianoVibRate: number; pianoVibDepth: number; pianoDetune: number; pianoGate: number;
   pianoKeys: number; pianoOctave: number; pianoBlackH: number; pianoLabels: boolean;
@@ -31,6 +32,7 @@ export const DEFAULTS: Config = {
   fontFamily: 'default', fontBold: false, customFontName: '',
   emojiCols: 8, emojiSize: 100, emojiHeaders: true, emojiRecents: true, emojiHidden: [],
   devMode: false, devLog: false,
+  topTools: ['emoji', 'clip', 'piano', 'settings'], topIconSize: 50, emojiHeight: 100, pianoHeight: 100,
   pianoWave: 'sine', pianoAttack: 5, pianoDecay: 120, pianoSustain: 60, pianoRelease: 200,
   pianoVolume: 80, pianoCutoff: 100, pianoVibRate: 5, pianoVibDepth: 0, pianoDetune: 0, pianoGate: 0,
   pianoKeys: 14, pianoOctave: 4, pianoBlackH: 62, pianoLabels: true,
@@ -49,3 +51,4 @@ export const PRESETS: Record<string, Config['colors']> = {
 export const APP_VERSION = '1.0.0';
 export const FONTS: [string, string][] = [['default', 'Default'], ['serif', 'Serif'], ['mono', 'Mono'], ['condensed', 'Condensed'], ['casual', 'Casual'], ['cursive', 'Cursive'], ['custom', 'Custom file']];
 export const EMOJI_GROUPS = ['Smileys & Emotions', 'People & Body', 'Animals & Nature', 'Food & Drink', 'Travel & Places', 'Activities', 'Objects', 'Symbols', 'Flags'];
+export const TOP_TOOLS: [string, string][] = [['emoji', 'Emoji'], ['clip', 'Clipboard'], ['piano', 'Piano'], ['hand', 'One-handed mode'], ['settings', 'Settings']];

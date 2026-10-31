@@ -167,6 +167,11 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         return root
     }
 
+    private fun topTools(): List<String> {
+        val a = prefs.cfg.optJSONArray("topTools") ?: return listOf("emoji", "clip", "piano", "settings")
+        return jsonStrings(a).filter { it != "abc" }
+    }
+
     private fun buildTypeface(): Typeface {
         val bold = prefs.bool("fontBold", false)
         val base: Typeface = when (prefs.str("fontFamily", "default")) {
@@ -194,6 +199,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         theme = Theme.from(prefs)
         root.setBackgroundColor(theme.bg)
         root.setPadding(0, 0, 0, dpi(prefs.int("bottomPad", 0).toFloat()))
+        bar.setTools(topTools(), prefs.int("topIconSize", 50).coerceIn(30, 80) / 100f)
         bar.applyTheme(theme); piano.applyTheme(theme); emoji.applyTheme(theme); clip.applyTheme(theme); strip.applyTheme(theme)
         kb.apply {
             theme = this@OpenKeysIME.theme
@@ -262,13 +268,18 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
 
     private fun showKeyboard() {
         piano.silence(); kb.visibility = View.VISIBLE; emoji.visibility = View.GONE; clip.visibility = View.GONE; piano.visibility = View.GONE
+        bar.setMode("abc")
     }
 
+    private var kbH = 0
     private fun showPanel(p: View) {
-        val h = kb.height
-        p.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, h)
-        kb.visibility = View.INVISIBLE; emoji.visibility = View.GONE; clip.visibility = View.GONE; piano.visibility = View.GONE
+        if (kb.visibility == View.VISIBLE && kb.height > 0) kbH = kb.height
+        if (kbH == 0) kbH = dpi(260f)
+        val pct = when (p) { emoji -> prefs.int("emojiHeight", 100); piano -> prefs.int("pianoHeight", 100); else -> 100 }.coerceIn(50, 170)
+        p.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (kbH * pct / 100f).toInt())
+        kb.visibility = View.GONE; emoji.visibility = View.GONE; clip.visibility = View.GONE; piano.visibility = View.GONE
         p.visibility = View.VISIBLE
+        bar.setMode(when (p) { emoji -> "emoji"; clip -> "clip"; else -> "piano" })
     }
 
     override fun onSelectLayout(index: Int) {
@@ -418,7 +429,30 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             "clip" -> { clip.refresh(); showPanel(clip) }
             "piano" -> if (!searching) { piano.open(prefs); showPanel(piano) }
             "mic" -> startVoice()
+            else -> if (type.startsWith("act:")) doAct(type.substring(4))
         }
+    }
+
+    private fun doAct(name: String) {
+        if (searching) return
+        commitComposing(false)
+        val ic = currentInputConnection ?: return
+        when (name) {
+            "copy" -> ic.performContextMenuAction(android.R.id.copy)
+            "cut" -> ic.performContextMenuAction(android.R.id.cut)
+            "paste" -> ic.performContextMenuAction(android.R.id.paste)
+            "selectall" -> ic.performContextMenuAction(android.R.id.selectAll)
+        }
+    }
+
+    override fun onKey(keyCode: Int, meta: Int) {
+        if (searching) return
+        commitComposing(false)
+        val ic = currentInputConnection ?: return
+        val t = SystemClock.uptimeMillis()
+        ic.sendKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_DOWN, keyCode, 0, meta))
+        ic.sendKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_UP, keyCode, 0, meta))
+        lastSwipe = null; lastCorrection = null
     }
 
     private fun onSpace() {
@@ -520,6 +554,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
 
     override fun onTool(name: String) {
         when (name) {
+            "abc" -> { if (searching) exitSearch(false); showKeyboard() }
             "emoji" -> onSpecial("emoji")
             "clip" -> onSpecial("clip")
             "piano" -> onSpecial("piano")

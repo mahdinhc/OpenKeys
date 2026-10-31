@@ -24,7 +24,7 @@ class SuggestionBar(ctx: Context) : LinearLayout(ctx) {
     private var forceTools = false
     private var searching = false
 
-    private val left = IconView(ctx, "apps", Theme.DARK.hint, 0.5f)
+    private val left = IconView(ctx, "keyboard", Theme.DARK.hint, 0.5f)
     private val micBg = FrameLayout(ctx)
     private val mic = IconView(ctx, "mic", Theme.DARK.keyText, 0.55f)
     private val center = FrameLayout(ctx)
@@ -40,7 +40,11 @@ class SuggestionBar(ctx: Context) : LinearLayout(ctx) {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         val h = ViewGroup.LayoutParams.MATCH_PARENT
-        left.setOnClickListener { if (searching) listener?.onTool("searchBack") else { forceTools = !forceTools; render() } }
+        left.setOnClickListener {
+            if (searching) listener?.onTool("searchBack")
+            else if (mode != "abc") listener?.onTool("abc")
+            else { forceTools = !forceTools; render() }
+        }
         addView(left, LayoutParams(ctx.dpi(48f), h))
 
         for (i in 0 until 3) {
@@ -52,10 +56,7 @@ class SuggestionBar(ctx: Context) : LinearLayout(ctx) {
             }
             slots.add(t); sugRow.addView(t, LayoutParams(0, h, 1f))
         }
-        listOf("emoji" to "emoji", "clip" to "clipboard", "piano" to "piano", "hand" to "one_hand", "settings" to "settings").forEach { (n, ic) ->
-            val v = IconView(ctx, ic, Theme.DARK.hint, 0.5f).also { it.setOnClickListener { listener?.onTool(n) } }
-            tools.add(v); toolRow.addView(v, LayoutParams(0, h, 1f))
-        }
+        setTools(listOf("emoji", "clip", "piano", "settings"))
         searchRow.gravity = Gravity.CENTER_VERTICAL
         query.textSize = 17f; query.maxLines = 1
         searchRow.addView(searchIcon, LayoutParams(ctx.dpi(36f), h))
@@ -72,6 +73,28 @@ class SuggestionBar(ctx: Context) : LinearLayout(ctx) {
         render()
     }
 
+    private val toolNames = ArrayList<String>()
+    private var mode = "abc"
+    private var iconScale = 0.5f
+    private val toolIcons = mapOf("emoji" to "emoji", "clip" to "clipboard", "piano" to "piano", "hand" to "one_hand", "settings" to "settings")
+
+    fun setTools(names: List<String>, scale: Float = 0.5f) {
+        iconScale = scale
+        val h = ViewGroup.LayoutParams.MATCH_PARENT
+        toolRow.removeAllViews(); tools.clear(); toolNames.clear()
+        for (n in names) {
+            val ic = toolIcons[n] ?: continue
+            val v = IconView(context, ic, theme.hint, scale).also { it.setOnClickListener { listener?.onTool(n) } }
+            tools.add(v); toolNames.add(n); toolRow.addView(v, LayoutParams(0, h, 1f))
+        }
+        tintTools()
+    }
+
+    private fun tintTools() { tools.forEachIndexed { i, v -> v.tint = if (toolNames[i] == mode) theme.accent else theme.hint; v.invalidate() } }
+
+    /** Which mode is active ("abc", "emoji", "clip", "piano"); its tool icon is drawn in the accent colour. */
+    fun setMode(m: String) { mode = m; tintTools(); render() }
+
     fun setSuggestions(l: List<String>) { suggestions = l; if (l.isEmpty()) forceTools = false; render() }
 
     fun setSearch(active: Boolean, q: String) {
@@ -82,10 +105,10 @@ class SuggestionBar(ctx: Context) : LinearLayout(ctx) {
     }
 
     private fun render() {
-        left.set(if (searching) "back" else "apps", theme.hint)
+        left.set(if (searching) "back" else "keyboard", if (!searching && mode == "abc") theme.accent else theme.hint)
         micBg.visibility = if (searching) GONE else VISIBLE
         searchRow.visibility = if (searching) VISIBLE else GONE
-        val showSug = !searching && suggestions.isNotEmpty() && !forceTools
+        val showSug = !searching && suggestions.isNotEmpty() && !forceTools && mode == "abc"
         sugRow.visibility = if (showSug) VISIBLE else GONE
         toolRow.visibility = if (!searching && !showSug) VISIBLE else GONE
         if (showSug) for (i in 0 until 3) {
@@ -97,7 +120,7 @@ class SuggestionBar(ctx: Context) : LinearLayout(ctx) {
     fun applyTheme(t: Theme) {
         theme = t
         slots.forEach { it.setTextColor(t.keyText) }
-        tools.forEach { it.tint = t.hint; it.invalidate() }
+        tintTools()
         searchIcon.set("search", t.hint)
         mic.set("mic", t.keyText)
         micBg.background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(t.key) }

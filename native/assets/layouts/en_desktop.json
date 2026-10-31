@@ -1,0 +1,38 @@
+{
+ "id": "en_desktop",
+ "name": "Desktop",
+ "locale": "en",
+ "mode": "direct",
+ "dict": "en",
+ "autoCap": false,
+ "swipe": false,
+ "noNumberRow": true,
+ "rowScale": 0.72,
+ "sentenceEnd": ".",
+ "layers": {
+  "base": [
+   "{key=ESCAPE~Esc} {key=F1~F1} {key=F2~F2} {key=F3~F3} {key=F4~F4} {key=F5~F5} {key=F6~F6} {key=F7~F7} {key=F8~F8} {key=F9~F9} {key=F10~F10} {key=F11~F11} {key=F12~F12}",
+   "` 1 2 3 4 5 6 7 8 9 0 - = {del:1.5}",
+   "{key=TAB~Tab:1.4} q w e r t y u i o p [ ] \\",
+   "{key=CAPS_LOCK~Caps:1.7} a s d f g h j k l ; ' {enter:1.7}",
+   "{shift:2} z x c v b n m , . / {key=DPAD_UP~\\u2191:1}",
+   "{mod=ctrl~Ctrl:1.3} {mod=meta~Win:1.1} {mod=alt~Alt:1.1} {space:3.6} {key=DPAD_LEFT~\\u2190:1} {key=DPAD_DOWN~\\u2193:1} {key=DPAD_RIGHT~\\u2192:1} {layer=tools~Tools:1.4}"
+  ],
+  "shift": [
+   "{key=ESCAPE~Esc} {key=F1~F1} {key=F2~F2} {key=F3~F3} {key=F4~F4} {key=F5~F5} {key=F6~F6} {key=F7~F7} {key=F8~F8} {key=F9~F9} {key=F10~F10} {key=F11~F11} {key=F12~F12}",
+   "~ ! @ # $ % ^ & * ( ) _ + {del:1.5}",
+   "{key=TAB~Tab:1.4} Q W E R T Y U I O P \\u007B \\u007D {pipe}",
+   "{key=CAPS_LOCK~Caps:1.7} A S D F G H J K L : \" {enter:1.7}",
+   "{shift:2} Z X C V B N M < > ? {key=DPAD_UP~\\u2191:1}",
+   "{mod=ctrl~Ctrl:1.3} {mod=meta~Win:1.1} {mod=alt~Alt:1.1} {space:3.6} {key=DPAD_LEFT~\\u2190:1} {key=DPAD_DOWN~\\u2193:1} {key=DPAD_RIGHT~\\u2192:1} {layer=tools~Tools:1.4}"
+  ],
+  "tools": [
+   "{act=selectall~All:1.2} {act=copy~Copy} {act=cut~Cut} {act=paste~Paste} {key=ctrl+z~Undo} {key=ctrl+shift+z~Redo}",
+   "{key=ctrl+s~Save} {key=ctrl+f~Find} {key=ctrl+h~Replace} {key=ctrl+p~Print} {key=ctrl+w~Close} {key=ctrl+t~NewTab} {key=ctrl+shift+t~Reopen}",
+   "{key=MOVE_HOME~Home} {key=MOVE_END~End} {key=PAGE_UP~PgUp} {key=PAGE_DOWN~PgDn} {key=INSERT~Ins} {key=FORWARD_DEL~Del} {key=SYSRQ~PrtSc}",
+   "{key=ctrl+DPAD_LEFT~Ctrl\\u2190} {key=ctrl+DPAD_RIGHT~Ctrl\\u2192} {key=ctrl+DEL~\\u2326Word} {key=ctrl+FORWARD_DEL~Word\\u2326} {key=shift+MOVE_HOME~\\u21E7Home} {key=shift+MOVE_END~\\u21E7End}",
+   "{key=ctrl+TAB~NextTab} {key=ctrl+shift+TAB~PrevTab} {key=alt+DPAD_LEFT~Back} {key=alt+DPAD_RIGHT~Fwd} {key=alt+TAB~Alt+Tab} {key=F5~Reload} {key=F11~Full}",
+   "{layer=base~ABC:1.4} {mod=ctrl~Ctrl:1.2} {mod=alt~Alt:1.1} {space:3} {key=DPAD_LEFT~\\u2190:1} {key=DPAD_DOWN~\\u2193:1} {key=DPAD_UP~\\u2191:1} {key=DPAD_RIGHT~\\u2192:1}"
+  ]
+ }
+}

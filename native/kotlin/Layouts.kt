@@ -18,6 +18,9 @@ data class KeyDef(
  *   \u{1F600}      Unicode escapes work everywhere
  *   {shift} {del} {enter} {space:5} {sym} {sym2} {abc} {lang} {emoji} {mic}
  *   {layer=name:1.4}  jump to a custom layer, {pad:0.5} spacer, {pipe} {eq} literal | and =
+ *   {mod=ctrl~Ctrl} sticky modifier (ctrl|alt|meta; tap = next key, double tap = lock)
+ *   {key=ctrl+shift+z~Redo} / {key=DPAD_UP~Up} key event, optionally with modifiers
+ *   {act=copy~Copy} copy | cut | paste | selectall
  *   ":w" after a special sets its width weight
  */
 object LayoutParser {
@@ -53,6 +56,10 @@ object LayoutParser {
                     val lp = param ?: "base"
                     val layer = lp.substringBefore("~")
                     KeyDef(if (lp.contains("~")) lp.substringAfter("~") else layer, "", none, w ?: 1.4f, "layer", layer)
+                }
+                "mod", "key", "act" -> {
+                    val spec = param ?: ""
+                    return KeyDef(if (spec.contains("~")) spec.substringAfter("~") else spec, "", none, w ?: 1f, name, spec.substringBefore("~"))
                 }
                 "stack" -> KeyDef("", "", (param ?: "").split(";").filter { it.isNotEmpty() }, w ?: 1f, "stack", null, span)
                 "lang" -> KeyDef("🌐", "", none, w ?: 1f, "lang")
@@ -93,6 +100,8 @@ class LayoutDef(val raw: JSONObject) {
     val dict: String = raw.optString("dict", locale.substringBefore('-'))
     val autoCap: Boolean = raw.optBoolean("autoCap", false)
     val swipe: Boolean = raw.optBoolean("swipe", false)
+    val noNumberRow: Boolean = raw.optBoolean("noNumberRow", false)
+    val rowScale: Float = raw.optDouble("rowScale", 1.0).toFloat()
     val sentenceEnd: String = raw.optString("sentenceEnd", ".")
     val layers: Map<String, List<List<KeyDef>>>
     val numberRow: List<KeyDef>?
@@ -114,7 +123,7 @@ class LayoutDef(val raw: JSONObject) {
 }
 
 class LayoutRepo(private val ctx: Context) {
-    companion object { val BUILTIN = listOf("en_qwerty", "bn_phonetic", "bn_bijoy", "numeric") }
+    companion object { val BUILTIN = listOf("en_qwerty", "en_desktop", "bn_phonetic", "bn_bijoy", "numeric") }
 
     private val cache = HashMap<String, LayoutDef>()
     private val dir: File get() = File(ctx.filesDir, "layouts").also { it.mkdirs() }

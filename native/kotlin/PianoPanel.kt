@@ -134,7 +134,6 @@ class PianoPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
             text = t; textSize = 16f; gravity = Gravity.CENTER; setOnClickListener { f() }
             btns.add(this); row.addView(this, LayoutParams(0, LayoutParams.MATCH_PARENT, w).also { it.setMargins(ctx.dpi(3f), ctx.dpi(3f), ctx.dpi(3f), ctx.dpi(3f)) })
         }
-        btn("ABC", 1.3f) { synth.allOff(); cb.onBack() }
         btn("−", 0.8f) { shift(-1) }
         octLabel = btn("", 1f) {}
         btn("+", 0.8f) { shift(1) }

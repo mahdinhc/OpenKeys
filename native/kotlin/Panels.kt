@@ -52,7 +52,6 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
     private val tabViews = ArrayList<IconView>()
     private val searchPill = TextView(ctx)
     private val bottom = LinearLayout(ctx)
-    private val abc = TextView(ctx)
     private val emojiBtn = FrameLayout(ctx)
     private val kaoBtn = TextView(ctx)
     private val back = FrameLayout(ctx)
@@ -89,7 +88,6 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
         grid.onTone = { base, v -> ClipStore.setTone(context, base, v) }
         grid.onSection = { sec -> highlight(sec) }
 
-        abc.text = "ABC"; abc.textSize = 16f; abc.gravity = Gravity.CENTER; abc.setOnClickListener { cb.onBack() }
         emojiBtn.addView(IconView(ctx, "emoji", Theme.DARK.keyText, 0.55f), FrameLayout.LayoutParams(MATCH, MATCH))
         emojiBtn.setOnClickListener { setKaomoji(false) }
         kaoBtn.text = ":-)"; kaoBtn.textSize = 17f; kaoBtn.gravity = Gravity.CENTER; kaoBtn.setOnClickListener { setKaomoji(true) }
@@ -97,7 +95,7 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
         del.onRepeatTouch { cb.onBackspace() }
         bottom.orientation = HORIZONTAL; bottom.gravity = Gravity.CENTER_VERTICAL
         val m = ctx.dpi(4f)
-        bottom.addView(abc, LayoutParams(0, MATCH, 1f))
+        bottom.addView(View(ctx), LayoutParams(0, 1, 0.4f))
         bottom.addView(emojiBtn, LayoutParams(0, MATCH, 1.4f).also { it.setMargins(m, m, m, m) })
         bottom.addView(kaoBtn, LayoutParams(0, MATCH, 1.4f).also { it.setMargins(m, m, m, m) })
         bottom.addView(del, LayoutParams(0, MATCH, 1f))
@@ -171,7 +169,7 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
         back.background = round(t.key, context.dpf(20f))
         searchPill.background = round(t.key, context.dpf(20f)); searchPill.setTextColor(t.hint)
         ((searchPill.parent as? FrameLayout)?.tag as? IconView)?.set("search", t.hint)
-        abc.setTextColor(t.keyText); kaoBtn.setTextColor(t.keyText)
+        kaoBtn.setTextColor(t.keyText)
         (emojiBtn.getChildAt(0) as IconView).set("emoji", t.keyText)
         restyleBottom()
         grid.invalidate()
@@ -184,7 +182,6 @@ class ClipboardPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx)
     private var theme = Theme.DARK
     private val list = LinearLayout(ctx).apply { orientation = VERTICAL }
     private val bottom = LinearLayout(ctx)
-    private val abc = TextView(ctx)
     private val clear = TextView(ctx)
     private val thumbs = object : LruCache<String, Bitmap>(24) {}
 
@@ -192,12 +189,10 @@ class ClipboardPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx)
         orientation = VERTICAL
         val sv = ScrollView(ctx).apply { addView(list, ViewGroup.LayoutParams(MATCH, WRAP)) }
         addView(sv, LayoutParams(MATCH, 0, 1f))
-        abc.text = "ABC"; abc.textSize = 16f; abc.gravity = Gravity.CENTER; abc.setOnClickListener { cb.onBack() }
         clear.text = "Clear"; clear.textSize = 16f; clear.gravity = Gravity.CENTER
         clear.setOnClickListener { ClipStore.clearUnpinned(context); refresh() }
         bottom.orientation = HORIZONTAL
-        bottom.addView(abc, LayoutParams(0, MATCH, 1f))
-        bottom.addView(View(ctx), LayoutParams(0, 1, 4f))
+        bottom.addView(View(ctx), LayoutParams(0, 1, 5f))
         bottom.addView(clear, LayoutParams(0, MATCH, 1f))
         addView(bottom, LayoutParams(MATCH, ctx.dpi(48f)))
     }
@@ -262,6 +257,6 @@ class ClipboardPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx)
     fun applyTheme(t: Theme) {
         theme = t
         setBackgroundColor(t.bg)
-        abc.setTextColor(t.keyText); clear.setTextColor(t.keyText)
+        clear.setTextColor(t.keyText)
     }
 }

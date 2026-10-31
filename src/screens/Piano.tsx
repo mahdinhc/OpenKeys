@@ -61,6 +61,7 @@ export default function Piano({cfg, update}: any) {
       <Card title="Piano layout">
         {N('pianoKeys', 'White keys', 7, 21)}
         {N('pianoOctave', 'Start octave', 0, 6)}
+        {N('pianoHeight', 'Piano height', 60, 160, 5, '%')}
         {N('pianoBlackH', 'Black key height', 40, 80, 2, '%')}
         {T('pianoLabels', 'Show note names')}
         <Field label="White key colour (#RRGGBB)" value={cfg.pianoWhite} onChangeText={(v: string) => update({pianoWhite: v})} />

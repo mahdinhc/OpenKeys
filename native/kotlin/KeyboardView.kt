@@ -15,6 +15,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.SparseArray
 import android.view.HapticFeedbackConstants
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import kotlin.math.abs
@@ -32,6 +33,7 @@ class KeyboardView(ctx: Context) : View(ctx) {
         fun onSwipe(path: String, shifted: Boolean)
         fun onLayerChange(name: String)
         fun onSelectLayout(index: Int)
+        fun onKey(keyCode: Int, meta: Int)
     }
 
     private class Cell(val key: KeyDef, val rect: RectF)
@@ -82,9 +84,9 @@ class KeyboardView(ctx: Context) : View(ctx) {
 
     init { Icons.load(ctx) }
 
-    private fun rowH() = context.dpf(56f) * heightScale / 100f
+    private fun rowH() = context.dpf(56f) * heightScale / 100f * (layout?.rowScale ?: 1f)
     private fun pad() = context.dpf(6f)
-    private fun hasNumRow() = numberRow && layout?.id != "numeric"
+    private fun hasNumRow() = numberRow && layout?.id != "numeric" && layout?.noNumberRow != true
     private fun targetRows() = (layout?.layers?.get("base")?.size ?: 4) + (if (hasNumRow() && layout?.layers?.get("base")?.firstOrNull()?.any { it.type == "stack" } != true) 1 else 0)
 
     fun applyLayout(l: LayoutDef) {
@@ -187,6 +189,7 @@ class KeyboardView(ctx: Context) : View(ctx) {
             c.drawRoundRect(rc.left, rc.top + sh, rc.right, rc.bottom + sh, rad, rad, fill)
             fill.color = when {
                 k.type == "enter" -> theme.accent
+                k.type == "mod" && mods.getOrElse(modIdx(k.param)) { 0 } > 0 -> theme.accent
                 pressed -> theme.pressed
                 k.type == "char" || k.type == "space" -> theme.key
                 else -> theme.special
@@ -213,6 +216,8 @@ class KeyboardView(ctx: Context) : View(ctx) {
                     centered(c, "1 2", rc.centerX(), rc.centerY() - s2 * 0.62f, s2, theme.keyText, rc.width() * 0.6f)
                     centered(c, "3 4", rc.centerX(), rc.centerY() + s2 * 0.62f, s2, theme.keyText, rc.width() * 0.6f)
                 }
+                k.type == "mod" || k.type == "key" || k.type == "act" ->
+                    centered(c, k.label, rc.centerX(), rc.centerY(), fs * 0.62f, if (k.type == "mod" && mods.getOrElse(modIdx(k.param)) { 0 } > 0) theme.accentText else theme.keyText, rc.width() * 0.88f)
                 k.type == "layer" -> centered(c, k.label, rc.centerX(), rc.centerY(), fs * 0.7f, theme.hint.let { if (isPill(k)) theme.hint else theme.keyText }, rc.width() * 0.8f)
                 k.type == "char" -> {
                     centered(c, displayText(k.label), rc.centerX(), rc.centerY(), fs, fg, rc.width() * 0.82f)
@@ -307,8 +312,17 @@ class KeyboardView(ctx: Context) : View(ctx) {
         val k = cell.key
         feedback()
         if (k.type == "char" && k.output.isNotEmpty()) p.path.append(k.output.lowercase())
-        if (k.type == "del") {
-            listener?.onDelete()
+        if (k.type == "key") {
+            fireSpec(k.param ?: "")
+            if (repeatable(k.param ?: "")) {
+                val rep = object : Runnable {
+                    var n = 0
+                    override fun run() { if (ptrs.get(id) !== p) return; fireSpec(k.param ?: ""); n++; handler.postDelayed(this, if (n > 12) 30L else 55L) }
+                }
+                p.rep = rep; handler.postDelayed(rep, 400)
+            }
+        } else if (k.type == "del") {
+            if (anyMod()) fireCode(KeyEvent.KEYCODE_DEL) else listener?.onDelete()
             val rep = object : Runnable {
                 var n = 0
                 override fun run() {
@@ -410,6 +424,61 @@ class KeyboardView(ctx: Context) : View(ctx) {
         invalidate()
     }
 
+    // ---- desktop-style modifiers and key events
+    private val mods = IntArray(3)            // ctrl, alt, meta: 0 off, 1 next key only, 2 locked
+    private val modTap = LongArray(3)
+    private fun modIdx(n: String?) = when (n) { "ctrl" -> 0; "alt" -> 1; "meta" -> 2; else -> -1 }
+    private fun anyMod() = mods.any { it > 0 }
+
+    private fun toggleMod(n: String?) {
+        val i = modIdx(n); if (i < 0) return
+        val now = SystemClock.uptimeMillis()
+        mods[i] = when { mods[i] == 2 -> 0; mods[i] == 1 && now - modTap[i] < 350 -> 2; mods[i] == 1 -> 0; else -> 1 }
+        modTap[i] = now
+    }
+
+    private fun clearOneShot() { for (i in mods.indices) if (mods[i] == 1) mods[i] = 0 }
+
+    private fun metaNow(): Int {
+        var m = 0
+        if (mods[0] > 0) m = m or KeyEvent.META_CTRL_ON or KeyEvent.META_CTRL_LEFT_ON
+        if (mods[1] > 0) m = m or KeyEvent.META_ALT_ON or KeyEvent.META_ALT_LEFT_ON
+        if (mods[2] > 0) m = m or KeyEvent.META_META_ON or KeyEvent.META_META_LEFT_ON
+        if (shiftState > 0) m = m or KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON
+        return m
+    }
+
+    private fun charCode(c: Char): Int = when (c.lowercaseChar()) {
+        in 'a'..'z' -> KeyEvent.KEYCODE_A + (c.lowercaseChar() - 'a')
+        in '0'..'9' -> KeyEvent.KEYCODE_0 + (c - '0')
+        ',' -> KeyEvent.KEYCODE_COMMA; '.' -> KeyEvent.KEYCODE_PERIOD; '/' -> KeyEvent.KEYCODE_SLASH
+        ';' -> KeyEvent.KEYCODE_SEMICOLON; '\'' -> KeyEvent.KEYCODE_APOSTROPHE; '[' -> KeyEvent.KEYCODE_LEFT_BRACKET
+        ']' -> KeyEvent.KEYCODE_RIGHT_BRACKET; '\\' -> KeyEvent.KEYCODE_BACKSLASH; '-' -> KeyEvent.KEYCODE_MINUS
+        '=' -> KeyEvent.KEYCODE_EQUALS; '`' -> KeyEvent.KEYCODE_GRAVE; ' ' -> KeyEvent.KEYCODE_SPACE
+        else -> 0
+    }
+
+    private fun fireCode(code: Int, extra: Int = 0) {
+        listener?.onKey(code, metaNow() or extra)
+        clearOneShot(); if (shiftState == 1) afterChar()
+    }
+
+    /** spec like "ctrl+shift+z", "DPAD_UP", "F5". */
+    private fun fireSpec(spec: String) {
+        val parts = spec.split("+"); val name = parts.last(); var extra = 0
+        for (m in parts.dropLast(1)) extra = extra or when (m.lowercase()) {
+            "ctrl" -> KeyEvent.META_CTRL_ON or KeyEvent.META_CTRL_LEFT_ON
+            "alt" -> KeyEvent.META_ALT_ON or KeyEvent.META_ALT_LEFT_ON
+            "meta", "win" -> KeyEvent.META_META_ON or KeyEvent.META_META_LEFT_ON
+            "shift" -> KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON
+            else -> 0
+        }
+        val code = if (name.length == 1) charCode(name[0]) else KeyEvent.keyCodeFromString("KEYCODE_" + name.uppercase())
+        if (code > 0) fireCode(code, extra)
+    }
+
+    private fun repeatable(spec: String) = Regex("(DPAD_.*|PAGE_.*|FORWARD_DEL|DEL|MOVE_.*)").matches(spec.substringAfterLast("+").uppercase())
+
     private fun afterChar() { if (shiftState == 1) { shiftState = 0; autoShifted = false; rebuild() } }
 
     private fun up(id: Int, x: Float, y: Float) {
@@ -431,7 +500,10 @@ class KeyboardView(ctx: Context) : View(ctx) {
             if (p.moved && cell.key.type == "char") hit(x, y)?.let { target = it }
             val k = target.key
             when (k.type) {
-                "char" -> if (k.output.isNotEmpty()) { val letter = layerName == "base"; afterChar(); listener?.onText(k.output, letter) }
+                "char" -> if (k.output.isNotEmpty()) {
+                    val cc = if (anyMod() && k.output.length == 1) charCode(k.output[0]) else 0
+                    if (cc > 0) fireCode(cc) else { val letter = layerName == "base"; afterChar(); listener?.onText(k.output, letter) }
+                }
                 "stack" -> {
                     val n = max(1, k.hints.size)
                     val i = ((y - target.rect.top) / target.rect.height() * n).toInt().coerceIn(0, n - 1)
@@ -442,7 +514,11 @@ class KeyboardView(ctx: Context) : View(ctx) {
                     if (k.param == "letters") listener?.onSpecial("letters")
                     else { showLayer(k.param ?: "base"); listener?.onLayerChange(layerName) }
                 }
-                "del" -> {}
+                "del", "key" -> {}
+                "mod" -> toggleMod(k.param)
+                "act" -> listener?.onSpecial("act:" + (k.param ?: ""))
+                "space" -> if (anyMod()) fireCode(KeyEvent.KEYCODE_SPACE) else listener?.onSpecial("space")
+                "enter" -> if (anyMod()) fireCode(KeyEvent.KEYCODE_ENTER) else listener?.onSpecial("enter")
                 else -> listener?.onSpecial(k.type)
             }
         } finally { invalidate() }
