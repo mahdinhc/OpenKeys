@@ -131,17 +131,20 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
         val tabIcons = ArrayList<String>()
         sectionIndexForTab.clear()
         val recents = ClipStore.recentEmoji(context)
-        secs.add(EmojiSection("Recent Emoji", recents.ifEmpty { EmojiData.items.take(0).map { it.s } }))
+        val pr = Prefs(context)
+        val hidden = jsonStrings(pr.cfg.optJSONArray("emojiHidden")).toSet()
+        val heads = pr.bool("emojiHeaders", true)
+        secs.add(EmojiSection(if (heads) "Recent Emoji" else "", if (pr.bool("emojiRecents", true)) recents.ifEmpty { EmojiData.items.take(0).map { it.s } } else emptyList()))
         tabIcons.add("history"); sectionIndexForTab.add(0)
         for (g in EmojiData.GROUPS.indices) {
             val list = EmojiData.items.filter { it.group == g }.map { it.s }
-            if (list.isEmpty()) continue
+            if (list.isEmpty() || hidden.contains(g.toString())) continue
             sectionIndexForTab.add(secs.size); tabIcons.add(EmojiData.GROUP_ICONS[g])
-            secs.add(EmojiSection(EmojiData.GROUPS[g], list))
+            secs.add(EmojiSection(if (heads) EmojiData.GROUPS[g] else "", list))
         }
         // drop an empty recents section
         val finalSecs = if (secs[0].items.isEmpty()) { sectionIndexForTab.removeAt(0); tabIcons.removeAt(0); secs.subList(1, secs.size).also { l -> for (i in sectionIndexForTab.indices) sectionIndexForTab[i] = sectionIndexForTab[i] - 1 } } else secs
-        grid.setData(finalSecs, 8, 0.62f)
+        grid.setData(finalSecs, pr.int("emojiCols", 8).coerceIn(4, 12), (0.62f * pr.int("emojiSize", 100) / 100f).coerceIn(0.3f, 0.95f))
         tabs.removeAllViews(); tabViews.clear()
         tabIcons.forEachIndexed { i, ic ->
             val v = IconView(context, ic, theme.hint, 0.55f)

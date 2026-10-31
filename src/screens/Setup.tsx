@@ -1,9 +1,19 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {AppState, ScrollView, Text} from 'react-native';
+import {Alert, AppState, ScrollView, Text, ToastAndroid, TouchableOpacity} from 'react-native';
+import {APP_VERSION} from '../config';
 import {Native} from '../native';
 import {Btn, C, Card, Field} from '../ui';
 
-export default function Setup() {
+export default function Setup({cfg, update}: any) {
+  const taps = React.useRef({n: 0, t: 0});
+  const tapVersion = () => {
+    const now = Date.now(); const r = taps.current;
+    r.n = now - r.t > 2000 ? 1 : r.n + 1; r.t = now;
+    if (r.n >= 10) {
+      r.n = 0; const on = !cfg.devMode; update({devMode: on, ...(on ? {} : {devLog: false})});
+      ToastAndroid.show(on ? 'Developer options enabled' : 'Developer options disabled', ToastAndroid.SHORT);
+    } else if (r.n >= 4) ToastAndroid.show(`${10 - r.n} taps to ${cfg.devMode ? 'disable' : 'enable'} developer options`, ToastAndroid.SHORT);
+  };
   const [st, setSt] = useState({enabled: false, selected: false});
   const refresh = useCallback(() => { Native.status().then(setSt).catch(() => {}); }, []);
   useEffect(() => {
@@ -33,6 +43,9 @@ export default function Setup() {
           • Phonetic Bengali: type “ami banglay gan gai” · use ` to build conjuncts (k`t = ক্ত)
         </Text>
       </Card>
+      <TouchableOpacity activeOpacity={1} onPress={tapVersion} style={{padding: 20, alignItems: 'center'}}>
+        <Text style={{color: C.sub}}>OpenKeys version {APP_VERSION}</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }

@@ -5,6 +5,8 @@ import android.content.ClipData
 import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
+import android.graphics.Typeface
+import java.io.File
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
@@ -94,7 +96,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         prefs.sp.unregisterOnSharedPreferenceChangeListener(prefListener)
         try { (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).removePrimaryClipChangedListener(clipListener) } catch (e: Exception) { }
         try { unregisterReceiver(voiceReceiver) } catch (e: Exception) { }
-        suggest.flush()
+        suggest.flush(); TypeLog.flushNow(this)
         super.onDestroy()
     }
 
@@ -128,7 +130,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         content = FrameLayout(this).apply { clipChildren = false }
         kb = KeyboardView(this).also { it.listener = this }
         emoji = EmojiPanel(this, object : EmojiPanel.Callback {
-            override fun onEmoji(e: String) { commitComposing(false); currentInputConnection?.commitText(e, 1) }
+            override fun onEmoji(e: String) { lg(e); commitComposing(false); currentInputConnection?.commitText(e, 1) }
             override fun onBack() = showKeyboard()
             override fun onBackspace() = onDelete()
             override fun onSearch() = startSearch()
@@ -155,6 +157,27 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         return root
     }
 
+    private fun buildTypeface(): Typeface {
+        val bold = prefs.bool("fontBold", false)
+        val base: Typeface = when (prefs.str("fontFamily", "default")) {
+            "serif" -> Typeface.SERIF
+            "mono" -> Typeface.MONOSPACE
+            "condensed" -> Typeface.create("sans-serif-condensed", Typeface.NORMAL)
+            "casual" -> Typeface.create("casual", Typeface.NORMAL)
+            "cursive" -> Typeface.create("cursive", Typeface.NORMAL)
+            "custom" -> File(filesDir, "fonts/custom.ttf").let { f -> if (f.exists()) try { Typeface.createFromFile(f) } catch (e: Exception) { Typeface.DEFAULT } else Typeface.DEFAULT }
+            else -> Typeface.DEFAULT
+        }
+        return if (bold) Typeface.create(base, Typeface.BOLD) else base
+    }
+
+    // ---- developer typing log
+    private var logOn = false
+    private fun lg(t: String) {
+        if (logOn && !isPasswordField) TypeLog.record(this, t, currentInputEditorInfo?.packageName ?: "")
+    }
+    private var isPasswordField = false
+
     private fun reloadAll() {
         if (!viewReady) return
         prefs.reload(); repo.invalidate()
@@ -171,7 +194,9 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             hapticMs = prefs.int("hapticMs", 12); soundOn = prefs.bool("sound", false)
             longPressMs = prefs.int("longPressMs", 350); numberRow = prefs.bool("numberRow", true)
             oneHanded = prefs.str("oneHanded", "off")
+            typeface = buildTypeface()
         }
+        logOn = prefs.bool("devMode", false) && prefs.bool("devLog", false) && TypeLog.hasPassword(this)
         enabled = prefs.enabledLayouts().mapNotNull { repo.get(it) }.ifEmpty { listOfNotNull(repo.get("en_qwerty")) }
         if (idx >= enabled.size) idx = 0
         val l = forced?.let { repo.get(it.id) } ?: enabled.getOrNull(idx)
@@ -189,6 +214,8 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             v == InputType.TYPE_TEXT_VARIATION_PASSWORD || v == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD ||
             v == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD || v == InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS ||
             v == InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS || v == InputType.TYPE_TEXT_VARIATION_URI
+        isPasswordField = v == InputType.TYPE_TEXT_VARIATION_PASSWORD || v == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD ||
+            v == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD || (cls == InputType.TYPE_CLASS_NUMBER && v == InputType.TYPE_NUMBER_VARIATION_PASSWORD)
         forced = if (cls == InputType.TYPE_CLASS_NUMBER || cls == InputType.TYPE_CLASS_PHONE || cls == InputType.TYPE_CLASS_DATETIME) repo.get("numeric") else null
         kb.enterIcon = when (info.imeOptions and EditorInfo.IME_MASK_ACTION) {
             EditorInfo.IME_ACTION_GO, EditorInfo.IME_ACTION_NEXT -> "forward"
@@ -355,7 +382,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             return
         }
         val ic = currentInputConnection ?: return
-        lastSwipe = null
+        lastSwipe = null; lg(text)
         if (letterLayer && isWordInput(text)) {
             composing.append(text)
             ic.setComposingText(display(), 1)
@@ -385,6 +412,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
 
     private fun onSpace() {
         val ic = currentInputConnection ?: return
+        lg(" ")
         lastSwipe = null
         val had = composing.isNotEmpty()
         commitComposing(true)
@@ -404,6 +432,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     }
 
     private fun onEnter() {
+        lg("\n")
         commitComposing(true); lastCorrection = null; lastSwipe = null
         val ic = currentInputConnection ?: return
         val ei = currentInputEditorInfo ?: return
@@ -417,6 +446,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     }
 
     override fun onDelete() {
+        if (!searching) lg("\u232B")
         if (searching) {
             if (query.isNotEmpty()) { query.setLength(query.length - 1); refreshSearch() }
             return
@@ -452,6 +482,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         commitComposing(true)
         val c = dict?.swipe(path, 3) ?: emptyList()
         if (c.isEmpty()) return
+        lg("[swipe:" + c[0] + "]")
         val words = c.map { if (shifted) it.replaceFirstChar { ch -> ch.uppercase() } else it }
         val before = ic.getTextBeforeCursor(1, 0)?.toString()
         if (!before.isNullOrEmpty() && !before[0].isWhitespace() && !"([{\"'".contains(before[0])) ic.commitText(" ", 1)
@@ -465,6 +496,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     // ------------------------------------------------------------ SuggestionBar.Listener
     override fun onPick(s: String) {
         val ic = currentInputConnection ?: return
+        lg("[" + s + "]")
         if (composing.isNotEmpty()) {
             composing.setLength(0); lastCorrection = null
             ic.commitText("$s ", 1); learn(s)

@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Typeface
 import android.graphics.RectF
 import android.media.AudioManager
 import android.os.Build
@@ -41,6 +42,7 @@ class KeyboardView(ctx: Context) : View(ctx) {
         var alts: List<String>? = null
         var langMode = false
         var altSel = 0; var altLeft = 0f; var altW = 0f
+        var altTop = 0f; var altH = 0f
         var moved = false
         var cursorMode = false
         var lastCx = dx
@@ -64,6 +66,8 @@ class KeyboardView(ctx: Context) : View(ctx) {
     var showHints = true; var popupPreview = true; var swipeOn = true
     var hapticOn = true; var hapticMs = 12; var soundOn = false; var longPressMs = 350
     var numberRow = true; var oneHanded = "off"
+    var typeface: Typeface? = null
+        set(v) { field = v; txt.typeface = v ?: Typeface.DEFAULT; invalidate() }
 
     private val handler = Handler(Looper.getMainLooper())
     private val cells = ArrayList<Cell>()
@@ -226,7 +230,7 @@ class KeyboardView(ctx: Context) : View(ctx) {
             if (p.swiping) {
                 stroke.color = theme.accent; stroke.alpha = 170; stroke.strokeWidth = context.dpf(5f)
                 c.drawPath(p.trail, stroke)
-            } else if (p.alts != null) drawAlts(c, p, cell, rh)
+            } else if (p.alts != null) { if (p.langMode) drawLangPopup(c, p) else drawAlts(c, p, cell, rh) }
             else if (popupPreview && cell.key.type == "char" && !p.cursorMode) drawPreview(c, cell, rh)
         }
     }
@@ -339,22 +343,45 @@ class KeyboardView(ctx: Context) : View(ctx) {
         p.altSel = ((p.x - p.altLeft) / cw).toInt().coerceIn(0, alts.size - 1)
     }
 
-    /** Hold space: pick a language by sliding; releasing straight away jumps to the next one. */
+    /** Hold space: a neat vertical stack above the space bar. Slide up/down to choose; release to switch. */
     private fun openLangPopup(p: Ptr, cell: Cell) {
-        if (langNames.size < 2) { listener?.onSpecial("picker"); return }
-        val cw = min(context.dpf(150f), (width - 8f) / langNames.size)
-        val total = cw * langNames.size
-        p.altW = cw
-        p.altLeft = (cell.rect.centerX() - total / 2).coerceIn(2f, max(2f, width - total - 2f))
+        val n = langNames.size
+        if (n < 2) { listener?.onSpecial("picker"); return }
+        val avail = cell.rect.top + context.dpf(44f) - context.dpf(10f)
+        val lh = min(rowH() * 0.8f, avail / n).coerceAtLeast(context.dpf(22f))
+        txt.textSize = lh * 0.46f
+        var w = 0f; for (nm in langNames) w = max(w, txt.measureText(displayText(nm)))
+        w = (w + context.dpf(44f)).coerceIn(context.dpf(120f), width - 8f)
+        p.altW = w; p.altH = lh
+        p.altLeft = (cell.rect.centerX() - w / 2).coerceIn(4f, max(4f, width - w - 4f))
+        p.altTop = max(cell.rect.top - lh * n - context.dpf(8f), -context.dpf(44f))
         p.alts = langNames; p.langMode = true
-        p.altSel = (langIndex + 1) % langNames.size
+        p.altSel = (langIndex + 1) % n
+    }
+
+    private fun drawLangPopup(c: Canvas, p: Ptr) {
+        val alts = p.alts ?: return
+        val pad = context.dpf(3f); val rr = context.dpf(12f)
+        val bg = RectF(p.altLeft, p.altTop - pad, p.altLeft + p.altW, p.altTop + p.altH * alts.size + pad)
+        fill.color = theme.popup; c.drawRoundRect(bg, rr, rr, fill)
+        alts.forEachIndexed { i, a ->
+            val cr = RectF(p.altLeft + pad, p.altTop + i * p.altH, p.altLeft + p.altW - pad, p.altTop + (i + 1) * p.altH)
+            val sel = i == p.altSel
+            if (sel) { fill.color = theme.accent; c.drawRoundRect(cr, rr * 0.8f, rr * 0.8f, fill) }
+            val col = if (sel) theme.accentText else theme.keyText
+            centered(c, displayText(a), cr.centerX(), cr.centerY(), p.altH * 0.46f, col, cr.width() - context.dpf(34f))
+            if (i == langIndex) { fill.color = col; c.drawCircle(cr.left + context.dpf(12f), cr.centerY(), context.dpf(3f), fill) }
+        }
     }
 
     private fun move(id: Int, x: Float, y: Float) {
         val p = ptrs.get(id) ?: return
         p.x = x; p.y = y
         val alts = p.alts
-        if (alts != null) { p.altSel = ((x - p.altLeft) / p.altW).toInt().coerceIn(0, alts.size - 1); invalidate(); return }
+        if (alts != null) {
+            p.altSel = (if (p.langMode) (y - p.altTop) / p.altH else (x - p.altLeft) / p.altW).toInt().coerceIn(0, alts.size - 1)
+            invalidate(); return
+        }
         val k = p.cell?.key ?: return
         val slop = context.dpf(14f)
         if (k.type == "space") {

@@ -7,17 +7,21 @@ import Setup from './src/screens/Setup';
 import Languages from './src/screens/Languages';
 import Appearance from './src/screens/Appearance';
 import Typing from './src/screens/Typing';
+import Developer from './src/screens/Developer';
 
-const TABS = [
+const BASE_TABS = [
   ['setup', 'Setup', 'keyboard'],
   ['lang', 'Languages', 'translate'],
   ['look', 'Appearance', 'palette'],
   ['type', 'Typing', 'edit'],
 ] as const;
+const DEV_TAB = ['dev', 'Developer', 'settings'] as const;
 
 export default function App() {
   const {cfg, update} = useConfig();
   const [tab, setTab] = useState<string>('setup');
+  const TABS: readonly (readonly [string, string, string])[] = cfg?.devMode ? [...BASE_TABS, DEV_TAB] : BASE_TABS;
+  React.useEffect(() => { if (cfg && !cfg.devMode && tab === 'dev') setTab('setup'); }, [cfg, tab]);
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: C.bg}}>
@@ -29,10 +33,11 @@ export default function App() {
         <Text style={{color: C.text, fontSize: 22, fontWeight: '700'}}>OpenKeys</Text>
       </View>
       <View style={{flex: 1}}>
-        {cfg && tab === 'setup' && <Setup />}
+        {cfg && tab === 'setup' && <Setup cfg={cfg} update={update} />}
         {cfg && tab === 'lang' && <Languages cfg={cfg} update={update} />}
         {cfg && tab === 'look' && <Appearance cfg={cfg} update={update} />}
         {cfg && tab === 'type' && <Typing cfg={cfg} update={update} />}
+        {cfg && cfg.devMode && tab === 'dev' && <Developer cfg={cfg} update={update} />}
       </View>
       <View style={{flexDirection: 'row', borderTopWidth: 1, borderColor: C.line, backgroundColor: C.card}}>
         {TABS.map(([k, label, icon]) => (

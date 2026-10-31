@@ -1,7 +1,9 @@
 import React from 'react';
 import {ScrollView, Text, View} from 'react-native';
-import {PRESETS} from '../config';
-import {Card, Chip, Field, Segmented, Stepper, Toggle} from '../ui';
+import {Alert} from 'react-native';
+import {EMOJI_GROUPS, FONTS, PRESETS} from '../config';
+import {Native} from '../native';
+import {Btn, Card, Chip, Field, Segmented, Stepper, Toggle} from '../ui';
 
 const COLOR_KEYS: [string, string][] = [
   ['bg', 'Background'], ['key', 'Key'], ['keyText', 'Key text'], ['special', 'Special key'], ['accent', 'Accent'], ['hint', 'Hint text'],
@@ -43,12 +45,39 @@ export default function Appearance({cfg, update}: any) {
 
       <Card title="Size & shape">
         <Stepper label="Keyboard height" value={cfg.heightScale} min={70} max={140} step={5} unit="%" onChange={(v: number) => update({heightScale: v})} />
-        <Stepper label="Font size" value={cfg.fontScale} min={70} max={150} step={5} unit="%" onChange={(v: number) => update({fontScale: v})} />
         <Stepper label="Key corner radius" value={cfg.keyRadius} min={0} max={24} unit="dp" onChange={(v: number) => update({keyRadius: v})} />
         <Stepper label="Key spacing" value={cfg.keyGap} min={0} max={10} unit="dp" onChange={(v: number) => update({keyGap: v})} />
         <Stepper label="Bottom padding" value={cfg.bottomPad} min={0} max={48} step={2} unit="dp" onChange={(v: number) => update({bottomPad: v})} />
         <Text style={{color: '#9aa0a6', marginTop: 6}}>One-handed mode</Text>
         <Segmented options={[['off', 'Off'], ['left', 'Left'], ['right', 'Right']]} value={cfg.oneHanded} onChange={(v: any) => update({oneHanded: v})} />
+      </Card>
+
+      <Card title="Font">
+        <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
+          {FONTS.map(([k, l]) => <Chip key={k} label={l} on={cfg.fontFamily === k} onPress={() => update({fontFamily: k})} />)}
+        </View>
+        {cfg.fontFamily === 'custom' && (
+          <>
+            <Text style={{color: '#9aa0a6', marginVertical: 4}}>{cfg.customFontName ? `Current: ${cfg.customFontName}` : 'No font file chosen yet'}</Text>
+            <Btn title="Choose font file (.ttf / .otf)" onPress={() => Native.pickFont().then(n => { if (n) update({customFontName: n}); }).catch((e: any) => Alert.alert('Font', String(e?.message || e)))} />
+          </>
+        )}
+        <Toggle label="Bold keys" value={cfg.fontBold} onChange={(v: boolean) => update({fontBold: v})} />
+        <Stepper label="Key font size" value={cfg.fontScale} min={70} max={170} step={5} unit="%" onChange={(v: number) => update({fontScale: v})} />
+      </Card>
+
+      <Card title="Emoji menu">
+        <Stepper label="Columns" value={cfg.emojiCols} min={4} max={12} onChange={(v: number) => update({emojiCols: v})} />
+        <Stepper label="Emoji size" value={cfg.emojiSize} min={60} max={150} step={5} unit="%" onChange={(v: number) => update({emojiSize: v})} />
+        <Toggle label="Section titles" value={cfg.emojiHeaders} onChange={(v: boolean) => update({emojiHeaders: v})} />
+        <Toggle label="Recent emoji section" value={cfg.emojiRecents} onChange={(v: boolean) => update({emojiRecents: v})} />
+        <Text style={{color: '#9aa0a6', marginTop: 6}}>Categories shown</Text>
+        <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
+          {EMOJI_GROUPS.map((g, i) => {
+            const hidden = (cfg.emojiHidden || []).includes(String(i));
+            return <Chip key={g} label={g} on={!hidden} onPress={() => update({emojiHidden: hidden ? cfg.emojiHidden.filter((x: string) => x !== String(i)) : [...(cfg.emojiHidden || []), String(i)]})} />;
+          })}
+        </View>
       </Card>
 
       <Card title="Keys">

@@ -43,7 +43,7 @@ class EmojiGridView(ctx: Context) : View(ctx) {
     private var popupCw = 0f
 
     private fun cellW() = width / cols.toFloat()
-    private fun cellH() = if (cellHFixed > 0) cellHFixed else cellW() * 0.92f
+    private fun cellH() = if (cellHFixed > 0) cellHFixed else cellW() * max(0.92f, textFrac * 1.45f)
     private fun headerH() = context.dpf(34f)
 
     fun setData(s: List<EmojiSection>, columns: Int, textFraction: Float, fixedCellH: Float = 0f) {

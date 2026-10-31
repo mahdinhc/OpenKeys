@@ -12,11 +12,54 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.uimanager.ViewManager
+import android.app.Activity
+import android.net.Uri
+import com.facebook.react.bridge.ActivityEventListener
+import com.facebook.react.bridge.BaseActivityEventListener
+import java.io.File
 import org.json.JSONArray
 import org.json.JSONObject
 
 class KeyboardModule(private val rc: ReactApplicationContext) : ReactContextBaseJavaModule(rc) {
     override fun getName() = "OpenKeys"
+
+    private var fontPromise: Promise? = null
+    private val actListener: ActivityEventListener = object : BaseActivityEventListener() {
+        override fun onActivityResult(a: Activity, req: Int, res: Int, data: Intent?) {
+            if (req != 7701) return
+            val pr = fontPromise ?: return; fontPromise = null
+            val uri: Uri? = data?.data
+            if (res != Activity.RESULT_OK || uri == null) { pr.resolve(""); return }
+            try {
+                val dir = File(rc.filesDir, "fonts").also { it.mkdirs() }
+                val out = File(dir, "custom.ttf")
+                rc.contentResolver.openInputStream(uri)!!.use { i -> out.outputStream().use { o -> i.copyTo(o) } }
+                android.graphics.Typeface.createFromFile(out) // validate
+                var name = "custom font"
+                rc.contentResolver.query(uri, null, null, null, null)?.use { c -> if (c.moveToFirst()) { val i = c.getColumnIndex("_display_name"); if (i >= 0) name = c.getString(i) } }
+                Prefs(rc).touch(); pr.resolve(name)
+            } catch (e: Exception) { File(rc.filesDir, "fonts/custom.ttf").delete(); pr.reject("E_FONT", "Not a valid font file") }
+        }
+    }
+    init { rc.addActivityEventListener(actListener) }
+
+    @ReactMethod fun pickFont(p: Promise) {
+        val a = currentActivity ?: return p.reject("E_FONT", "No activity")
+        fontPromise = p
+        a.startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*"), 7701)
+    }
+
+    @ReactMethod fun clearFont(p: Promise) { File(rc.filesDir, "fonts/custom.ttf").delete(); Prefs(rc).touch(); p.resolve(true) }
+
+    // ---- developer typing log (password protected, encrypted at rest)
+    @ReactMethod fun logHasPassword(p: Promise) = p.resolve(TypeLog.hasPassword(rc))
+    @ReactMethod fun logSetPassword(old: String, new: String, p: Promise) = try { TypeLog.setPassword(rc, old, new); p.resolve(true) } catch (e: Exception) { p.reject("E_LOG", e.message, e) }
+    @ReactMethod fun logVerify(pw: String, p: Promise) = p.resolve(TypeLog.verify(rc, pw))
+    @ReactMethod fun logIndex(pw: String, p: Promise) = try { p.resolve(TypeLog.index(rc, pw)) } catch (e: Exception) { p.reject("E_LOG", e.message, e) }
+    @ReactMethod fun logRead(pw: String, date: String, hour: String, p: Promise) = try { p.resolve(TypeLog.read(rc, pw, date, hour)) } catch (e: Exception) { p.reject("E_LOG", e.message, e) }
+    @ReactMethod fun logClear(pw: String, p: Promise) = try { TypeLog.clear(rc, pw); p.resolve(true) } catch (e: Exception) { p.reject("E_LOG", e.message, e) }
+    @ReactMethod fun logExport(pw: String, p: Promise) = try { p.resolve(TypeLog.export(rc, pw)) } catch (e: Exception) { p.reject("E_LOG", e.message, e) }
+    @ReactMethod fun logImport(json: String, pw: String, p: Promise) = try { p.resolve(TypeLog.import(rc, json, pw)) } catch (e: Exception) { p.reject("E_LOG", e.message ?: "Import failed", e) }
 
     @ReactMethod fun getStatus(p: Promise) = try {
         val imm = rc.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
