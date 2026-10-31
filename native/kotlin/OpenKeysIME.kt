@@ -46,6 +46,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     private lateinit var strip: EmojiResultStrip
     private lateinit var emoji: EmojiPanel
     private lateinit var clip: ClipboardPanel
+    private lateinit var piano: PianoPanel
     private var viewReady = false
 
     private var theme = Theme.DARK
@@ -140,10 +141,19 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             override fun onPasteImage(c: Clip) = pasteImage(c)
             override fun onBack() = showKeyboard()
         })
+        piano = PianoPanel(this, object : PianoPanel.Callback {
+            override fun onMelody(text: String) { commitComposing(false); currentInputConnection?.commitText(text, 1); lg(text) }
+            override fun onBack() = showKeyboard()
+            override fun onSpace() = this@OpenKeysIME.onSpace()
+            override fun onBackspace() = onDelete()
+            override fun onEnter() = this@OpenKeysIME.onEnter()
+        })
         content.addView(kb, FrameLayout.LayoutParams(mp, ViewGroup.LayoutParams.WRAP_CONTENT))
         emoji.visibility = View.GONE; clip.visibility = View.GONE
         content.addView(emoji, FrameLayout.LayoutParams(mp, mp))
         content.addView(clip, FrameLayout.LayoutParams(mp, mp))
+        piano.visibility = View.GONE
+        content.addView(piano, FrameLayout.LayoutParams(mp, mp))
         root.addView(bar, LinearLayout.LayoutParams(mp, dpi(48f)))
         root.addView(strip, LinearLayout.LayoutParams(mp, dpi(52f)))
         root.addView(content, LinearLayout.LayoutParams(mp, ViewGroup.LayoutParams.WRAP_CONTENT))
@@ -184,7 +194,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         theme = Theme.from(prefs)
         root.setBackgroundColor(theme.bg)
         root.setPadding(0, 0, 0, dpi(prefs.int("bottomPad", 0).toFloat()))
-        bar.applyTheme(theme); emoji.applyTheme(theme); clip.applyTheme(theme); strip.applyTheme(theme)
+        bar.applyTheme(theme); piano.applyTheme(theme); emoji.applyTheme(theme); clip.applyTheme(theme); strip.applyTheme(theme)
         kb.apply {
             theme = this@OpenKeysIME.theme
             heightScale = prefs.int("heightScale", 100); fontScale = prefs.int("fontScale", 100)
@@ -251,13 +261,13 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     }
 
     private fun showKeyboard() {
-        kb.visibility = View.VISIBLE; emoji.visibility = View.GONE; clip.visibility = View.GONE
+        piano.silence(); kb.visibility = View.VISIBLE; emoji.visibility = View.GONE; clip.visibility = View.GONE; piano.visibility = View.GONE
     }
 
     private fun showPanel(p: View) {
         val h = kb.height
         p.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, h)
-        kb.visibility = View.INVISIBLE; emoji.visibility = View.GONE; clip.visibility = View.GONE
+        kb.visibility = View.INVISIBLE; emoji.visibility = View.GONE; clip.visibility = View.GONE; piano.visibility = View.GONE
         p.visibility = View.VISIBLE
     }
 
@@ -406,6 +416,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             "letters" -> { forced = null; enabled.getOrNull(idx)?.let { setLayout(it) } }
             "emoji" -> if (!searching) { emoji.open(); showPanel(emoji) }
             "clip" -> { clip.refresh(); showPanel(clip) }
+            "piano" -> if (!searching) { piano.open(prefs); showPanel(piano) }
             "mic" -> startVoice()
         }
     }
@@ -511,6 +522,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         when (name) {
             "emoji" -> onSpecial("emoji")
             "clip" -> onSpecial("clip")
+            "piano" -> onSpecial("piano")
             "mic" -> startVoice()
             "searchBack" -> exitSearch(true)
             "hand" -> {

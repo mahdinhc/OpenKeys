@@ -10,6 +10,11 @@ export type Config = {
   fontFamily: string; fontBold: boolean; customFontName: string;
   emojiCols: number; emojiSize: number; emojiHeaders: boolean; emojiRecents: boolean; emojiHidden: string[];
   devMode: boolean; devLog: boolean;
+  pianoWave: string; pianoAttack: number; pianoDecay: number; pianoSustain: number; pianoRelease: number;
+  pianoVolume: number; pianoCutoff: number; pianoVibRate: number; pianoVibDepth: number; pianoDetune: number; pianoGate: number;
+  pianoKeys: number; pianoOctave: number; pianoBlackH: number; pianoLabels: boolean;
+  pianoWhite: string; pianoBlack: string; pianoPress: string;
+  pianoSound: boolean; pianoRecord: boolean; pianoTiming: boolean; pianoChordMs: number; pianoQuant: number;
   enabledLayouts: string[];
   shortcuts: Record<string, string>;
 };
@@ -26,6 +31,11 @@ export const DEFAULTS: Config = {
   fontFamily: 'default', fontBold: false, customFontName: '',
   emojiCols: 8, emojiSize: 100, emojiHeaders: true, emojiRecents: true, emojiHidden: [],
   devMode: false, devLog: false,
+  pianoWave: 'sine', pianoAttack: 5, pianoDecay: 120, pianoSustain: 60, pianoRelease: 200,
+  pianoVolume: 80, pianoCutoff: 100, pianoVibRate: 5, pianoVibDepth: 0, pianoDetune: 0, pianoGate: 0,
+  pianoKeys: 14, pianoOctave: 4, pianoBlackH: 62, pianoLabels: true,
+  pianoWhite: '#FFFFFF', pianoBlack: '#1A1A1A', pianoPress: '#669DF6',
+  pianoSound: true, pianoRecord: true, pianoTiming: true, pianoChordMs: 60, pianoQuant: 50,
   enabledLayouts: ['en_qwerty', 'bn_phonetic'],
   shortcuts: {omw: 'On my way!'},
 };

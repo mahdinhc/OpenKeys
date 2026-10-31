@@ -52,7 +52,7 @@ class SuggestionBar(ctx: Context) : LinearLayout(ctx) {
             }
             slots.add(t); sugRow.addView(t, LayoutParams(0, h, 1f))
         }
-        listOf("emoji" to "emoji", "clip" to "clipboard", "hand" to "one_hand", "settings" to "settings").forEach { (n, ic) ->
+        listOf("emoji" to "emoji", "clip" to "clipboard", "piano" to "piano", "hand" to "one_hand", "settings" to "settings").forEach { (n, ic) ->
             val v = IconView(ctx, ic, Theme.DARK.hint, 0.5f).also { it.setOnClickListener { listener?.onTool(n) } }
             tools.add(v); toolRow.addView(v, LayoutParams(0, h, 1f))
         }

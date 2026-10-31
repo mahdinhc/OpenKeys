@@ -43,6 +43,20 @@ class KeyboardModule(private val rc: ReactApplicationContext) : ReactContextBase
     }
     init { rc.addActivityEventListener(actListener) }
 
+    private val synth = Synth()
+    private var player: MelodyPlayer? = null
+
+    @ReactMethod fun playMelody(text: String, speed: Double, p: Promise) {
+        player?.stop()
+        val steps = MelodyParser.parse(text)
+        if (steps.isEmpty()) { p.reject("E_MELODY", "No playable notes found"); return }
+        synth.params = SynthParams.from(Prefs(rc))
+        val pl = MelodyPlayer(synth); player = pl
+        pl.play(steps, speed.coerceIn(0.25, 4.0)) { p.resolve(true) }
+    }
+
+    @ReactMethod fun stopMelody(p: Promise) { player?.stop(); p.resolve(true) }
+
     @ReactMethod fun pickFont(p: Promise) {
         val a = currentActivity ?: return p.reject("E_FONT", "No activity")
         fontPromise = p
