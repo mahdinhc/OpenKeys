@@ -180,7 +180,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     private fun setLayout(def: LayoutDef) {
         commitComposing(false)
         layout = def; translit = def.translit; dict = suggest.dict(def.dict)
-        kb.setLayout(def)
+        kb.applyLayout(def)
         updateSuggestions(); updateAutoCaps()
     }
 

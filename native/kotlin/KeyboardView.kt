@@ -77,7 +77,7 @@ class KeyboardView(ctx: Context) : View(ctx) {
     private fun hasNumRow() = numberRow && layout?.id != "numeric"
     private fun targetRows() = (layout?.layers?.get("base")?.size ?: 4) + (if (hasNumRow()) 1 else 0)
 
-    fun setLayout(l: LayoutDef) {
+    fun applyLayout(l: LayoutDef) {
         layout = l; layerName = "base"; shiftState = 0; autoShifted = false
         refresh()
     }
