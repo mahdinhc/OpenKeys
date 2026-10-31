@@ -1,0 +1,21 @@
+# Emoji Kitchen release folders on gstatic.com, newest first. One YYYYMMDD per line; '#' starts a comment.
+# URL: https://www.gstatic.com/android/keyboard/emojikitchen/<date>/u<left>/u<left>_u<right>.png
+# The keyboard probes these folders for a pair. If Google adds a release, add its date here (or just on top).
+20250225
+20250130
+20240826
+20240715
+20231128
+20230818
+20230803
+20230301
+20220823
+20220815
+20220406
+20220203
+20220110
+20211115
+20210831
+20210521
+20210218
+20201001

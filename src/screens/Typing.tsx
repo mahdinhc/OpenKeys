@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {Alert, ScrollView, Share, Text, TouchableOpacity, View} from 'react-native';
 import {Icon} from '../Icon';
 import {Native} from '../native';
-import {Btn, C, Card, Field, Stepper, Toggle} from '../ui';
+import {Btn, C, Card, Field, Segmented, Stepper, Toggle} from '../ui';
 
 export default function Typing({cfg, update}: any) {
   const [trig, setTrig] = useState('');
@@ -28,6 +28,21 @@ export default function Typing({cfg, update}: any) {
     <ScrollView>
       <Card title="Writing">
         <Toggle label="Suggestions" hint="Word completion and next-word prediction" value={cfg.suggestions} onChange={T('suggestions')} />
+        {cfg.suggestions && (
+          <View style={{marginBottom: 6}}>
+            <Text style={{color: C.text, fontSize: 15, marginTop: 4}}>Show suggestions in</Text>
+            <Segmented
+              options={[['strict', 'App decides'], ['moderate', 'Moderate'], ['everywhere', 'Everywhere']]}
+              value={cfg.suggestMode || 'moderate'} onChange={(v: any) => update({suggestMode: v})} />
+            <Text style={{color: C.sub, fontSize: 12}}>
+              {(cfg.suggestMode || 'moderate') === 'strict'
+                ? 'Follows each app: no suggestions where an app turns them off (many search bars, chat boxes), or in email and web-address fields.'
+                : cfg.suggestMode === 'everywhere'
+                ? 'Every text field, including email and web-address fields and apps that ask for none. Only password and number/phone fields are skipped. In email, web-address and "no suggestions" fields nothing is auto-corrected, expanded or learned.'
+                : 'Also in search bars and in fields where an app opted out. Skipped in password, number/phone, email and web-address fields (search bars with a search key excepted). In "no suggestions" fields nothing is auto-corrected or learned.'}
+            </Text>
+          </View>
+        )}
         <Toggle label="Auto-correct" hint="Backspace right after a correction undoes it" value={cfg.autocorrect} onChange={T('autocorrect')} />
         <Toggle label="Auto-capitalize" value={cfg.autoCap} onChange={T('autoCap')} />
         <Toggle label="Double-space for period" value={cfg.doubleSpacePeriod} onChange={T('doubleSpacePeriod')} />

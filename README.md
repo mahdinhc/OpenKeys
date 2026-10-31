@@ -17,12 +17,16 @@ Tag `v1.0.0` to also attach the APK to a GitHub Release. Locally: `bash scripts/
 Gboard-style layout (number row on by default, two symbol pages, numeric keypad for number/phone fields) ·
 vector icons everywhere (no emoji characters in the UI) · **hold space and slide to switch language** ·
 shift / caps-lock · long-press alternates · swipe typing · slide on space to move the cursor ·
-suggestions, auto-correct (+undo on backspace), next-word, learned words · auto-capitalise, double-space period ·
+suggestions (choose where they appear: app decides / moderate / everywhere), auto-correct (+undo on backspace), next-word, learned words · auto-capitalise, double-space period ·
 text shortcuts · **full emoji set** (1,900+ RGI emoji incl. ZWJ sequences and flags, 9 categories, recents,
-search, skin-tone long-press, emoticons/kaomoji) · **clipboard history with text and images** (pins; images are
+search, skin-tone long-press, emoticons/kaomoji, **Emoji Kitchen** mixes) · **clipboard history with text and images** (pins; images are
 inserted into apps that accept them, otherwise copied back to the system clipboard) · voice typing ·
 one-handed mode · themes (light/dark/AMOLED/custom) · height/font/radius/spacing · haptics/sound ·
-input-type aware (no suggestions in passwords/email/URL, Enter action icon).
+input-type aware (Typing → *Show suggestions in*: **App decides** hides suggestions wherever an app asks, **Moderate** (default) also shows them in search bars and opted-out fields, **Everywhere** shows them in every text field except passwords and number/phone; Enter action icon).
+
+**Emoji Kitchen.** Emoji panel → the chef-hat button next to the emoticon button. Tap two emoji and the mashup sticker appears; tap it to send
+(inserted as an image where the app accepts it, otherwise copied to the clipboard). Stickers are fetched from `gstatic.com` the first time a pair is
+used and cached on the device, so this is the one feature that goes online. The release folders it probes are listed in `native/assets/emoji/kitchen_dates.txt`.
 
 GIF search / stickers are not included (they need a third-party GIF service and API key).
 

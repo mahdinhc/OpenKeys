@@ -3,6 +3,7 @@ package com.openkeys.keyboard
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.Looper
@@ -43,7 +44,7 @@ private val KAOMOJI = listOf(
 )
 
 class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
-    interface Callback { fun onEmoji(e: String); fun onBack(); fun onBackspace(); fun onSearch() }
+    interface Callback { fun onEmoji(e: String); fun onBack(); fun onBackspace(); fun onSearch(); fun onSticker(f: java.io.File) }
 
     private var theme = Theme.DARK
     private val grid = EmojiGridView(ctx)
@@ -54,10 +55,24 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
     private val bottom = LinearLayout(ctx)
     private val emojiBtn = FrameLayout(ctx)
     private val kaoBtn = TextView(ctx)
+    private val kitchenBtn = FrameLayout(ctx)
+    private val kitchenBar = LinearLayout(ctx)
+    private val slotA = TextView(ctx)
+    private val slotB = TextView(ctx)
+    private val mixImg = ImageView(ctx)
+    private val mixMsg = TextView(ctx)
+    private val mixBox = FrameLayout(ctx)
+    private val kHint = TextView(ctx)
+    private var kA: String? = null
+    private var kB: String? = null
+    private var kSel = 0
+    private var mixSeq = 0
+    private var mixFile: java.io.File? = null
     private val back = FrameLayout(ctx)
     private val backIcon = IconView(ctx, "back", Theme.DARK.keyText, 0.5f)
     private var sectionIndexForTab = ArrayList<Int>()
     private var kaomoji = false
+    private var kitchen = false
 
     init {
         orientation = VERTICAL
@@ -82,15 +97,18 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
         topRow.addView(hs, LayoutParams(0, MATCH, 1f))
         tabs.orientation = HORIZONTAL; tabs.gravity = Gravity.CENTER_VERTICAL
 
-        grid.onPick = { e -> cb.onEmoji(e); if (!kaomoji) ClipStore.addEmoji(context, e) }
-        grid.toneBase = { EmojiData.isToneBase(it) }
-        grid.displayOf = { e -> if (EmojiData.isToneBase(e)) (ClipStore.tone(context, e) ?: e) else e }
+        grid.onPick = { e -> if (kitchen) kitchenPick(e) else { cb.onEmoji(e); if (!kaomoji) ClipStore.addEmoji(context, e) } }
+        grid.toneBase = { !kitchen && EmojiData.isToneBase(it) }
+        grid.displayOf = { e -> if (!kitchen && EmojiData.isToneBase(e)) (ClipStore.tone(context, e) ?: e) else e }
         grid.onTone = { base, v -> ClipStore.setTone(context, base, v) }
         grid.onSection = { sec -> highlight(sec) }
 
         emojiBtn.addView(IconView(ctx, "emoji", Theme.DARK.keyText, 0.55f), FrameLayout.LayoutParams(MATCH, MATCH))
         emojiBtn.setOnClickListener { setKaomoji(false) }
         kaoBtn.text = ":-)"; kaoBtn.textSize = 17f; kaoBtn.gravity = Gravity.CENTER; kaoBtn.setOnClickListener { setKaomoji(true) }
+        kitchenBtn.addView(IconView(ctx, "kitchen", Theme.DARK.keyText, 0.55f), FrameLayout.LayoutParams(MATCH, MATCH))
+        kitchenBtn.setOnClickListener { setKitchen(true) }
+        buildKitchenBar(ctx)
         val del = FrameLayout(ctx); del.addView(IconView(ctx, "backspace", Theme.DARK.keyText, 0.5f), FrameLayout.LayoutParams(MATCH, MATCH))
         del.onRepeatTouch { cb.onBackspace() }
         bottom.orientation = HORIZONTAL; bottom.gravity = Gravity.CENTER_VERTICAL
@@ -98,29 +116,121 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
         bottom.addView(View(ctx), LayoutParams(0, 1, 0.4f))
         bottom.addView(emojiBtn, LayoutParams(0, MATCH, 1.4f).also { it.setMargins(m, m, m, m) })
         bottom.addView(kaoBtn, LayoutParams(0, MATCH, 1.4f).also { it.setMargins(m, m, m, m) })
+        bottom.addView(kitchenBtn, LayoutParams(0, MATCH, 1.4f).also { it.setMargins(m, m, m, m) })
         bottom.addView(del, LayoutParams(0, MATCH, 1f))
 
         addView(topRow, LayoutParams(MATCH, ctx.dpi(48f)))
+        addView(kitchenBar, LayoutParams(MATCH, ctx.dpi(72f)))
         addView(grid, LayoutParams(MATCH, 0, 1f))
         addView(bottom, LayoutParams(MATCH, ctx.dpi(48f)))
     }
 
     private fun setKaomoji(on: Boolean) {
-        kaomoji = on
+        kaomoji = on; kitchen = false
         topRow.visibility = if (on) GONE else VISIBLE
+        kitchenBar.visibility = GONE
         restyleBottom()
         if (on) grid.setData(KAOMOJI, 3, 0f, context.dpf(46f)) else open()
     }
 
     private fun restyleBottom() {
         val sel = round(theme.accent and 0x00FFFFFF or 0x40000000, context.dpf(20f))
-        emojiBtn.background = if (!kaomoji) sel else null
+        emojiBtn.background = if (!kaomoji && !kitchen) sel else null
         kaoBtn.background = if (kaomoji) sel else null
+        kitchenBtn.background = if (kitchen) sel else null
     }
+
+    // ---------------------------------------------------------------- Emoji Kitchen
+    private fun buildKitchenBar(ctx: Context) {
+        kitchenBar.orientation = HORIZONTAL; kitchenBar.gravity = Gravity.CENTER; kitchenBar.visibility = GONE
+        for ((i, t) in listOf(slotA, slotB).withIndex()) {
+            t.gravity = Gravity.CENTER; t.textSize = 26f
+            t.setOnClickListener { kSel = i; if (i == 0) kA = null else kB = null; mixUpdate() }
+        }
+        fun sign(c: String) = TextView(ctx).apply { text = c; textSize = 22f; gravity = Gravity.CENTER; tag = "sign" }
+        mixImg.scaleType = ImageView.ScaleType.FIT_CENTER
+        mixMsg.gravity = Gravity.CENTER; mixMsg.textSize = 13f
+        mixBox.addView(mixImg, FrameLayout.LayoutParams(MATCH, MATCH).also { it.setMargins(6, 6, 6, 6) })
+        mixBox.addView(mixMsg, FrameLayout.LayoutParams(MATCH, MATCH))
+        mixBox.setOnClickListener { mixFile?.let { f -> cb.onSticker(f) } }
+        val sz = ctx.dpi(52f); val gap = ctx.dpi(5f)
+        kitchenBar.addView(slotA, LayoutParams(sz, sz))
+        kitchenBar.addView(sign("+"), LayoutParams(ctx.dpi(28f), sz))
+        kitchenBar.addView(slotB, LayoutParams(sz, sz))
+        kitchenBar.addView(sign("="), LayoutParams(ctx.dpi(28f), sz))
+        kitchenBar.addView(mixBox, LayoutParams(sz + gap * 2, sz + gap * 2))
+        kHint.textSize = 12f; kHint.gravity = Gravity.CENTER_VERTICAL; kHint.maxLines = 3
+        kHint.setPadding(ctx.dpi(10f), 0, ctx.dpi(6f), 0)
+        kitchenBar.addView(kHint, LayoutParams(0, MATCH, 1f))
+    }
+
+    private fun setKitchen(on: Boolean) {
+        kitchen = on; kaomoji = false
+        topRow.visibility = if (on) GONE else VISIBLE
+        kitchenBar.visibility = if (on) VISIBLE else GONE
+        restyleBottom()
+        if (!on) { open(); return }
+        EmojiData.load(context) {
+            val heads = Prefs(context).bool("emojiHeaders", true)
+            val secs = ArrayList<EmojiSection>()
+            for (g in EmojiData.GROUPS.indices) {
+                if (g == 8) continue                           // flags have no mixes
+                val l = EmojiData.items.filter { it.group == g }.map { it.s }
+                if (l.isNotEmpty()) secs.add(EmojiSection(if (heads) EmojiData.GROUPS[g] else "", l))
+            }
+            grid.setData(secs, Prefs(context).int("emojiCols", 8).coerceIn(4, 12), (0.62f * Prefs(context).int("emojiSize", 100) / 100f).coerceIn(0.3f, 0.95f))
+            mixUpdate()
+        }
+    }
+
+    private fun kitchenPick(e: String) {
+        if (kSel == 0) kA = e else kB = e
+        kSel = if (kA == null) 0 else 1
+        mixUpdate()
+    }
+
+    /** The slot that receives the next pick is tinted with the accent colour. */
+    private fun styleSlots() {
+        val on = round(theme.accent and 0x00FFFFFF or 0x40000000, context.dpf(14f))
+        val off = round(theme.key, context.dpf(14f))
+        slotA.background = if (kSel == 0) on else off
+        slotB.background = if (kSel == 1) on else off
+    }
+
+    private fun mixUpdate() {
+        slotA.text = kA ?: ""; slotB.text = kB ?: ""
+        styleSlots()
+        mixSeq++; val seq = mixSeq
+        mixFile = null; mixImg.setImageDrawable(null)
+        val a = kA; val b = kB
+        if (a == null || b == null) { mixMsg.text = ""; kHint.text = "Tap two emoji to mix them"; return }
+        mixMsg.text = "…"; kHint.text = "Mixing…"
+        EmojiKitchen.mix(context, a, b) { r ->
+            if (seq != mixSeq) return@mix                   // user already picked something else
+            when (r) {
+                is EmojiKitchen.Result.Ok -> {
+                    val bmp = decode(r.file)
+                    if (bmp == null) { mixMsg.text = "Error"; kHint.text = "Couldn't read the image"; return@mix }
+                    mixFile = r.file; mixImg.setImageBitmap(bmp); mixMsg.text = ""
+                    kHint.text = "Tap the mix to send it. Tap a slot to change that emoji"
+                }
+                EmojiKitchen.Result.NoMix -> { mixMsg.text = "No mix"; kHint.text = "These two don't mix. Try another" }
+                EmojiKitchen.Result.Offline -> { mixMsg.text = "Offline"; kHint.text = "Can't reach the server. Check your connection, then pick the emoji again" }
+            }
+        }
+    }
+
+    private fun decode(f: java.io.File): Bitmap? = try {
+        val o = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(f.path, o)
+        var s = 1
+        while (o.outWidth / s > 320 || o.outHeight / s > 320) s *= 2
+        BitmapFactory.decodeFile(f.path, BitmapFactory.Options().apply { inSampleSize = s })
+    } catch (e: Throwable) { null }
 
     /** (Re)builds the section list: recents + the nine Unicode groups. */
     fun open() {
-        kaomoji = false; topRow.visibility = VISIBLE; restyleBottom()
+        kaomoji = false; kitchen = false; topRow.visibility = VISIBLE; kitchenBar.visibility = GONE; restyleBottom()
         EmojiData.load(context) { build() }
     }
 
@@ -171,7 +281,12 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
         ((searchPill.parent as? FrameLayout)?.tag as? IconView)?.set("search", t.hint)
         kaoBtn.setTextColor(t.keyText)
         (emojiBtn.getChildAt(0) as IconView).set("emoji", t.keyText)
-        restyleBottom()
+        (kitchenBtn.getChildAt(0) as IconView).set("kitchen", t.keyText)
+        slotA.setTextColor(t.keyText); slotB.setTextColor(t.keyText); mixMsg.setTextColor(t.hint); kHint.setTextColor(t.hint)
+        mixBox.background = round(t.key, context.dpf(16f))
+        for (i in 0 until kitchenBar.childCount) (kitchenBar.getChildAt(i) as? TextView)?.takeIf { it.tag == "sign" }?.setTextColor(t.hint)
+        kitchenBar.setBackgroundColor(Color.TRANSPARENT)
+        restyleBottom(); styleSlots()
         grid.invalidate()
     }
 }

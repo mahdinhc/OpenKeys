@@ -70,7 +70,8 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     private var dict: WordDict? = null
 
     private val composing = StringBuilder()
-    private var noSuggest = false
+    private var noSuggest = false      // no suggestion bar / composing text in this field
+    private var noFix = false          // suggestions may show, but never auto-replace, expand or learn (email, URL)
     private var lastSpace = 0L
     private var lastCorrection: Pair<String, String>? = null
     private var lastWord = ""
@@ -196,6 +197,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             override fun onBack() = showKeyboard()
             override fun onBackspace() = onDelete()
             override fun onSearch() = startSearch()
+            override fun onSticker(f: File) { commitComposing(false); pasteImage(Clip("k:" + f.name, "image", f.name, false, System.currentTimeMillis())) }
         })
         clip = ClipboardPanel(this, object : ClipboardPanel.Callback {
             override fun onPasteText(s: String) { commitComposing(false); currentInputConnection?.commitText(s, 1) }
@@ -325,10 +327,21 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         val cls = info.inputType and InputType.TYPE_MASK_CLASS
         val v = info.inputType and InputType.TYPE_MASK_VARIATION
         val flags = info.inputType and InputType.TYPE_MASK_FLAGS
-        noSuggest = cls != InputType.TYPE_CLASS_TEXT || (flags and InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS) != 0 ||
-            v == InputType.TYPE_TEXT_VARIATION_PASSWORD || v == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD ||
-            v == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD || v == InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS ||
-            v == InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS || v == InputType.TYPE_TEXT_VARIATION_URI
+        val isText = cls == InputType.TYPE_CLASS_TEXT
+        val secret = v == InputType.TYPE_TEXT_VARIATION_PASSWORD || v == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD ||
+            v == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD
+        val addressy = v == InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS || v == InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS ||
+            v == InputType.TYPE_TEXT_VARIATION_URI
+        val appSaysNo = (flags and InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS) != 0
+        val searchField = (info.imeOptions and EditorInfo.IME_MASK_ACTION) == EditorInfo.IME_ACTION_SEARCH
+        // "Where to show suggestions": strict = obey every app hint (old behaviour); moderate = also in search bars and in
+        // fields that merely opted out; everywhere = every text field. Passwords and number/phone fields never get them.
+        noSuggest = when (prefs.str("suggestMode", "moderate")) {
+            "strict" -> !isText || appSaysNo || secret || addressy
+            "everywhere" -> !isText || secret
+            else -> !isText || secret || (addressy && !searchField)
+        }
+        noFix = noSuggest || addressy || appSaysNo     // shown, but never auto-replaced / learned there
         isPasswordField = v == InputType.TYPE_TEXT_VARIATION_PASSWORD || v == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD ||
             v == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD || (cls == InputType.TYPE_CLASS_NUMBER && v == InputType.TYPE_NUMBER_VARIATION_PASSWORD)
         forced = if (cls == InputType.TYPE_CLASS_NUMBER || cls == InputType.TYPE_CLASS_PHONE || cls == InputType.TYPE_CLASS_DATETIME) repo.get("numeric") else null
@@ -456,7 +469,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     private fun display(): String = translit?.convert(composing.toString()) ?: composing.toString()
 
     private fun learn(w: String) {
-        if (prefs.bool("learnWords", true) && !noSuggest) dict?.learn(w, lastWord)
+        if (prefs.bool("learnWords", true) && !noFix) dict?.learn(w, lastWord)
         lastWord = w
     }
 
@@ -464,7 +477,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         if (composing.isEmpty()) return
         var w = display()
         lastCorrection = null
-        if (auto && !noSuggest) {
+        if (auto && !noFix) {
             val sc = prefs.shortcuts()[w.lowercase()]
             if (sc != null) w = sc
             else if (translit != null && prefs.bool("autocorrect", true) && prefs.bool("suggestions", true)) dict?.autoCorrect(composing.toString())?.let { w = it }
@@ -611,7 +624,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         val had = composing.isNotEmpty()
         commitComposing(true)
         val now = SystemClock.uptimeMillis()
-        if (!had && !noSuggest && prefs.bool("doubleSpacePeriod", true) && now - lastSpace < 500) {
+        if (!had && !noFix && prefs.bool("doubleSpacePeriod", true) && now - lastSpace < 500) {
             val b = ic.getTextBeforeCursor(2, 0)?.toString()
             if (b != null && b.length == 2 && b[1] == ' ' && !b[0].isWhitespace() && !".!?,;:।".contains(b[0])) {
                 ic.deleteSurroundingText(1, 0)
@@ -757,6 +770,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         o.put("layout", layout?.id ?: "")
         o.put("locale", layout?.locale ?: "")
         o.put("noSuggest", noSuggest)
+        o.put("noFix", noFix)
         o.put("secure", isPasswordField)
         if (full) {
             o.put("after", ic?.getTextAfterCursor(100, 0)?.toString() ?: "")
