@@ -2,25 +2,47 @@ package com.openkeys.keyboard
 
 import android.content.Context
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.text.TextUtils
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 
-/** Shows 3 suggestion slots, or a toolbar (emoji, clipboard, voice, one-hand, settings) when idle. */
-class SuggestionBar(ctx: Context) : FrameLayout(ctx) {
+/**
+ * Gboard-style top bar: [apps/back] [suggestions | tools | emoji-search field] [mic].
+ * The apps button toggles the tool row even while suggestions are showing.
+ */
+class SuggestionBar(ctx: Context) : LinearLayout(ctx) {
     interface Listener { fun onPick(s: String); fun onTool(name: String) }
 
     var listener: Listener? = null
+    private var theme = Theme.DARK
+    private var suggestions: List<String> = emptyList()
+    private var forceTools = false
+    private var searching = false
+
+    private val left = IconView(ctx, "apps", Theme.DARK.hint, 0.5f)
+    private val micBg = FrameLayout(ctx)
+    private val mic = IconView(ctx, "mic", Theme.DARK.keyText, 0.55f)
+    private val center = FrameLayout(ctx)
     private val sugRow = LinearLayout(ctx)
     private val toolRow = LinearLayout(ctx)
+    private val searchRow = LinearLayout(ctx)
+    private val searchIcon = IconView(ctx, "search", Theme.DARK.hint, 0.6f)
+    private val query = TextView(ctx)
     private val slots = ArrayList<TextView>()
-    private val tools = ArrayList<TextView>()
-    private var theme = Theme.DARK
+    private val tools = ArrayList<IconView>()
 
     init {
+        orientation = HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
+        val h = ViewGroup.LayoutParams.MATCH_PARENT
+        left.setOnClickListener { if (searching) listener?.onTool("searchBack") else { forceTools = !forceTools; render() } }
+        addView(left, LayoutParams(ctx.dpi(48f), h))
+
         for (i in 0 until 3) {
             val t = TextView(ctx).apply {
                 gravity = Gravity.CENTER; textSize = 17f; maxLines = 1
@@ -28,32 +50,80 @@ class SuggestionBar(ctx: Context) : FrameLayout(ctx) {
                 setPadding(ctx.dpi(6f), 0, ctx.dpi(6f), 0)
                 setOnClickListener { val s = text.toString(); if (s.isNotEmpty()) listener?.onPick(s) }
             }
-            slots.add(t); sugRow.addView(t, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
+            slots.add(t); sugRow.addView(t, LayoutParams(0, h, 1f))
         }
-        listOf("emoji" to "😊", "clip" to "📋", "mic" to "🎤", "hand" to "↔", "settings" to "⚙").forEach { (n, g) ->
-            val t = TextView(ctx).apply {
-                gravity = Gravity.CENTER; textSize = 19f; text = g; isClickable = true
-                setOnClickListener { listener?.onTool(n) }
-            }
-            tools.add(t); toolRow.addView(t, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
+        listOf("emoji" to "emoji", "clip" to "clipboard", "hand" to "one_hand", "settings" to "settings").forEach { (n, ic) ->
+            val v = IconView(ctx, ic, Theme.DARK.hint, 0.5f).also { it.setOnClickListener { listener?.onTool(n) } }
+            tools.add(v); toolRow.addView(v, LayoutParams(0, h, 1f))
         }
-        addView(toolRow, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        addView(sugRow, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        sugRow.visibility = GONE
+        searchRow.gravity = Gravity.CENTER_VERTICAL
+        query.textSize = 17f; query.maxLines = 1
+        searchRow.addView(searchIcon, LayoutParams(ctx.dpi(36f), h))
+        searchRow.addView(query, LayoutParams(0, h, 1f).also { })
+        query.gravity = Gravity.CENTER_VERTICAL
+        center.addView(toolRow, FrameLayout.LayoutParams(h, h))
+        center.addView(sugRow, FrameLayout.LayoutParams(h, h))
+        center.addView(searchRow, FrameLayout.LayoutParams(h, h))
+        addView(center, LayoutParams(0, h, 1f))
+
+        micBg.addView(mic, FrameLayout.LayoutParams(ctx.dpi(40f), ctx.dpi(40f), Gravity.CENTER))
+        micBg.setOnClickListener { listener?.onTool("mic") }
+        addView(micBg, LayoutParams(ctx.dpi(56f), h))
+        render()
     }
 
-    fun setSuggestions(l: List<String>) {
-        if (l.isEmpty()) { sugRow.visibility = GONE; toolRow.visibility = VISIBLE; return }
-        toolRow.visibility = GONE; sugRow.visibility = VISIBLE
-        for (i in 0 until 3) {
-            slots[i].text = l.getOrNull(i) ?: ""
-            slots[i].setTypeface(null, if (i == 1 && l.size > 1) Typeface.BOLD else Typeface.NORMAL)
+    fun setSuggestions(l: List<String>) { suggestions = l; if (l.isEmpty()) forceTools = false; render() }
+
+    fun setSearch(active: Boolean, q: String) {
+        searching = active
+        query.text = if (q.isEmpty()) "Search emoji" else q
+        query.setTextColor(if (q.isEmpty()) theme.hint else theme.keyText)
+        render()
+    }
+
+    private fun render() {
+        left.set(if (searching) "back" else "apps", theme.hint)
+        micBg.visibility = if (searching) GONE else VISIBLE
+        searchRow.visibility = if (searching) VISIBLE else GONE
+        val showSug = !searching && suggestions.isNotEmpty() && !forceTools
+        sugRow.visibility = if (showSug) VISIBLE else GONE
+        toolRow.visibility = if (!searching && !showSug) VISIBLE else GONE
+        if (showSug) for (i in 0 until 3) {
+            slots[i].text = suggestions.getOrNull(i) ?: ""
+            slots[i].setTypeface(null, if (i == 1 && suggestions.size > 1) Typeface.BOLD else Typeface.NORMAL)
         }
     }
 
     fun applyTheme(t: Theme) {
         theme = t
         slots.forEach { it.setTextColor(t.keyText) }
-        tools.forEach { it.setTextColor(t.hint) }
+        tools.forEach { it.tint = t.hint; it.invalidate() }
+        searchIcon.set("search", t.hint)
+        mic.set("mic", t.keyText)
+        micBg.background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(t.key) }
+        val pad = context.dpi(4f)
+        micBg.setPadding(pad, pad, pad, pad)
+        render()
     }
+}
+
+/** Horizontal strip of emoji search results shown above the keyboard while searching. */
+class EmojiResultStrip(ctx: Context, private val onPick: (String) -> Unit) : android.widget.HorizontalScrollView(ctx) {
+    private val row = LinearLayout(ctx)
+    private var color = Theme.DARK.keyText
+    init { isHorizontalScrollBarEnabled = false; addView(row, ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT)) }
+    fun setResults(items: List<String>) {
+        row.removeAllViews()
+        scrollTo(0, 0)
+        if (items.isEmpty()) {
+            row.addView(TextView(context).apply { text = "No emoji found"; setTextColor(color); gravity = Gravity.CENTER_VERTICAL; setPadding(context.dpi(16f), 0, 0, 0) },
+                LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT))
+            return
+        }
+        for (e in items) row.addView(TextView(context).apply {
+            text = e; textSize = 28f; gravity = Gravity.CENTER; setPadding(context.dpi(10f), 0, context.dpi(10f), 0)
+            setOnClickListener { onPick(e) }
+        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT))
+    }
+    fun applyTheme(t: Theme) { color = t.keyText; setBackgroundColor(t.bg) }
 }

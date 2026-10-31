@@ -22,6 +22,9 @@ if [ ! -d node_modules ]; then
   npm install --no-audit --no-fund
 fi
 
+# vector icons for the settings app
+[ -d node_modules/react-native-svg ] || npm install --no-audit --no-fund --save-exact react-native-svg@15.9.0
+
 echo ">> Applying native keyboard overlay"
 mkdir -p "$PKG_DIR" android/app/src/main/res android/app/src/main/assets
 cp -f native/kotlin/*.kt "$PKG_DIR/"

@@ -7,7 +7,7 @@ import java.io.File
 
 data class KeyDef(
     val label: String, val output: String, val hints: List<String>,
-    val weight: Float, val type: String, val param: String? = null
+    val weight: Float, val type: String, val param: String? = null, val span: Int = 1
 )
 
 /**
@@ -37,6 +37,7 @@ object LayoutParser {
             val parts = t.substring(1, t.length - 1).split(":")
             val head = parts[0]
             val w = parts.getOrNull(1)?.toFloatOrNull()
+            val span = parts.getOrNull(2)?.toIntOrNull() ?: 1
             val name = head.substringBefore("=")
             val param = if (head.contains("=")) head.substringAfter("=") else null
             val none = emptyList<String>()
@@ -48,7 +49,12 @@ object LayoutParser {
                 "sym" -> KeyDef("?123", "", none, w ?: 1.4f, "layer", "symbols")
                 "sym2" -> KeyDef("=\\<", "", none, w ?: 1.4f, "layer", "symbols2")
                 "abc" -> KeyDef("ABC", "", none, w ?: 1.4f, "layer", "base")
-                "layer" -> KeyDef(param ?: "?", "", none, w ?: 1.4f, "layer", param ?: "base")
+                "layer" -> {
+                    val lp = param ?: "base"
+                    val layer = lp.substringBefore("~")
+                    KeyDef(if (lp.contains("~")) lp.substringAfter("~") else layer, "", none, w ?: 1.4f, "layer", layer)
+                }
+                "stack" -> KeyDef("", "", (param ?: "").split(";").filter { it.isNotEmpty() }, w ?: 1f, "stack", null, span)
                 "lang" -> KeyDef("🌐", "", none, w ?: 1f, "lang")
                 "emoji" -> KeyDef("☺", "", none, w ?: 1f, "emoji")
                 "mic" -> KeyDef("🎤", "", none, w ?: 1f, "mic")
@@ -58,16 +64,26 @@ object LayoutParser {
                 else -> KeyDef(t, t, none, 1f, "char")
             }
         }
-        val segs = t.split("|")
+        var tt = t
+        var cw = 1f
+        Regex("@(\\d+(?:\\.\\d+)?)$").find(tt)?.let { cw = it.groupValues[1].toFloat(); tt = tt.substring(0, it.range.first) }
+        val segs = tt.split("|")
         val head = segs[0]
         val hints = segs.drop(1).filter { it.isNotEmpty() }
         val (label, out) =
             if (head.length > 1 && head.contains("=") && !head.startsWith("="))
                 head.substringBefore("=") to head.substringAfter("=")
             else head to head
-        return KeyDef(label, out, hints, 1f, "char")
+        return KeyDef(label, out, hints, cw, "char")
     }
 }
+
+val NUMPAD_ROWS = listOf(
+    "{stack=+;-;*;/:0.62:3} 1 2 3 %@0.62",
+    "{pad:0.62} 4 5 6 {space:0.62}",
+    "{pad:0.62} 7 8 9 {del:0.62}",
+    "{layer=letters~ABC:0.62} ,|;|:@0.34 {layer=symbols~!?#:0.66} 0 =@0.58 .@0.4 {enter:0.62}"
+)
 
 class LayoutDef(val raw: JSONObject) {
     val id: String = raw.getString("id")
@@ -90,6 +106,7 @@ class LayoutDef(val raw: JSONObject) {
             m[n] = (0 until a.length()).map { LayoutParser.row(a.getString(it)) }
         }
         require(m["base"]?.isNotEmpty() == true) { "layers.base is required" }
+        if (!m.containsKey("numpad")) m["numpad"] = NUMPAD_ROWS.map { LayoutParser.row(it) }
         layers = m
         numberRow = raw.optString("numberRow", "").takeIf { it.isNotBlank() }?.let { LayoutParser.row(it) }
         translit = if (mode == "translit") Transliterator(raw.getJSONObject("translit")) else null

@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {SafeAreaView, StatusBar, Text, TouchableOpacity, View} from 'react-native';
 import {useConfig} from './src/useConfig';
+import {Icon} from './src/Icon';
 import {C} from './src/ui';
 import Setup from './src/screens/Setup';
 import Languages from './src/screens/Languages';
@@ -8,10 +9,10 @@ import Appearance from './src/screens/Appearance';
 import Typing from './src/screens/Typing';
 
 const TABS = [
-  ['setup', 'Setup', '⌨'],
-  ['lang', 'Languages', '🌐'],
-  ['look', 'Appearance', '🎨'],
-  ['type', 'Typing', '✍'],
+  ['setup', 'Setup', 'keyboard'],
+  ['lang', 'Languages', 'translate'],
+  ['look', 'Appearance', 'palette'],
+  ['type', 'Typing', 'edit'],
 ] as const;
 
 export default function App() {
@@ -21,7 +22,12 @@ export default function App() {
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: C.bg}}>
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
-      <Text style={{color: C.text, fontSize: 22, fontWeight: '700', padding: 16, paddingBottom: 4}}>OpenKeys</Text>
+      <View style={{flexDirection: 'row', alignItems: 'center', padding: 16, paddingBottom: 4}}>
+        <View style={{width: 34, height: 34, borderRadius: 10, backgroundColor: '#1A73E8', alignItems: 'center', justifyContent: 'center', marginRight: 10}}>
+          <Icon name="keyboard" size={22} color="#fff" />
+        </View>
+        <Text style={{color: C.text, fontSize: 22, fontWeight: '700'}}>OpenKeys</Text>
+      </View>
       <View style={{flex: 1}}>
         {cfg && tab === 'setup' && <Setup />}
         {cfg && tab === 'lang' && <Languages cfg={cfg} update={update} />}
@@ -31,7 +37,7 @@ export default function App() {
       <View style={{flexDirection: 'row', borderTopWidth: 1, borderColor: C.line, backgroundColor: C.card}}>
         {TABS.map(([k, label, icon]) => (
           <TouchableOpacity key={k} style={{flex: 1, alignItems: 'center', paddingVertical: 8}} onPress={() => setTab(k)}>
-            <Text style={{fontSize: 18}}>{icon}</Text>
+            <Icon name={icon} size={22} color={tab === k ? C.accent : C.sub} />
             <Text style={{color: tab === k ? C.accent : C.sub, fontSize: 11}}>{label}</Text>
           </TouchableOpacity>
         ))}

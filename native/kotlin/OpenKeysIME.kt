@@ -1,6 +1,8 @@
 package com.openkeys.keyboard
 
 import android.content.BroadcastReceiver
+import android.content.ClipData
+import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -19,8 +21,13 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.Toast
+import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.inputmethod.EditorInfoCompat
+import androidx.core.view.inputmethod.InputConnectionCompat
+import androidx.core.view.inputmethod.InputContentInfoCompat
 import org.json.JSONObject
 
 class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.Listener {
@@ -34,6 +41,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     private lateinit var content: FrameLayout
     private lateinit var kb: KeyboardView
     private lateinit var bar: SuggestionBar
+    private lateinit var strip: EmojiResultStrip
     private lateinit var emoji: EmojiPanel
     private lateinit var clip: ClipboardPanel
     private var viewReady = false
@@ -52,16 +60,16 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     private var lastCorrection: Pair<String, String>? = null
     private var lastWord = ""
     private var lastSwipe: String? = null
+
+    // emoji search mode: typing goes into [query] instead of the editor
+    private var searching = false
+    private val query = StringBuilder()
+    private var searchPrev: LayoutDef? = null
+
     private val main = Handler(Looper.getMainLooper())
 
     private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> main.post { reloadAll() } }
-    private val clipListener = ClipboardManager.OnPrimaryClipChangedListener {
-        try {
-            val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val t = cm.primaryClip?.getItemAt(0)?.coerceToText(this)?.toString()
-            if (!t.isNullOrBlank()) ClipStore.add(this, t)
-        } catch (e: Exception) { }
-    }
+    private val clipListener = ClipboardManager.OnPrimaryClipChangedListener { handleClipChanged() }
     private val voiceReceiver = object : BroadcastReceiver() {
         override fun onReceive(c: Context?, i: Intent?) {
             val t = i?.getStringExtra("text") ?: return
@@ -73,6 +81,8 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     override fun onCreate() {
         super.onCreate()
         prefs = Prefs(this); repo = LayoutRepo(this); suggest = SuggestEngine(this)
+        Icons.load(this)
+        EmojiData.load(this)
         prefs.sp.registerOnSharedPreferenceChangeListener(prefListener)
         (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).addPrimaryClipChangedListener(clipListener)
         val f = IntentFilter(ACTION_VOICE)
@@ -88,28 +98,53 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         super.onDestroy()
     }
 
+    private fun handleClipChanged() {
+        try {
+            val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val c = cm.primaryClip ?: return
+            if (c.itemCount == 0) return
+            val item = c.getItemAt(0)
+            val uri = item.uri
+            if (uri != null) {
+                if (uri.authority == "$packageName.clips") return   // our own paste fallback
+                val type = contentResolver.getType(uri)
+                if (type != null && type.startsWith("image/")) { ClipStore.addImage(this, uri); return }
+            }
+            val t = item.coerceToText(this)?.toString()
+            if (!t.isNullOrBlank()) ClipStore.addText(this, t)
+        } catch (e: Exception) { }
+    }
+
     override fun onEvaluateFullscreenMode() = false
 
     override fun onCreateInputView(): View {
+        val mp = ViewGroup.LayoutParams.MATCH_PARENT
         root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; clipChildren = false; clipToPadding = false }
         bar = SuggestionBar(this).also { it.listener = this }
+        strip = EmojiResultStrip(this) { e ->
+            commitComposing(false); currentInputConnection?.commitText(e, 1); ClipStore.addEmoji(this, e)
+        }
+        strip.visibility = View.GONE
         content = FrameLayout(this).apply { clipChildren = false }
         kb = KeyboardView(this).also { it.listener = this }
         emoji = EmojiPanel(this, object : EmojiPanel.Callback {
-            override fun onEmoji(e: String) { commitComposing(false); currentInputConnection?.commitText(e, 1); ClipStore.addEmoji(this@OpenKeysIME, e) }
+            override fun onEmoji(e: String) { commitComposing(false); currentInputConnection?.commitText(e, 1) }
             override fun onBack() = showKeyboard()
             override fun onBackspace() = onDelete()
+            override fun onSearch() = startSearch()
         })
         clip = ClipboardPanel(this, object : ClipboardPanel.Callback {
-            override fun onPaste(s: String) { commitComposing(false); currentInputConnection?.commitText(s, 1) }
+            override fun onPasteText(s: String) { commitComposing(false); currentInputConnection?.commitText(s, 1) }
+            override fun onPasteImage(c: Clip) = pasteImage(c)
             override fun onBack() = showKeyboard()
         })
-        content.addView(kb, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        content.addView(kb, FrameLayout.LayoutParams(mp, ViewGroup.LayoutParams.WRAP_CONTENT))
         emoji.visibility = View.GONE; clip.visibility = View.GONE
-        content.addView(emoji, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        content.addView(clip, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        root.addView(bar, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dpi(44f)))
-        root.addView(content, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        content.addView(emoji, FrameLayout.LayoutParams(mp, mp))
+        content.addView(clip, FrameLayout.LayoutParams(mp, mp))
+        root.addView(bar, LinearLayout.LayoutParams(mp, dpi(48f)))
+        root.addView(strip, LinearLayout.LayoutParams(mp, dpi(52f)))
+        root.addView(content, LinearLayout.LayoutParams(mp, ViewGroup.LayoutParams.WRAP_CONTENT))
         ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
             val nav = if (Build.VERSION.SDK_INT >= 35) insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom else 0
             v.setPadding(0, 0, 0, nav + dpi(prefs.int("bottomPad", 0).toFloat()))
@@ -126,15 +161,15 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         theme = Theme.from(prefs)
         root.setBackgroundColor(theme.bg)
         root.setPadding(0, 0, 0, dpi(prefs.int("bottomPad", 0).toFloat()))
-        bar.applyTheme(theme); emoji.applyTheme(theme); clip.applyTheme(theme)
+        bar.applyTheme(theme); emoji.applyTheme(theme); clip.applyTheme(theme); strip.applyTheme(theme)
         kb.apply {
             theme = this@OpenKeysIME.theme
             heightScale = prefs.int("heightScale", 100); fontScale = prefs.int("fontScale", 100)
-            radiusDp = prefs.int("keyRadius", 8); gapDp = prefs.int("keyGap", 4)
+            radiusDp = prefs.int("keyRadius", 12); gapDp = prefs.int("keyGap", 4)
             showHints = prefs.bool("showHints", true); popupPreview = prefs.bool("popupPreview", true)
             swipeOn = prefs.bool("swipeTyping", true); hapticOn = prefs.bool("haptic", true)
             hapticMs = prefs.int("hapticMs", 12); soundOn = prefs.bool("sound", false)
-            longPressMs = prefs.int("longPressMs", 350); numberRow = prefs.bool("numberRow", false)
+            longPressMs = prefs.int("longPressMs", 350); numberRow = prefs.bool("numberRow", true)
             oneHanded = prefs.str("oneHanded", "off")
         }
         enabled = prefs.enabledLayouts().mapNotNull { repo.get(it) }.ifEmpty { listOfNotNull(repo.get("en_qwerty")) }
@@ -146,6 +181,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     override fun onStartInputView(info: EditorInfo, restarting: Boolean) {
         super.onStartInputView(info, restarting)
         composing.setLength(0); lastCorrection = null; lastSwipe = null; lastWord = ""
+        searching = false; query.setLength(0); strip.visibility = View.GONE; bar.setSearch(false, "")
         val cls = info.inputType and InputType.TYPE_MASK_CLASS
         val v = info.inputType and InputType.TYPE_MASK_VARIATION
         val flags = info.inputType and InputType.TYPE_MASK_FLAGS
@@ -154,10 +190,12 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             v == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD || v == InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS ||
             v == InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS || v == InputType.TYPE_TEXT_VARIATION_URI
         forced = if (cls == InputType.TYPE_CLASS_NUMBER || cls == InputType.TYPE_CLASS_PHONE || cls == InputType.TYPE_CLASS_DATETIME) repo.get("numeric") else null
-        kb.enterLabel = when (info.imeOptions and EditorInfo.IME_MASK_ACTION) {
-            EditorInfo.IME_ACTION_GO -> "Go"; EditorInfo.IME_ACTION_SEARCH -> "🔍"
-            EditorInfo.IME_ACTION_SEND -> "➤"; EditorInfo.IME_ACTION_NEXT -> "Next"
-            EditorInfo.IME_ACTION_DONE -> "Done"; else -> "⏎"
+        kb.enterIcon = when (info.imeOptions and EditorInfo.IME_MASK_ACTION) {
+            EditorInfo.IME_ACTION_GO, EditorInfo.IME_ACTION_NEXT -> "forward"
+            EditorInfo.IME_ACTION_SEARCH -> "search"
+            EditorInfo.IME_ACTION_SEND -> "send"
+            EditorInfo.IME_ACTION_DONE -> "done"
+            else -> "return"
         }
         (forced ?: enabled.getOrNull(idx))?.let { setLayout(it) }
         showKeyboard(); updateAutoCaps(); updateSuggestions()
@@ -180,11 +218,14 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     private fun setLayout(def: LayoutDef) {
         commitComposing(false)
         layout = def; translit = def.translit; dict = suggest.dict(def.dict)
+        kb.langNames = enabled.map { it.name }; kb.langIndex = idx
         kb.applyLayout(def)
         updateSuggestions(); updateAutoCaps()
     }
 
-    private fun showKeyboard() { kb.visibility = View.VISIBLE; emoji.visibility = View.GONE; clip.visibility = View.GONE }
+    private fun showKeyboard() {
+        kb.visibility = View.VISIBLE; emoji.visibility = View.GONE; clip.visibility = View.GONE
+    }
 
     private fun showPanel(p: View) {
         val h = kb.height
@@ -193,10 +234,52 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         p.visibility = View.VISIBLE
     }
 
-    private fun nextLayout() {
-        if (forced != null || enabled.size < 2) return
-        idx = (idx + 1) % enabled.size
+    override fun onSelectLayout(index: Int) {
+        if (forced != null || enabled.isEmpty()) return
+        idx = index.coerceIn(0, enabled.size - 1)
         setLayout(enabled[idx])
+    }
+
+    // ------------------------------------------------------------ emoji search
+    private fun startSearch() {
+        commitComposing(false)
+        searching = true; query.setLength(0)
+        searchPrev = layout
+        enabled.firstOrNull { it.locale == "en" }?.let { if (it !== layout) setLayout(it) }
+        showKeyboard()
+        strip.visibility = View.VISIBLE
+        refreshSearch()
+    }
+
+    private fun exitSearch(backToPanel: Boolean) {
+        searching = false; query.setLength(0)
+        strip.visibility = View.GONE; bar.setSearch(false, "")
+        searchPrev?.let { if (it !== layout) setLayout(it) }
+        if (backToPanel) { emoji.open(); showPanel(emoji) }
+    }
+
+    private fun refreshSearch() {
+        bar.setSearch(true, query.toString())
+        strip.setResults(if (query.isEmpty()) ClipStore.recentEmoji(this) else EmojiData.search(query.toString()))
+    }
+
+    // ------------------------------------------------------------ images from the clipboard panel
+    private fun pasteImage(c: Clip) {
+        val f = ClipStore.imageFile(this, c.value)
+        if (!f.exists()) return
+        val uri = FileProvider.getUriForFile(this, "$packageName.clips", f)
+        val mime = ClipStore.mimeOf(f.name)
+        val ei = currentInputEditorInfo
+        val ic = currentInputConnection
+        if (ei != null && ic != null && EditorInfoCompat.getContentMimeTypes(ei).any { ClipDescription.compareMimeTypes(mime, it) }) {
+            val info = InputContentInfoCompat(uri, ClipDescription("image", arrayOf(mime)), null)
+            val flags = if (Build.VERSION.SDK_INT >= 25) InputConnectionCompat.INPUT_CONTENT_GRANT_READ_URI_PERMISSION else 0
+            if (InputConnectionCompat.commitContent(ic, ei, info, flags, null)) return
+        }
+        try {
+            (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newUri(contentResolver, "image", uri))
+            Toast.makeText(this, "This field can't take images directly. Image copied - use the app's paste.", Toast.LENGTH_LONG).show()
+        } catch (e: Exception) { }
     }
 
     // ------------------------------------------------------------ composing helpers
@@ -239,7 +322,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
 
     private fun updateSuggestions() {
         if (!viewReady) return
-        if (noSuggest || !prefs.bool("suggestions", true)) { bar.setSuggestions(emptyList()); return }
+        if (searching || noSuggest || !prefs.bool("suggestions", true)) { bar.setSuggestions(emptyList()); return }
         val d = dict
         if (composing.isNotEmpty()) {
             val typed = display()
@@ -267,6 +350,10 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
 
     // ------------------------------------------------------------ KeyboardView.Listener
     override fun onText(text: String, letterLayer: Boolean) {
+        if (searching) {
+            if (text.length == 1 && (text[0].isLetterOrDigit())) { query.append(text.lowercase()); refreshSearch() }
+            return
+        }
         val ic = currentInputConnection ?: return
         lastSwipe = null
         if (letterLayer && isWordInput(text)) {
@@ -285,11 +372,12 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
 
     override fun onSpecial(type: String) {
         when (type) {
-            "space" -> onSpace()
-            "enter" -> onEnter()
-            "lang" -> nextLayout()
+            "space" -> if (searching) { if (query.isNotEmpty()) { query.append(' '); refreshSearch() } } else onSpace()
+            "enter" -> if (searching) exitSearch(true) else onEnter()
+            "lang" -> if (forced == null && enabled.size > 1) onSelectLayout((idx + 1) % enabled.size)
             "picker" -> (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).showInputMethodPicker()
-            "emoji" -> { emoji.open(); showPanel(emoji) }
+            "letters" -> { forced = null; enabled.getOrNull(idx)?.let { setLayout(it) } }
+            "emoji" -> if (!searching) { emoji.open(); showPanel(emoji) }
             "clip" -> { clip.refresh(); showPanel(clip) }
             "mic" -> startVoice()
         }
@@ -329,6 +417,10 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     }
 
     override fun onDelete() {
+        if (searching) {
+            if (query.isNotEmpty()) { query.setLength(query.length - 1); refreshSearch() }
+            return
+        }
         val ic = currentInputConnection ?: return
         lastSwipe = null
         if (composing.isNotEmpty()) {
@@ -349,11 +441,13 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     }
 
     override fun onCursorMove(steps: Int) {
+        if (searching) return
         commitComposing(false)
         repeat(Math.abs(steps)) { sendDownUpKeyEvents(if (steps < 0) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT) }
     }
 
     override fun onSwipe(path: String, shifted: Boolean) {
+        if (searching) return
         val ic = currentInputConnection ?: return
         commitComposing(true)
         val c = dict?.swipe(path, 3) ?: emptyList()
@@ -363,7 +457,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         if (!before.isNullOrEmpty() && !before[0].isWhitespace() && !"([{\"'".contains(before[0])) ic.commitText(" ", 1)
         ic.commitText(words[0] + " ", 1)
         lastSwipe = words[0] + " "; lastWord = words[0]
-        bar.setSuggestions(listOf(words.getOrElse(1) { "" }, words[0], words.getOrElse(2) { "" }).let { if (words.size < 2) words else it })
+        bar.setSuggestions(if (words.size < 2) words else listOf(words[1], words[0], words.getOrElse(2) { "" }))
     }
 
     override fun onLayerChange(name: String) { if (name == "base") updateAutoCaps() }
@@ -386,6 +480,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             "emoji" -> onSpecial("emoji")
             "clip" -> onSpecial("clip")
             "mic" -> startVoice()
+            "searchBack" -> exitSearch(true)
             "hand" -> {
                 val next = when (prefs.str("oneHanded", "off")) { "off" -> "right"; "right" -> "left"; else -> "off" }
                 prefs.save(JSONObject(prefs.raw()).put("oneHanded", next).toString())

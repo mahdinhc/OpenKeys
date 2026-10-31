@@ -39,15 +39,15 @@ export default function Languages({cfg, update}: any) {
   return (
     <ScrollView>
       <Card title="Languages & layouts">
-        <Text style={{color: C.sub, marginBottom: 6}}>Enabled layouts are cycled with the 🌐 key, in this order.</Text>
+        <Text style={{color: C.sub, marginBottom: 6}}>Hold the space bar and slide to pick a language. Order below is the order in the popup.</Text>
         {ordered.map(l => {
           const on = enabled.includes(l.id);
           return (
             <View key={l.id} style={{borderTopWidth: 1, borderColor: C.line, paddingVertical: 8}}>
               <Toggle label={l.name} hint={`${l.id} · ${l.layout.mode === 'translit' ? 'transliteration' : 'direct'}${l.builtin ? ' · built-in' : ' · custom'}${l.overridden ? ' (modified)' : ''}`} value={on} onChange={() => toggle(l.id)} />
               <View style={{flexDirection: 'row'}}>
-                {on && <TouchableOpacity onPress={() => move(l.id, -1)}><Text style={{color: C.sub, padding: 8}}>↑</Text></TouchableOpacity>}
-                {on && <TouchableOpacity onPress={() => move(l.id, 1)}><Text style={{color: C.sub, padding: 8}}>↓</Text></TouchableOpacity>}
+                {on && <TouchableOpacity onPress={() => move(l.id, -1)}><Text style={{color: C.sub, padding: 8}}>Up</Text></TouchableOpacity>}
+                {on && <TouchableOpacity onPress={() => move(l.id, 1)}><Text style={{color: C.sub, padding: 8}}>Down</Text></TouchableOpacity>}
                 <TouchableOpacity onPress={() => setEditing(l.layout)}><Text style={{color: C.accent, padding: 8}}>Edit</Text></TouchableOpacity>
                 <TouchableOpacity onPress={() => setEditing({...l.layout, id: l.id + '_copy', name: l.name + ' copy'})}><Text style={{color: C.accent, padding: 8}}>Duplicate</Text></TouchableOpacity>
                 {(!l.builtin || l.overridden) && <TouchableOpacity onPress={() => remove(l)}><Text style={{color: C.danger, padding: 8}}>{l.builtin ? 'Reset' : 'Delete'}</Text></TouchableOpacity>}
@@ -57,7 +57,7 @@ export default function Languages({cfg, update}: any) {
         })}
       </Card>
       <View style={{margin: 12}}>
-        <Btn title="＋ Add custom language" onPress={() => setEditing(NEW_LAYOUT)} />
+        <Btn title="Add custom language" onPress={() => setEditing(NEW_LAYOUT)} />
       </View>
     </ScrollView>
   );

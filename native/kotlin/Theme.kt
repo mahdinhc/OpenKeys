@@ -8,8 +8,8 @@ class Theme(
 ) {
     companion object {
         private fun c(s: String) = Color.parseColor(s)
-        val LIGHT = Theme(c("#E8EAED"), c("#FFFFFF"), c("#202124"), c("#CDD1D6"), c("#1A73E8"), c("#FFFFFF"), c("#80868B"), c("#BDC1C6"), c("#FFFFFF"))
-        val DARK = Theme(c("#202124"), c("#3C4043"), c("#E8EAED"), c("#2D2F31"), c("#8AB4F8"), c("#202124"), c("#9AA0A6"), c("#5F6368"), c("#5F6368"))
+        val LIGHT = Theme(c("#E3E6EA"), c("#FFFFFF"), c("#202124"), c("#C9CED4"), c("#1A73E8"), c("#FFFFFF"), c("#5F6368"), c("#BDC1C6"), c("#FFFFFF"))
+        val DARK = Theme(c("#2B2E32"), c("#494C50"), c("#E8EAED"), c("#383B3F"), c("#669DF6"), c("#FFFFFF"), c("#B0B5BA"), c("#62666B"), c("#5A5D61"))
         val AMOLED = Theme(c("#000000"), c("#1A1A1A"), c("#FFFFFF"), c("#0D0D0D"), c("#BB86FC"), c("#000000"), c("#8A8A8A"), c("#333333"), c("#2A2A2A"))
 
         fun from(p: Prefs): Theme {

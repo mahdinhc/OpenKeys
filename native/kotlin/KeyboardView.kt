@@ -20,7 +20,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-/** Canvas-drawn keyboard: multi-touch, long-press alternates, swipe typing, cursor swipe on space. */
+/** Canvas-drawn keyboard: multi-touch, long-press alternates, swipe typing, space = cursor / language. */
 class KeyboardView(ctx: Context) : View(ctx) {
 
     interface Listener {
@@ -30,6 +30,7 @@ class KeyboardView(ctx: Context) : View(ctx) {
         fun onCursorMove(steps: Int)
         fun onSwipe(path: String, shifted: Boolean)
         fun onLayerChange(name: String)
+        fun onSelectLayout(index: Int)
     }
 
     private class Cell(val key: KeyDef, val rect: RectF)
@@ -38,6 +39,7 @@ class KeyboardView(ctx: Context) : View(ctx) {
         var x = dx; var y = dy
         var longFired = false
         var alts: List<String>? = null
+        var langMode = false
         var altSel = 0; var altLeft = 0f; var altW = 0f
         var moved = false
         var cursorMode = false
@@ -54,12 +56,14 @@ class KeyboardView(ctx: Context) : View(ctx) {
     var layerName = "base"
     var shiftState = 0           // 0 off, 1 once, 2 caps lock
     var autoShifted = false
-    var enterLabel = "⏎"
+    var enterIcon = "return"
+    var langNames: List<String> = emptyList()
+    var langIndex = 0
     var theme: Theme = Theme.DARK
-    var heightScale = 100; var fontScale = 100; var radiusDp = 8; var gapDp = 4
+    var heightScale = 100; var fontScale = 100; var radiusDp = 12; var gapDp = 4
     var showHints = true; var popupPreview = true; var swipeOn = true
     var hapticOn = true; var hapticMs = 12; var soundOn = false; var longPressMs = 350
-    var numberRow = false; var oneHanded = "off"
+    var numberRow = true; var oneHanded = "off"
 
     private val handler = Handler(Looper.getMainLooper())
     private val cells = ArrayList<Cell>()
@@ -72,10 +76,12 @@ class KeyboardView(ctx: Context) : View(ctx) {
     @Suppress("DEPRECATION")
     private val vib = ctx.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
 
-    private fun rowH() = context.dpf(52f) * heightScale / 100f
+    init { Icons.load(ctx) }
+
+    private fun rowH() = context.dpf(56f) * heightScale / 100f
     private fun pad() = context.dpf(6f)
     private fun hasNumRow() = numberRow && layout?.id != "numeric"
-    private fun targetRows() = (layout?.layers?.get("base")?.size ?: 4) + (if (hasNumRow()) 1 else 0)
+    private fun targetRows() = (layout?.layers?.get("base")?.size ?: 4) + (if (hasNumRow() && layout?.layers?.get("base")?.firstOrNull()?.any { it.type == "stack" } != true) 1 else 0)
 
     fun applyLayout(l: LayoutDef) {
         layout = l; layerName = "base"; shiftState = 0; autoShifted = false
@@ -107,7 +113,8 @@ class KeyboardView(ctx: Context) : View(ctx) {
                 if (k.type == "char") k.copy(label = k.label.uppercase(), output = k.output.uppercase(), hints = k.hints.map { it.uppercase() }) else k
             }
         }
-        if (hasNumRow()) {
+        val numpadLike = l.layers["base"]?.firstOrNull()?.any { it.type == "stack" } == true
+        if (hasNumRow() && !numpadLike) {
             if (layerName == "base") r = listOf(l.numberRow ?: LayoutParser.row("1 2 3 4 5 6 7 8 9 0")) + r
             r = r.map { row ->
                 row.map { k ->
@@ -133,7 +140,7 @@ class KeyboardView(ctx: Context) : View(ctx) {
             val top = pad() / 2 + ri * rh
             for (k in row) {
                 val w = unit * k.weight
-                if (k.type != "pad") cells.add(Cell(k, RectF(x + g / 2, top + g / 2, x + w - g / 2, top + rh - g / 2)))
+                if (k.type != "pad") cells.add(Cell(k, RectF(x + g / 2, top + g / 2, x + w - g / 2, top + rh * k.span - g / 2)))
                 x += w
             }
         }
@@ -149,29 +156,61 @@ class KeyboardView(ctx: Context) : View(ctx) {
         c.drawText(s, cx, cy - (fm.ascent + fm.descent) / 2, txt)
     }
 
+    private fun keyIcon(k: KeyDef): String? = when (k.type) {
+        "shift" -> when (shiftState) { 0 -> "shift"; 1 -> "shift_on"; else -> "caps" }
+        "del" -> "backspace"
+        "emoji" -> "emoji"
+        "mic" -> "mic"
+        "lang" -> "translate"
+        "enter" -> enterIcon
+        else -> null
+    }
+
+    private fun isPill(k: KeyDef) = k.type == "enter" || (k.type == "layer" && (k.param == "base" || k.param == "letters"))
+
     override fun onDraw(c: Canvas) {
         val r = context.dpf(radiusDp.toFloat())
         val rh = if (rows.isEmpty()) 0f else (height - pad()) / rows.size
         val fs = rh * 0.40f * fontScale / 100f
+        val sh = context.dpf(1.5f)
         for (cell in cells) {
             val k = cell.key
+            val rc = cell.rect
             var pressed = false
             for (i in 0 until ptrs.size()) if (ptrs.valueAt(i).cell === cell) pressed = true
-            val active = k.type == "enter" || (k.type == "shift" && shiftState > 0)
+            val rad = if (isPill(k)) min(rc.width(), rc.height()) / 2 else r
+            fill.color = 0x38000000
+            c.drawRoundRect(rc.left, rc.top + sh, rc.right, rc.bottom + sh, rad, rad, fill)
             fill.color = when {
-                active -> theme.accent
+                k.type == "enter" -> theme.accent
                 pressed -> theme.pressed
                 k.type == "char" || k.type == "space" -> theme.key
                 else -> theme.special
             }
-            c.drawRoundRect(cell.rect, r, r, fill)
-            val fg = if (active) theme.accentText else theme.keyText
-            val rc = cell.rect
-            when (k.type) {
-                "space" -> centered(c, layout?.name ?: "", rc.centerX(), rc.centerY(), fs * 0.6f, theme.hint, rc.width() * 0.8f)
-                "enter" -> centered(c, enterLabel, rc.centerX(), rc.centerY(), fs * 0.75f, fg, rc.width() * 0.8f)
-                "shift" -> centered(c, if (shiftState == 2) "⇪" else "⇧", rc.centerX(), rc.centerY(), fs * 1.1f, fg, rc.width() * 0.8f)
-                "char" -> {
+            c.drawRoundRect(rc, rad, rad, fill)
+            val fg = if (k.type == "enter") theme.accentText else theme.keyText
+            val icon = keyIcon(k)
+            when {
+                k.type == "stack" -> {
+                    val n = max(1, k.hints.size)
+                    k.hints.forEachIndexed { i, h ->
+                        centered(c, h, rc.centerX(), rc.top + (i + 0.5f) * rc.height() / n, fs * 0.8f, theme.hint, rc.width() * 0.7f)
+                    }
+                }
+                icon != null -> {
+                    val col = if (k.type == "shift" && shiftState > 0) theme.accent else fg
+                    Icons.draw(c, icon, rc.centerX(), rc.centerY(), min(rc.height() * 0.46f, rc.width() * 0.7f), col)
+                }
+                k.type == "space" ->
+                    if (k.weight < 2f) Icons.draw(c, "space_bar", rc.centerX(), rc.centerY(), rh * 0.42f, theme.hint)
+                    else centered(c, layout?.name ?: "", rc.centerX(), rc.centerY(), fs * 0.62f, theme.hint, rc.width() * 0.8f)
+                k.type == "layer" && k.label == "1234" -> {
+                    val s2 = fs * 0.62f
+                    centered(c, "1 2", rc.centerX(), rc.centerY() - s2 * 0.62f, s2, theme.keyText, rc.width() * 0.6f)
+                    centered(c, "3 4", rc.centerX(), rc.centerY() + s2 * 0.62f, s2, theme.keyText, rc.width() * 0.6f)
+                }
+                k.type == "layer" -> centered(c, k.label, rc.centerX(), rc.centerY(), fs * 0.7f, theme.hint.let { if (isPill(k)) theme.hint else theme.keyText }, rc.width() * 0.8f)
+                k.type == "char" -> {
                     centered(c, displayText(k.label), rc.centerX(), rc.centerY(), fs, fg, rc.width() * 0.82f)
                     if (showHints && k.hints.isNotEmpty() && k.hints[0].codePointCount(0, k.hints[0].length) <= 2) {
                         txt.color = theme.hint; txt.textSize = rh * 0.19f; txt.textAlign = Paint.Align.RIGHT
@@ -195,23 +234,23 @@ class KeyboardView(ctx: Context) : View(ctx) {
     private fun drawPreview(c: Canvas, cell: Cell, rh: Float) {
         val w = cell.rect.width() * 1.4f; val h = rh * 1.25f
         val l = (cell.rect.centerX() - w / 2).coerceIn(2f, max(2f, width - w - 2f))
-        val t = max(cell.rect.top - h - context.dpf(4f), -context.dpf(40f))
+        val t = max(cell.rect.top - h - context.dpf(4f), -context.dpf(44f))
         val rect = RectF(l, t, l + w, t + h)
-        fill.color = theme.popup; c.drawRoundRect(rect, context.dpf(10f), context.dpf(10f), fill)
+        fill.color = theme.popup; c.drawRoundRect(rect, context.dpf(12f), context.dpf(12f), fill)
         centered(c, displayText(cell.key.label), rect.centerX(), rect.centerY(), rh * 0.62f, theme.keyText, w * 0.8f)
     }
 
     private fun drawAlts(c: Canvas, p: Ptr, cell: Cell, rh: Float) {
         val alts = p.alts ?: return
         val h = rh * 1.1f
-        val t = max(cell.rect.top - h - context.dpf(6f), -context.dpf(40f))
+        val t = max(cell.rect.top - h - context.dpf(6f), -context.dpf(44f))
         val bg = RectF(p.altLeft - 3f, t, p.altLeft + p.altW * alts.size + 3f, t + h)
-        fill.color = theme.popup; c.drawRoundRect(bg, context.dpf(10f), context.dpf(10f), fill)
+        fill.color = theme.popup; c.drawRoundRect(bg, context.dpf(12f), context.dpf(12f), fill)
         alts.forEachIndexed { i, a ->
             val cr = RectF(p.altLeft + i * p.altW, t + 3f, p.altLeft + (i + 1) * p.altW, t + h - 3f)
             val sel = i == p.altSel
-            if (sel) { fill.color = theme.accent; c.drawRoundRect(cr, context.dpf(8f), context.dpf(8f), fill) }
-            centered(c, displayText(a), cr.centerX(), cr.centerY(), rh * 0.46f, if (sel) theme.accentText else theme.keyText, p.altW * 0.85f)
+            if (sel) { fill.color = theme.accent; c.drawRoundRect(cr, context.dpf(10f), context.dpf(10f), fill) }
+            centered(c, displayText(a), cr.centerX(), cr.centerY(), rh * (if (p.langMode) 0.34f else 0.46f), if (sel) theme.accentText else theme.keyText, p.altW * 0.88f)
         }
     }
 
@@ -275,11 +314,15 @@ class KeyboardView(ctx: Context) : View(ctx) {
                 }
             }
             p.rep = rep; handler.postDelayed(rep, 400)
-        } else if ((k.type == "char" && k.hints.isNotEmpty()) || k.type == "lang") {
+        } else if ((k.type == "char" && k.hints.isNotEmpty()) || k.type == "lang" || k.type == "space") {
             val r = Runnable {
                 if (ptrs.get(id) !== p || p.cursorMode || p.swiping) return@Runnable
                 p.longFired = true
-                if (k.type == "lang") listener?.onSpecial("picker") else openAlts(p, cell)
+                when (k.type) {
+                    "lang" -> listener?.onSpecial("picker")
+                    "space" -> openLangPopup(p, cell)
+                    else -> openAlts(p, cell)
+                }
                 invalidate()
             }
             p.lp = r; handler.postDelayed(r, longPressMs.toLong())
@@ -294,6 +337,17 @@ class KeyboardView(ctx: Context) : View(ctx) {
         p.altLeft = cell.rect.left.coerceIn(2f, max(2f, width - cw * alts.size - 2f))
         p.alts = alts
         p.altSel = ((p.x - p.altLeft) / cw).toInt().coerceIn(0, alts.size - 1)
+    }
+
+    /** Hold space: pick a language by sliding; releasing straight away jumps to the next one. */
+    private fun openLangPopup(p: Ptr, cell: Cell) {
+        if (langNames.size < 2) { listener?.onSpecial("picker"); return }
+        val cw = min(context.dpf(150f), (width - 8f) / langNames.size)
+        val total = cw * langNames.size
+        p.altW = cw
+        p.altLeft = (cell.rect.centerX() - total / 2).coerceIn(2f, max(2f, width - total - 2f))
+        p.alts = langNames; p.langMode = true
+        p.altSel = (langIndex + 1) % langNames.size
     }
 
     private fun move(id: Int, x: Float, y: Float) {
@@ -338,7 +392,8 @@ class KeyboardView(ctx: Context) : View(ctx) {
         try {
             val alts = p.alts
             if (alts != null) {
-                alts.getOrNull(p.altSel)?.let { afterChar(); listener?.onText(it, layerName == "base") }
+                if (p.langMode) listener?.onSelectLayout(p.altSel)
+                else alts.getOrNull(p.altSel)?.let { afterChar(); listener?.onText(it, layerName == "base") }
                 return
             }
             if (p.swiping) { val s = shiftState > 0; afterChar(); listener?.onSwipe(p.path.toString(), s); return }
@@ -350,8 +405,16 @@ class KeyboardView(ctx: Context) : View(ctx) {
             val k = target.key
             when (k.type) {
                 "char" -> if (k.output.isNotEmpty()) { val letter = layerName == "base"; afterChar(); listener?.onText(k.output, letter) }
+                "stack" -> {
+                    val n = max(1, k.hints.size)
+                    val i = ((y - target.rect.top) / target.rect.height() * n).toInt().coerceIn(0, n - 1)
+                    k.hints.getOrNull(i)?.let { listener?.onText(it, false) }
+                }
                 "shift" -> toggleShift()
-                "layer" -> { showLayer(k.param ?: "base"); listener?.onLayerChange(layerName) }
+                "layer" -> {
+                    if (k.param == "letters") listener?.onSpecial("letters")
+                    else { showLayer(k.param ?: "base"); listener?.onLayerChange(layerName) }
+                }
                 "del" -> {}
                 else -> listener?.onSpecial(k.type)
             }

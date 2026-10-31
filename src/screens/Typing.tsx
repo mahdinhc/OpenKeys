@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
-import {Alert, ScrollView, Share, Text, View} from 'react-native';
+import {Alert, ScrollView, Share, Text, TouchableOpacity, View} from 'react-native';
+import {Icon} from '../Icon';
 import {Native} from '../native';
 import {Btn, C, Card, Field, Stepper, Toggle} from '../ui';
 
@@ -47,7 +48,7 @@ export default function Typing({cfg, update}: any) {
           <View key={k} style={{flexDirection: 'row', alignItems: 'center', paddingVertical: 4}}>
             <Text style={{color: C.accent, width: 80}}>{k}</Text>
             <Text style={{color: C.text, flex: 1}} numberOfLines={1}>{v}</Text>
-            <Text style={{color: C.danger, padding: 8}} onPress={() => removeShortcut(k)}>✕</Text>
+            <TouchableOpacity style={{padding: 8}} onPress={() => removeShortcut(k)}><Icon name="close" size={18} color={C.danger} /></TouchableOpacity>
           </View>
         ))}
         <Field label="Shortcut" value={trig} onChangeText={setTrig} placeholder="brb" />

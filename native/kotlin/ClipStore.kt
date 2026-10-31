@@ -1,32 +1,100 @@
 package com.openkeys.keyboard
 
 import android.content.Context
+import android.net.Uri
 import org.json.JSONArray
+import org.json.JSONObject
+import java.io.File
 
+class Clip(val id: String, val type: String, val value: String, val pinned: Boolean, val ts: Long)
+
+/** Clipboard history (text + images) and emoji recents / skin-tone choices. */
 object ClipStore {
     private fun sp(c: Context) = c.applicationContext.getSharedPreferences("openkeys_clip", Context.MODE_PRIVATE)
-    private fun list(c: Context, k: String): MutableList<String> {
-        val a = try { JSONArray(sp(c).getString(k, "[]")) } catch (e: Exception) { JSONArray() }
-        return MutableList(a.length()) { a.getString(it) }
-    }
-    private fun put(c: Context, k: String, l: List<String>) { sp(c).edit().putString(k, JSONArray(l).toString()).apply() }
+    fun dir(c: Context): File = File(c.applicationContext.filesDir, "clips").also { it.mkdirs() }
+    fun imageFile(c: Context, name: String) = File(dir(c), name)
 
-    fun items(c: Context): List<Pair<String, Boolean>> {
-        val pins = list(c, "pins")
-        return pins.map { it to true } + list(c, "items").filter { it !in pins }.map { it to false }
+    private fun load(c: Context): MutableList<Clip> {
+        val a = try { JSONArray(sp(c).getString("clips", "[]")) } catch (e: Exception) { JSONArray() }
+        val out = ArrayList<Clip>()
+        for (i in 0 until a.length()) {
+            val o = a.getJSONObject(i)
+            out.add(Clip(o.getString("id"), o.getString("type"), o.getString("value"), o.optBoolean("pin"), o.optLong("ts")))
+        }
+        return out
     }
-    fun add(c: Context, t: String) {
-        val l = list(c, "items"); l.remove(t); l.add(0, t)
-        while (l.size > 40) l.removeAt(l.size - 1)
-        put(c, "items", l)
-    }
-    fun toggle(c: Context, t: String) { val p = list(c, "pins"); if (!p.remove(t)) p.add(0, t); put(c, "pins", p) }
-    fun clear(c: Context) = put(c, "items", emptyList())
 
-    fun recentEmoji(c: Context): List<String> = list(c, "emoji")
+    private fun save(c: Context, l: List<Clip>) {
+        val a = JSONArray()
+        l.forEach { a.put(JSONObject().put("id", it.id).put("type", it.type).put("value", it.value).put("pin", it.pinned).put("ts", it.ts)) }
+        sp(c).edit().putString("clips", a.toString()).apply()
+    }
+
+    fun items(c: Context): List<Clip> {
+        val l = load(c)
+        return l.filter { it.pinned } + l.filter { !it.pinned }
+    }
+
+    private fun add(c: Context, clip: Clip) {
+        val l = load(c)
+        val old = l.firstOrNull { it.id == clip.id }
+        l.removeAll { it.id == clip.id }
+        l.add(0, Clip(clip.id, clip.type, clip.value, old?.pinned ?: false, clip.ts))
+        // keep at most 40 texts and 20 images (pinned items are never dropped)
+        var texts = 0; var imgs = 0
+        val keep = ArrayList<Clip>()
+        for (it in l) {
+            val ok = it.pinned || (if (it.type == "text") ++texts <= 40 else ++imgs <= 20)
+            if (ok) keep.add(it) else if (it.type == "image") imageFile(c, it.value).delete()
+        }
+        save(c, keep)
+    }
+
+    fun addText(c: Context, t: String) = add(c, Clip("t:" + t.hashCode() + ":" + t.length, "text", t, false, System.currentTimeMillis()))
+
+    /** Copies the image into private storage; returns false if it could not be read. */
+    fun addImage(c: Context, uri: Uri): Boolean {
+        return try {
+            val type = c.contentResolver.getType(uri) ?: "image/png"
+            val ext = when { type.contains("jpeg") || type.contains("jpg") -> "jpg"; type.contains("gif") -> "gif"; type.contains("webp") -> "webp"; else -> "png" }
+            val name = "clip_" + System.currentTimeMillis() + "." + ext
+            val f = imageFile(c, name)
+            c.contentResolver.openInputStream(uri)?.use { ins -> f.outputStream().use { ins.copyTo(it) } } ?: return false
+            if (f.length() == 0L) { f.delete(); return false }
+            add(c, Clip("i:$name", "image", name, false, System.currentTimeMillis()))
+            true
+        } catch (e: Exception) { false }
+    }
+
+    fun mimeOf(name: String) = when (name.substringAfterLast('.')) { "jpg" -> "image/jpeg"; "gif" -> "image/gif"; "webp" -> "image/webp"; else -> "image/png" }
+
+    fun togglePin(c: Context, id: String) {
+        save(c, load(c).map { if (it.id == id) Clip(it.id, it.type, it.value, !it.pinned, it.ts) else it })
+    }
+
+    fun remove(c: Context, id: String) {
+        val l = load(c)
+        l.firstOrNull { it.id == id && it.type == "image" }?.let { imageFile(c, it.value).delete() }
+        save(c, l.filter { it.id != id })
+    }
+
+    fun clearUnpinned(c: Context) {
+        val l = load(c)
+        l.filter { !it.pinned && it.type == "image" }.forEach { imageFile(c, it.value).delete() }
+        save(c, l.filter { it.pinned })
+    }
+
+    // ---- emoji recents and skin tones
+    fun recentEmoji(c: Context): List<String> = jsonStrings(try { JSONArray(sp(c).getString("emoji", "[]")) } catch (e: Exception) { null })
     fun addEmoji(c: Context, e: String) {
-        val l = list(c, "emoji"); l.remove(e); l.add(0, e)
+        val l = recentEmoji(c).toMutableList(); l.remove(e); l.add(0, e)
         while (l.size > 32) l.removeAt(l.size - 1)
-        put(c, "emoji", l)
+        sp(c).edit().putString("emoji", JSONArray(l).toString()).apply()
+    }
+    fun tone(c: Context, base: String): String? = try { JSONObject(sp(c).getString("tones", "{}")).optString(base).ifEmpty { null } } catch (e: Exception) { null }
+    fun setTone(c: Context, base: String, variant: String) {
+        val o = try { JSONObject(sp(c).getString("tones", "{}")) } catch (e: Exception) { JSONObject() }
+        if (variant == base) o.remove(base) else o.put(base, variant)
+        sp(c).edit().putString("tones", o.toString()).apply()
     }
 }

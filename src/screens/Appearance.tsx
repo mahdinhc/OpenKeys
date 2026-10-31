@@ -16,12 +16,12 @@ export default function Appearance({cfg, update}: any) {
     <ScrollView>
       <Card title="Preview">
         <View style={{backgroundColor: colors.bg, padding: 8, borderRadius: 10}}>
-          {['q w e r t y', 'a s d f g h', '⇧ z x c ⌫'].map((row, i) => (
+          {['q w e r t y', 'a s d f g h', 'z x c v b'].map((row, i) => (
             <View key={i} style={{flexDirection: 'row', justifyContent: 'center'}}>
               {row.split(' ').map((k, j) => (
                 <View key={j} style={{
                   width: 40, height: 40 * cfg.heightScale / 100, margin: cfg.keyGap / 2, borderRadius: r,
-                  backgroundColor: i === 2 && (j === 0 || j === 4) ? colors.special : colors.key, alignItems: 'center', justifyContent: 'center',
+                  backgroundColor: colors.key, alignItems: 'center', justifyContent: 'center',
                 }}>
                   <Text style={{color: colors.keyText, fontSize: 16 * cfg.fontScale / 100}}>{k}</Text>
                 </View>
@@ -52,7 +52,7 @@ export default function Appearance({cfg, update}: any) {
       </Card>
 
       <Card title="Keys">
-        <Toggle label="Number row" value={cfg.numberRow} onChange={(v: boolean) => update({numberRow: v})} />
+        <Toggle label="Number row at top" hint="Digits above the letters, like Gboard (on by default)" value={cfg.numberRow} onChange={(v: boolean) => update({numberRow: v})} />
         <Toggle label="Show long-press hints" value={cfg.showHints} onChange={(v: boolean) => update({showHints: v})} />
         <Toggle label="Key pop-up preview" value={cfg.popupPreview} onChange={(v: boolean) => update({popupPreview: v})} />
       </Card>

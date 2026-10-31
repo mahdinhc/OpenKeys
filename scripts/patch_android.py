@@ -5,6 +5,7 @@ main = pathlib.Path("android/app/src/main")
 # ---- AndroidManifest.xml -------------------------------------------------
 mf = main / "AndroidManifest.xml"
 s = mf.read_text(encoding="utf-8")
+
 if "OpenKeysIME" not in s:
     s = s.replace("<application",
         '<uses-permission android:name="android.permission.VIBRATE"/>\n    <application', 1)
@@ -27,7 +28,20 @@ if "OpenKeysIME" not in s:
             android:exported="false"/>
 '''
     s = s.replace("</application>", comp + "    </application>", 1)
-    mf.write_text(s, encoding="utf-8")
+
+if "android.support.FILE_PROVIDER_PATHS" not in s:
+    prov = '''
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.clips"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/clip_paths"/>
+        </provider>
+'''
+    s = s.replace("</application>", prov + "    </application>", 1)
+
+mf.write_text(s, encoding="utf-8")
 
 # ---- MainApplication.kt --------------------------------------------------
 files = list(main.glob("java/**/MainApplication.kt"))

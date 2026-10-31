@@ -1,24 +1,30 @@
 {
-  "id": "en_qwerty", "name": "English", "locale": "en", "mode": "direct", "dict": "en",
-  "autoCap": true, "swipe": true, "sentenceEnd": ".",
-  "layers": {
-    "base": [
-      "q|1 w|2 e|3|è|é|ê|ë|ē r|4|ř t|5|þ y|6|ý|ÿ u|7|ù|ú|û|ü|ū i|8|ì|í|î|ï|ī o|9|ò|ó|ô|ö|õ|ø|œ|ō p|0",
-      "{pad:0.5} a|à|á|â|ä|æ|ã|å|ā s|ß|ś|š d|ð f g h j k l|ł {pad:0.5}",
-      "{shift:1.5} z|ž|ź|ż x c|ç|ć|č v b n|ñ|ń m {del:1.5}",
-      "{sym:1.4} ,|;|:|\"|'|\\u{2026} {lang} {space:4} .|?|!|-|_|\\u{2022} {enter:1.4}"
-    ],
-    "symbols": [
-      "1 2 3 4 5 6 7 8 9 0",
-      "@ # $|€|£|¥|¢|₹|৳ % & - + ( ) /",
-      "{sym2:1.5} * \" ' : ; ! ? {del:1.5}",
-      "{abc:1.5} , {lang} {space:4} . {enter:1.5}"
-    ],
-    "symbols2": [
-      "~ ` {pipe} • √ π ÷ × ¶ ∆",
-      "© ® ™ ° ^ {eq} { } [ ]",
-      "{sym:1.5} \\ < > ≈ ≠ ± \u00a7 {del:1.5}",
-      "{abc:1.5} , {lang} {space:4} . {enter:1.5}"
-    ]
-  }
+ "id": "en_qwerty",
+ "name": "English",
+ "locale": "en",
+ "mode": "direct",
+ "dict": "en",
+ "autoCap": true,
+ "swipe": true,
+ "sentenceEnd": ".",
+ "layers": {
+  "base": [
+   "q|1 w|2 e|3|è|é|ê|ë|ē r|4|ř t|5|þ y|6|ý|ÿ u|7|ù|ú|û|ü|ū i|8|ì|í|î|ï|ī o|9|ò|ó|ô|ö|õ|ø|œ|ō p|0",
+   "{pad:0.5} a|à|á|â|ä|æ|ã|å|ā s|ß|ś|š d|ð f g h j k l|ł {pad:0.5}",
+   "{shift:1.5} z|ž|ź|ż x c|ç|ć|č v b n|ñ|ń m {del:1.5}",
+   "{sym:1.5} ,|;|:|\"|'|\\u{2026} {emoji:1} {space:4.2} .|?|!|-|_|\\u{2022} {enter:1.5}"
+  ],
+  "symbols": [
+   "1 2 3 4 5 6 7 8 9 0",
+   "@ # $|€|£|¥|¢|₹|৳ _ & - + ( ) /",
+   "{sym2:1.4} * \" ' : ; ! ? {del:1.4}",
+   "{abc:1.5} , {layer=numpad~1234:1} {space:4.2} . {enter:1.5}"
+  ],
+  "symbols2": [
+   "~ ` {pipe} \\u{2022} \\u{221A} \\u03C0 \\u00F7 \\u00D7 \\u00A7 \\u2206",
+   "\\u00A3 \\u00A2 \\u20AC \\u00A5 ^ \\u00B0 {eq} { } \\",
+   "{sym:1.4} % \\u00A9 \\u00AE \\u2122 \\u2713 [ ] {del:1.4}",
+   "{abc:1.5} < {layer=numpad~1234:1} {space:4.2} > {enter:1.5}"
+  ]
+ }
 }

@@ -27,9 +27,9 @@ export default function Setup() {
       </Card>
       <Card title="Tips">
         <Text style={{color: C.sub, lineHeight: 20}}>
-          • 🌐 switches language, long-press 🌐 opens the system keyboard picker{'\n'}
-          • Double-tap ⇧ for caps lock · swipe on space to move the cursor{'\n'}
-          • Toolbar (when idle): emoji, clipboard history, voice, one-handed mode, settings{'\n'}
+          • Hold the space bar and slide to switch language · slide on it to move the cursor{'\n'}
+          • Double-tap shift for caps lock · long-press keys for accents and symbols{'\n'}
+          • Top bar: tools, emoji (with search and skin tones), clipboard (text and images), voice{'\n'}
           • Phonetic Bengali: type “ami banglay gan gai” · use ` to build conjuncts (k`t = ক্ত)
         </Text>
       </Card>

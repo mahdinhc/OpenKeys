@@ -1,128 +1,264 @@
 package com.openkeys.keyboard
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.GradientDrawable
+import android.os.Handler
+import android.os.Looper
+import android.util.LruCache
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.BaseAdapter
-import android.widget.GridView
+import android.widget.FrameLayout
+import android.widget.HorizontalScrollView
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 
-private fun bottomBtn(ctx: Context, label: String, color: Int, w: Float, onClick: () -> Unit) =
-    TextView(ctx).apply {
-        text = label; textSize = 16f; gravity = Gravity.CENTER; setTextColor(color); isClickable = true
-        setOnClickListener { onClick() }
-    }.also { it.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, w) }
+private val MATCH = ViewGroup.LayoutParams.MATCH_PARENT
+private val WRAP = ViewGroup.LayoutParams.WRAP_CONTENT
+
+private fun round(color: Int, radius: Float) = GradientDrawable().apply { setColor(color); cornerRadius = radius }
+
+/** Tap-and-hold-to-repeat helper for backspace buttons in the panels. */
+private fun View.onRepeatTouch(action: () -> Unit) {
+    val h = Handler(Looper.getMainLooper())
+    var down = false
+    val rep = object : Runnable { override fun run() { if (down) { action(); h.postDelayed(this, 50) } } }
+    setOnTouchListener { _, e ->
+        when (e.actionMasked) {
+            MotionEvent.ACTION_DOWN -> { down = true; action(); h.postDelayed(rep, 400) }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> { down = false; h.removeCallbacks(rep) }
+        }
+        true
+    }
+}
+
+private val KAOMOJI = listOf(
+    EmojiSection("Emoticons", listOf(":-)", ":-D", ";-)", ":-P", ":-(", ":'(", ":-O", ":-/", ":-|", "8-)", "B-)", ">:(", "<3", "</3", "XD", "^_^", "-_-", "T_T", "o_O", "O_o", ":3", ":*", "(:", "=)", ":)", ":D", ";)", ":(", ":P", "xD")),
+    EmojiSection("Kaomoji", listOf("¯\\_(ツ)_/¯", "(╯°□°)╯︵ ┻━┻", "┬─┬ ノ( ゜-゜ノ)", "(づ｡◕‿‿◕｡)づ", "ʕ•ᴥ•ʔ", "(ಥ﹏ಥ)", "(☞ﾟヮﾟ)☞", "(≧▽≦)", "(^_^)", "(¬_¬)", "(•_•)", "( ͡° ͜ʖ ͡°)", "ヽ(´▽`)/", "(*^▽^*)", "orz", "(・ω・)", "(｡•́︿•̀｡)", "٩(◕‿◕)۶", "(ノಠ益ಠ)ノ", "ಠ_ಠ"))
+)
 
 class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
-    interface Callback { fun onEmoji(e: String); fun onBack(); fun onBackspace() }
+    interface Callback { fun onEmoji(e: String); fun onBack(); fun onBackspace(); fun onSearch() }
 
     private var theme = Theme.DARK
-    private val cats = linkedMapOf(
-        "🕘" to "",
-        "😀" to "😀 😃 😄 😁 😆 😅 😂 🤣 😊 😇 🙂 🙃 😉 😍 🥰 😘 😋 😛 😜 🤪 🤔 😐 😑 😶 🙄 😏 😴 😪 😷 🤒 🥵 🥶 😎 🤓 😢 😭 😤 😡 🤯 😱",
-        "👍" to "👍 👎 👌 ✌️ 🤞 🤟 🤘 🤙 👈 👉 👆 👇 ☝️ ✋ 🤚 🖐️ 👋 👏 🙌 🤝 🙏 💪 ✍️ 💅 👀 👅 👄 🧠",
-        "❤️" to "❤️ 🧡 💛 💚 💙 💜 🖤 🤍 💔 ❣️ 💕 💞 💓 💗 💖 💘 💝 ✨ ⭐ 🌟 💫 🔥 💯 ✅ ❌ ⚡ 🎉 🎊 🎁",
-        "🐶" to "🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐨 🐯 🦁 🐮 🐷 🐸 🐵 🐔 🐧 🐦 🦆 🦉 🐝 🦋 🐢 🐍 🐙 🐬 🐳 🌸 🌹 🌻 🌲 🍀",
-        "🍔" to "🍎 🍌 🍉 🍇 🍓 🍒 🥭 🍍 🥥 🥑 🍅 🥕 🌽 🍞 🧀 🍗 🍔 🍟 🍕 🌭 🌮 🍜 🍣 🍚 🍰 🍩 🍪 🍫 ☕ 🍵 🥤 🍺",
-        "🚗" to "🚗 🚕 🚌 🚑 🚒 🚲 🏍️ ✈️ 🚀 🚢 🚂 🏠 🏢 🏝️ ⛰️ 🌍 🌙 ☀️ ☁️ 🌧️ ⚽ 🏏 🏀 🎮 🎵 📱 💻 📷 💡 💰 📚"
-    )
-    private var items: List<String> = emptyList()
-    private val grid = GridView(ctx)
+    private val grid = EmojiGridView(ctx)
+    private val topRow = LinearLayout(ctx)
     private val tabs = LinearLayout(ctx)
-    private val tabViews = ArrayList<TextView>()
-    private val adapter = object : BaseAdapter() {
-        override fun getCount() = items.size
-        override fun getItem(p: Int) = items[p]
-        override fun getItemId(p: Int) = p.toLong()
-        override fun getView(p: Int, cv: View?, parent: ViewGroup?): View {
-            val t = (cv as? TextView) ?: TextView(context).apply {
-                textSize = 24f; gravity = Gravity.CENTER; setPadding(0, context.dpi(8f), 0, context.dpi(8f))
-            }
-            t.text = items[p]; return t
-        }
-    }
+    private val tabViews = ArrayList<IconView>()
+    private val searchPill = TextView(ctx)
     private val bottom = LinearLayout(ctx)
+    private val abc = TextView(ctx)
+    private val emojiBtn = FrameLayout(ctx)
+    private val kaoBtn = TextView(ctx)
+    private val back = FrameLayout(ctx)
+    private val backIcon = IconView(ctx, "back", Theme.DARK.keyText, 0.5f)
+    private var sectionIndexForTab = ArrayList<Int>()
+    private var kaomoji = false
 
     init {
         orientation = VERTICAL
-        cats.keys.forEachIndexed { i, k ->
-            val t = TextView(ctx).apply { text = k; textSize = 18f; gravity = Gravity.CENTER; setOnClickListener { select(i) } }
-            tabViews.add(t); tabs.addView(t, LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
+        // top row: back, then a horizontally scrolling [search pill][category tabs]
+        topRow.orientation = HORIZONTAL; topRow.gravity = Gravity.CENTER_VERTICAL
+        back.addView(backIcon, FrameLayout.LayoutParams(MATCH, MATCH))
+        back.setOnClickListener { cb.onBack() }
+        topRow.addView(back, LayoutParams(ctx.dpi(46f), ctx.dpi(40f)).also { it.setMargins(ctx.dpi(6f), 0, ctx.dpi(4f), 0) })
+        searchPill.text = "Search"; searchPill.textSize = 16f; searchPill.gravity = Gravity.CENTER_VERTICAL
+        searchPill.setPadding(ctx.dpi(44f), 0, ctx.dpi(16f), 0)
+        searchPill.setOnClickListener { cb.onSearch() }
+        val searchIc = IconView(ctx, "search", Theme.DARK.hint, 0.6f)
+        val pillBox = FrameLayout(ctx)
+        pillBox.addView(searchPill, FrameLayout.LayoutParams(MATCH, MATCH))
+        pillBox.addView(searchIc, FrameLayout.LayoutParams(ctx.dpi(40f), MATCH))
+        pillBox.tag = searchIc
+        val hs = HorizontalScrollView(ctx).apply { isHorizontalScrollBarEnabled = false }
+        val inner = LinearLayout(ctx).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        inner.addView(pillBox, LayoutParams(ctx.dpi(150f), ctx.dpi(40f)).also { it.setMargins(0, 0, ctx.dpi(6f), 0) })
+        inner.addView(tabs, LayoutParams(WRAP, MATCH))
+        hs.addView(inner, ViewGroup.LayoutParams(WRAP, MATCH))
+        topRow.addView(hs, LayoutParams(0, MATCH, 1f))
+        tabs.orientation = HORIZONTAL; tabs.gravity = Gravity.CENTER_VERTICAL
+
+        grid.onPick = { e -> cb.onEmoji(e); if (!kaomoji) ClipStore.addEmoji(context, e) }
+        grid.toneBase = { EmojiData.isToneBase(it) }
+        grid.displayOf = { e -> if (EmojiData.isToneBase(e)) (ClipStore.tone(context, e) ?: e) else e }
+        grid.onTone = { base, v -> ClipStore.setTone(context, base, v) }
+        grid.onSection = { sec -> highlight(sec) }
+
+        abc.text = "ABC"; abc.textSize = 16f; abc.gravity = Gravity.CENTER; abc.setOnClickListener { cb.onBack() }
+        emojiBtn.addView(IconView(ctx, "emoji", Theme.DARK.keyText, 0.55f), FrameLayout.LayoutParams(MATCH, MATCH))
+        emojiBtn.setOnClickListener { setKaomoji(false) }
+        kaoBtn.text = ":-)"; kaoBtn.textSize = 17f; kaoBtn.gravity = Gravity.CENTER; kaoBtn.setOnClickListener { setKaomoji(true) }
+        val del = FrameLayout(ctx); del.addView(IconView(ctx, "backspace", Theme.DARK.keyText, 0.5f), FrameLayout.LayoutParams(MATCH, MATCH))
+        del.onRepeatTouch { cb.onBackspace() }
+        bottom.orientation = HORIZONTAL; bottom.gravity = Gravity.CENTER_VERTICAL
+        val m = ctx.dpi(4f)
+        bottom.addView(abc, LayoutParams(0, MATCH, 1f))
+        bottom.addView(emojiBtn, LayoutParams(0, MATCH, 1.4f).also { it.setMargins(m, m, m, m) })
+        bottom.addView(kaoBtn, LayoutParams(0, MATCH, 1.4f).also { it.setMargins(m, m, m, m) })
+        bottom.addView(del, LayoutParams(0, MATCH, 1f))
+
+        addView(topRow, LayoutParams(MATCH, ctx.dpi(48f)))
+        addView(grid, LayoutParams(MATCH, 0, 1f))
+        addView(bottom, LayoutParams(MATCH, ctx.dpi(48f)))
+    }
+
+    private fun setKaomoji(on: Boolean) {
+        kaomoji = on
+        topRow.visibility = if (on) GONE else VISIBLE
+        restyleBottom()
+        if (on) grid.setData(KAOMOJI, 3, 0f, context.dpf(46f)) else open()
+    }
+
+    private fun restyleBottom() {
+        val sel = round(theme.accent and 0x00FFFFFF or 0x40000000, context.dpf(20f))
+        emojiBtn.background = if (!kaomoji) sel else null
+        kaoBtn.background = if (kaomoji) sel else null
+    }
+
+    /** (Re)builds the section list: recents + the nine Unicode groups. */
+    fun open() {
+        kaomoji = false; topRow.visibility = VISIBLE; restyleBottom()
+        EmojiData.load(context) { build() }
+    }
+
+    private fun build() {
+        val secs = ArrayList<EmojiSection>()
+        val tabIcons = ArrayList<String>()
+        sectionIndexForTab.clear()
+        val recents = ClipStore.recentEmoji(context)
+        secs.add(EmojiSection("Recent Emoji", recents.ifEmpty { EmojiData.items.take(0).map { it.s } }))
+        tabIcons.add("history"); sectionIndexForTab.add(0)
+        for (g in EmojiData.GROUPS.indices) {
+            val list = EmojiData.items.filter { it.group == g }.map { it.s }
+            if (list.isEmpty()) continue
+            sectionIndexForTab.add(secs.size); tabIcons.add(EmojiData.GROUP_ICONS[g])
+            secs.add(EmojiSection(EmojiData.GROUPS[g], list))
         }
-        grid.numColumns = 8; grid.stretchMode = GridView.STRETCH_COLUMN_WIDTH; grid.adapter = adapter
-        grid.setOnItemClickListener { _, _, p, _ -> cb.onEmoji(items[p]) }
-        addView(tabs, LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ctx.dpi(40f)))
-        addView(grid, LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
-        addView(bottom, LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ctx.dpi(44f)))
+        // drop an empty recents section
+        val finalSecs = if (secs[0].items.isEmpty()) { sectionIndexForTab.removeAt(0); tabIcons.removeAt(0); secs.subList(1, secs.size).also { l -> for (i in sectionIndexForTab.indices) sectionIndexForTab[i] = sectionIndexForTab[i] - 1 } } else secs
+        grid.setData(finalSecs, 8, 0.62f)
+        tabs.removeAllViews(); tabViews.clear()
+        tabIcons.forEachIndexed { i, ic ->
+            val v = IconView(context, ic, theme.hint, 0.55f)
+            v.setOnClickListener { grid.scrollToSection(sectionIndexForTab[i]) }
+            tabViews.add(v)
+            tabs.addView(v, LayoutParams(context.dpi(46f), context.dpi(40f)).also { it.setMargins(context.dpi(2f), 0, context.dpi(2f), 0) })
+        }
+        highlight(0)
     }
 
-    private fun select(i: Int) {
-        val key = cats.keys.elementAt(i)
-        items = if (i == 0) ClipStore.recentEmoji(context).ifEmpty { cats.values.elementAt(1).split(" ").take(16) }
-                else cats[key]!!.split(" ").filter { it.isNotEmpty() }
-        adapter.notifyDataSetChanged(); grid.setSelection(0)
-        tabViews.forEachIndexed { j, t -> t.alpha = if (j == i) 1f else 0.5f }
+    private fun highlight(sec: Int) {
+        val ti = sectionIndexForTab.indexOfLast { it <= sec }.coerceAtLeast(0)
+        tabViews.forEachIndexed { i, v ->
+            v.background = if (i == ti) round(theme.accent and 0x00FFFFFF or 0x40000000, context.dpf(20f)) else null
+            v.tint = if (i == ti) theme.accent else theme.hint; v.invalidate()
+        }
     }
-
-    fun open() { select(0) }
 
     fun applyTheme(t: Theme) {
         theme = t
         setBackgroundColor(t.bg)
-        tabViews.forEach { it.setTextColor(t.keyText) }
-        bottom.removeAllViews()
-        bottom.addView(bottomBtn(context, "ABC", t.keyText, 1f) { cb.onBack() })
-        bottom.addView(View(context), LayoutParams(0, 1, 4f))
-        bottom.addView(bottomBtn(context, "⌫", t.keyText, 1f) { cb.onBackspace() })
+        grid.theme = t
+        backIcon.set("back", t.keyText)
+        back.background = round(t.key, context.dpf(20f))
+        searchPill.background = round(t.key, context.dpf(20f)); searchPill.setTextColor(t.hint)
+        ((searchPill.parent as? FrameLayout)?.tag as? IconView)?.set("search", t.hint)
+        abc.setTextColor(t.keyText); kaoBtn.setTextColor(t.keyText)
+        (emojiBtn.getChildAt(0) as IconView).set("emoji", t.keyText)
+        restyleBottom()
+        grid.invalidate()
     }
 }
 
 class ClipboardPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
-    interface Callback { fun onPaste(s: String); fun onBack() }
+    interface Callback { fun onPasteText(s: String); fun onPasteImage(c: Clip); fun onBack() }
 
     private var theme = Theme.DARK
-    private val listBox = LinearLayout(ctx).apply { orientation = VERTICAL }
-    private val scroll = ScrollView(ctx)
+    private val list = LinearLayout(ctx).apply { orientation = VERTICAL }
     private val bottom = LinearLayout(ctx)
+    private val abc = TextView(ctx)
+    private val clear = TextView(ctx)
+    private val thumbs = object : LruCache<String, Bitmap>(24) {}
 
     init {
         orientation = VERTICAL
-        scroll.addView(listBox)
-        addView(scroll, LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
-        addView(bottom, LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ctx.dpi(44f)))
+        val sv = ScrollView(ctx).apply { addView(list, ViewGroup.LayoutParams(MATCH, WRAP)) }
+        addView(sv, LayoutParams(MATCH, 0, 1f))
+        abc.text = "ABC"; abc.textSize = 16f; abc.gravity = Gravity.CENTER; abc.setOnClickListener { cb.onBack() }
+        clear.text = "Clear"; clear.textSize = 16f; clear.gravity = Gravity.CENTER
+        clear.setOnClickListener { ClipStore.clearUnpinned(context); refresh() }
+        bottom.orientation = HORIZONTAL
+        bottom.addView(abc, LayoutParams(0, MATCH, 1f))
+        bottom.addView(View(ctx), LayoutParams(0, 1, 4f))
+        bottom.addView(clear, LayoutParams(0, MATCH, 1f))
+        addView(bottom, LayoutParams(MATCH, ctx.dpi(48f)))
+    }
+
+    private fun thumb(c: Clip): Bitmap? {
+        thumbs.get(c.id)?.let { return it }
+        return try {
+            val f = ClipStore.imageFile(context, c.value)
+            val o = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeFile(f.path, o)
+            var s = 1
+            while (o.outWidth / s > 600 || o.outHeight / s > 600) s *= 2
+            BitmapFactory.decodeFile(f.path, BitmapFactory.Options().apply { inSampleSize = s })?.also { thumbs.put(c.id, it) }
+        } catch (e: Exception) { null }
+    }
+
+    private fun card(content: View, c: Clip): FrameLayout {
+        val f = FrameLayout(context)
+        f.background = round(theme.key, context.dpf(12f))
+        f.addView(content, FrameLayout.LayoutParams(MATCH, if (c.type == "image") MATCH else WRAP))
+        val del = IconView(context, "close", theme.hint, 0.5f)
+        del.setOnClickListener { ClipStore.remove(context, c.id); refresh() }
+        f.addView(del, FrameLayout.LayoutParams(context.dpi(34f), context.dpi(34f), Gravity.TOP or Gravity.END))
+        if (c.pinned) f.addView(IconView(context, "pin", theme.accent, 0.5f), FrameLayout.LayoutParams(context.dpi(30f), context.dpi(30f), Gravity.BOTTOM or Gravity.END))
+        f.setOnClickListener { if (c.type == "image") cb.onPasteImage(c) else cb.onPasteText(c.value) }
+        f.setOnLongClickListener { ClipStore.togglePin(context, c.id); refresh(); true }
+        return f
     }
 
     fun refresh() {
-        listBox.removeAllViews()
+        list.removeAllViews()
         val items = ClipStore.items(context)
-        if (items.isEmpty()) listBox.addView(TextView(context).apply {
-            text = "Copied text appears here.\nLong-press an item to pin it."; setTextColor(theme.hint)
-            gravity = Gravity.CENTER; setPadding(0, context.dpi(30f), 0, 0)
-        })
-        for ((clipText, pinned) in items) {
+        if (items.isEmpty()) {
+            list.addView(TextView(context).apply {
+                text = "Copied text and images appear here.\nLong-press an item to pin it."
+                setTextColor(theme.hint); gravity = Gravity.CENTER; setPadding(0, context.dpi(40f), 0, 0)
+            }, LayoutParams(MATCH, WRAP))
+            return
+        }
+        val m = context.dpi(6f)
+        val texts = items.filter { it.type == "text" }
+        val imgs = items.filter { it.type == "image" }
+        for (c in texts) {
             val tv = TextView(context).apply {
-                this.text = (if (pinned) "📌 " else "") + clipText
-                maxLines = 3; setTextColor(theme.keyText); textSize = 15f
-                setBackgroundColor(theme.key)
-                setPadding(context.dpi(12f), context.dpi(10f), context.dpi(12f), context.dpi(10f))
-                setOnClickListener { cb.onPaste(clipText) }
-                setOnLongClickListener { ClipStore.toggle(context, clipText); refresh(); true }
+                text = c.value; maxLines = 3; setTextColor(theme.keyText); textSize = 15f
+                setPadding(context.dpi(14f), context.dpi(12f), context.dpi(40f), context.dpi(12f))
             }
-            val lp = LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            lp.setMargins(context.dpi(8f), context.dpi(4f), context.dpi(8f), 0)
-            listBox.addView(tv, lp)
+            list.addView(card(tv, c), LayoutParams(MATCH, WRAP).also { it.setMargins(m, m, m, 0) })
+        }
+        imgs.chunked(2).forEach { pair ->
+            val row = LinearLayout(context).apply { orientation = HORIZONTAL }
+            for (k in 0 until 2) {
+                val c = pair.getOrNull(k)
+                if (c == null) { row.addView(View(context), LayoutParams(0, 1, 1f)); continue }
+                val iv = ImageView(context).apply { scaleType = ImageView.ScaleType.FIT_CENTER; setImageBitmap(thumb(c)); setPadding(m, m, m, m) }
+                row.addView(card(iv, c).also { it.layoutParams = null }, LayoutParams(0, context.dpi(120f), 1f).also { it.setMargins(m, m, m, 0) })
+            }
+            list.addView(row, LayoutParams(MATCH, WRAP))
         }
     }
 
     fun applyTheme(t: Theme) {
         theme = t
         setBackgroundColor(t.bg)
-        bottom.removeAllViews()
-        bottom.addView(bottomBtn(context, "ABC", t.keyText, 1f) { cb.onBack() })
-        bottom.addView(View(context), LayoutParams(0, 1, 4f))
-        bottom.addView(bottomBtn(context, "Clear", t.keyText, 1f) { ClipStore.clear(context); refresh() })
+        abc.setTextColor(t.keyText); clear.setTextColor(t.keyText)
     }
 }
