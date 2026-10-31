@@ -89,6 +89,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         prefs = Prefs(this); repo = LayoutRepo(this); suggest = SuggestEngine(this)
         Icons.load(this)
         EmojiData.load(this)
+        Thread { try { suggest.dict("en"); suggest.dict("bn") } catch (e: Exception) { } }.start()
         prefs.sp.registerOnSharedPreferenceChangeListener(prefListener)
         (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).addPrimaryClipChangedListener(clipListener)
         val f = IntentFilter(ACTION_VOICE)
@@ -391,8 +392,9 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         if (auto && !noSuggest) {
             val sc = prefs.shortcuts()[w.lowercase()]
             if (sc != null) w = sc
+            else if (translit != null && prefs.bool("autocorrect", true) && prefs.bool("suggestions", true)) dict?.autoCorrect(composing.toString())?.let { w = it }
             else if (translit == null && prefs.bool("autocorrect", true) && prefs.bool("suggestions", true)) {
-                dict?.correct(w)?.let { c -> val fixed = matchCase(w, c); lastCorrection = w to fixed; w = fixed }
+                dict?.correct(w, lastWord)?.let { c -> val fixed = matchCase(w, c); lastCorrection = w to fixed; w = fixed }
             }
         }
         currentInputConnection?.commitText(w, 1)
@@ -400,22 +402,37 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         learn(w)
     }
 
+    private fun fixOnAuto() = prefs.bool("autocorrect", true)
+
+    private fun isEmojiStr(s: String) = s.isNotEmpty() && !s[0].isLetterOrDigit() && s.codePointAt(0) > 0x2000
+
     private fun updateSuggestions() {
         if (!viewReady) return
         if (searching || noSuggest || !prefs.bool("suggestions", true)) { bar.setSuggestions(emptyList()); return }
         val d = dict
+        val emojiOn = prefs.bool("emojiSuggest", true) && translit == null
         if (composing.isNotEmpty()) {
             val typed = display()
-            val comp = d?.complete(typed, 4) ?: emptyList()
-            val fix = if (prefs.bool("autocorrect", true) && translit == null) d?.correct(typed)?.let { matchCase(typed, it) } else null
-            val best = fix ?: comp.firstOrNull()
+            val comp = d?.complete(typed, 4, lastWord) ?: emptyList()
+            val fixOn = prefs.bool("autocorrect", true) && translit == null
+            val fix = if (fixOn) d?.correct(typed, lastWord)?.let { matchCase(typed, it) } else null
+            val emo = if (emojiOn) EmojiData.forWord(typed, 2) else emptyList()
+            val ac = if (translit != null && fixOnAuto()) d?.autoCorrect(composing.toString()) else null
             val out = ArrayList<String>(); out.add(typed)
-            if (best != null) out.add(best)
-            comp.filter { it != best && it != typed }.take(3 - out.size).forEach { out.add(it) }
+            if (ac != null && ac != typed) out.add(ac)
+            else if (fix != null) out.add(fix)
+            else if (emo.isNotEmpty() && (d?.known(typed.lowercase()) == true)) { emo.forEach { if (out.size < 3) out.add(it) } }
+            comp.filter { it !in out }.forEach { if (out.size < 3) out.add(it) }
+            if (out.size < 3 && fix == null && translit == null) d?.fixes(typed, 2, lastWord)?.forEach { if (it !in out && out.size < 3) out.add(it) }
+            if (out.size < 3 && emo.isNotEmpty()) emo.forEach { if (it !in out && out.size < 3) out.add(it) }
             bar.setSuggestions(out)
-        } else {
-            bar.setSuggestions(if (lastWord.isNotEmpty()) d?.next(lastWord, 3) ?: emptyList() else emptyList())
-        }
+        } else if (lastWord.isNotEmpty()) {
+            val nx = d?.next(lastWord, 3) ?: emptyList()
+            val emo = if (emojiOn) EmojiData.forWord(lastWord, 2) else emptyList()
+            val out = arrayOf(nx.getOrNull(0) ?: "", emo.getOrNull(0) ?: nx.getOrNull(1) ?: "",
+                emo.getOrNull(1) ?: nx.getOrNull(if (emo.isEmpty()) 2 else 1) ?: "")
+            bar.setSuggestions(if (out.all { it.isEmpty() }) emptyList() else out.toList())
+        } else bar.setSuggestions(emptyList())
     }
 
     private fun updateAutoCaps() {
@@ -553,11 +570,11 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         repeat(Math.abs(steps)) { sendDownUpKeyEvents(if (steps < 0) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT) }
     }
 
-    override fun onSwipe(path: String, shifted: Boolean) {
+    override fun onSwipe(input: SwipeInput, shifted: Boolean) {
         if (searching) return
         val ic = currentInputConnection ?: return
         commitComposing(true)
-        val c = dict?.swipe(path, 3) ?: emptyList()
+        val c = dict?.swipe(input, 4, lastWord) ?: emptyList()
         if (c.isEmpty()) return
         lg("[swipe:" + c[0] + "]")
         val words = c.map { if (shifted) it.replaceFirstChar { ch -> ch.uppercase() } else it }
@@ -565,6 +582,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         if (!before.isNullOrEmpty() && !before[0].isWhitespace() && !"([{\"'".contains(before[0])) ic.commitText(" ", 1)
         ic.commitText(words[0] + " ", 1)
         lastSwipe = words[0] + " "; lastWord = words[0]
+        if (prefs.bool("learnWords", true)) dict?.learn(words[0], null)
         bar.setSuggestions(if (words.size < 2) words else listOf(words[1], words[0], words.getOrElse(2) { "" }))
     }
 
@@ -574,6 +592,18 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     override fun onPick(s: String) {
         val ic = currentInputConnection ?: return
         lg("[" + s + "]")
+        if (isEmojiStr(s)) {
+            ClipStore.addEmoji(this, s)
+            if (composing.isNotEmpty()) {
+                val w = display(); composing.setLength(0); lastCorrection = null
+                ic.commitText("$w $s ", 1); learn(w)
+            } else {
+                lastSwipe?.let { ic.deleteSurroundingText(it.length, 0); ic.commitText(it, 1) }
+                lastSwipe = null
+                ic.commitText("$s ", 1)
+            }
+            updateSuggestions(); return
+        }
         if (composing.isNotEmpty()) {
             composing.setLength(0); lastCorrection = null
             ic.commitText("$s ", 1); learn(s)

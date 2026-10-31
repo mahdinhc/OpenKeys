@@ -1,1911 +1,1923 @@
-0	😀	0	grinning face
-0	😁	0	grinning face with smiling eyes
-0	😂	0	face with tears of joy lol laugh funny haha
-0	😃	0	smiling face with open mouth
-0	😄	0	smiling face with open mouth and smiling eyes
-0	😅	0	smiling face with open mouth and cold sweat
-0	😆	0	smiling face with open mouth and tightly-closed eyes
-0	😇	0	smiling face with halo
-0	😈	0	smiling face with horns
-0	😉	0	winking face
-0	😊	0	smiling face with smiling eyes happy blush smile
-0	😋	0	face savouring delicious food
-0	😌	0	relieved face
-0	😍	0	smiling face with heart-shaped eyes love crush heart eyes
-0	😎	0	smiling face with sunglasses cool sunglasses
-0	😏	0	smirking face
-0	😐	0	neutral face
-0	😑	0	expressionless face
-0	😒	0	unamused face
-0	😓	0	face with cold sweat
-0	😔	0	pensive face
-0	😕	0	confused face
-0	😖	0	confounded face
-0	😗	0	kissing face
-0	😘	0	face throwing a kiss kiss love
-0	😙	0	kissing face with smiling eyes
-0	😚	0	kissing face with closed eyes
-0	😛	0	face with stuck-out tongue
-0	😜	0	face with stuck-out tongue and winking eye
-0	😝	0	face with stuck-out tongue and tightly-closed eyes
-0	😞	0	disappointed face
-0	😟	0	worried face
-0	😠	0	angry face
-0	😡	0	pouting face angry mad
-0	😢	0	crying face cry sad
-0	😣	0	persevering face
-0	😤	0	face with look of triumph
-0	😥	0	disappointed but relieved face
-0	😦	0	frowning face with open mouth
-0	😧	0	anguished face
-0	😨	0	fearful face
-0	😩	0	weary face
-0	😪	0	sleepy face
-0	😫	0	tired face
-0	😬	0	grimacing face
-0	😭	0	loudly crying face cry sad sob
-0	😮	0	face with open mouth
-0	😮‍💨	0	face with open mouth dash symbol
-0	😯	0	hushed face
-0	😰	0	face with open mouth and cold sweat
-0	😱	0	face screaming in fear
-0	😲	0	astonished face
-0	😳	0	flushed face
-0	😴	0	sleeping face sleep tired
-0	😵	0	dizzy face
-0	😵‍💫	0	dizzy face dizzy symbol
-0	😶	0	face without mouth
-0	😶‍🌫️	0	face without mouth fog
-0	😷	0	face with medical mask
-0	😸	0	grinning cat face with smiling eyes
-0	😹	0	cat face with tears of joy
-0	😺	0	smiling cat face with open mouth
-0	😻	0	smiling cat face with heart-shaped eyes
-0	😼	0	cat face with wry smile
-0	😽	0	kissing cat face with closed eyes
-0	😾	0	pouting cat face
-0	😿	0	crying cat face
-0	🙀	0	weary cat face
-0	🙁	0	slightly frowning face
-0	🙂	0	slightly smiling face
-0	🙂‍↔️	0	slightly smiling face left right arrow
-0	🙂‍↕️	0	slightly smiling face up down arrow
-0	🙃	0	upside-down face
-0	🙄	0	face with rolling eyes eyeroll
-0	🤐	0	zipper-mouth face
-0	🤑	0	money-mouth face
-0	🤒	0	face with thermometer
-0	🤓	0	nerd face
-0	🤔	0	thinking face think hmm
-0	🤕	0	face with head-bandage
-0	🤖	0	robot face
-0	🤗	0	hugging face
-0	🤠	0	face with cowboy hat
-0	🤡	0	clown face
-0	🤢	0	nauseated face
-0	🤣	0	rolling on the floor laughing lol rofl laugh
-0	🤤	0	drooling face
-0	🤥	0	lying face
-0	🤧	0	sneezing face
-0	🤨	0	face with one eyebrow raised
-0	🤩	0	grinning face with star eyes
-0	🤪	0	grinning face with one large and one small eye
-0	🤫	0	face with finger covering closed lips
-0	🤬	0	serious face with symbols covering mouth
-0	🤭	0	smiling face with smiling eyes and hand covering mouth
-0	🤮	0	face with open mouth vomiting
-0	🤯	0	shocked face with exploding head
-0	🥰	0	smiling face with smiling eyes and three hearts love cute
-0	🥱	0	yawning face
-0	🥲	0	smiling face with tear
-0	🥳	0	face with party horn and party hat
-0	🥴	0	face with uneven eyes and wavy mouth
-0	🥵	0	overheated face
-0	🥶	0	freezing face
-0	🥸	0	disguised face
-0	🥹	0	face holding back tears
-0	🥺	0	face with pleading eyes
-0	🧐	0	face with monocle
-0	🫠	0	melting face
-0	🫡	0	saluting face
-0	🫢	0	face with open eyes and hand over mouth
-0	🫣	0	face with peeking eye
-0	🫤	0	face with diagonal mouth
-0	🫥	0	dotted line face
-0	🫦	0	biting lip
-0	🫧	0	bubbles
-0	🫨	0	shaking face
-0	☠️	0	skull and crossbones
-0	☹️	0	white frowning face
-0	☺️	0	white smiling face
-0	❣️	0	heavy heart exclamation mark ornament
-0	❤️	0	heavy black heart love heart red
-0	❤️‍🔥	0	heavy black heart fire
-0	❤️‍🩹	0	heavy black heart adhesive bandage
-0	👹	0	japanese ogre
-0	👺	0	japanese goblin
-0	👻	0	ghost
-0	👽	0	extraterrestrial alien
-0	👾	0	alien monster
-0	👿	0	imp
-0	💀	0	skull
-0	💋	0	kiss mark
-0	💌	0	love letter
-0	💓	0	beating heart
-0	💔	0	broken heart
-0	💕	0	two hearts
-0	💖	0	sparkling heart
-0	💗	0	growing heart
-0	💘	0	heart with arrow
-0	💙	0	blue heart
-0	💚	0	green heart
-0	💛	0	yellow heart
-0	💜	0	purple heart
-0	💝	0	heart with ribbon
-0	💞	0	revolving hearts
-0	💟	0	heart decoration
-0	💢	0	anger symbol
-0	💤	0	sleeping symbol
-0	💥	0	collision symbol
-0	💦	0	splashing sweat symbol
-0	💨	0	dash symbol
-0	💩	0	pile of poo poop shit
-0	💫	0	dizzy symbol
-0	💬	0	speech balloon
-0	💭	0	thought balloon
-0	💯	0	hundred points symbol hundred perfect
-0	🕳️	0	hole
-0	🖤	0	black heart
-0	🗨️	0	left speech bubble
-0	🗯️	0	right anger bubble
-0	🙈	0	see-no-evil monkey
-0	🙉	0	hear-no-evil monkey
-0	🙊	0	speak-no-evil monkey
-0	🤍	0	white heart
-0	🤎	0	brown heart
-0	🧡	0	orange heart
-0	🫆	0	
-0	🫩	0	
-0	🫶	1	heart hands
-1	☝️	1	white up pointing index
-1	⛷️	0	skier
-1	⛸️	0	ice skate
-1	⛹️	1	person with ball
-1	⛹️‍♀️	1	person with ball female sign
-1	⛹️‍♂️	1	person with ball male sign
-1	✊	1	raised fist
-1	✋	1	raised hand
-1	✌️	1	victory hand
-1	✍️	1	writing hand
-1	🏂	1	snowboarder
-1	🏃	1	runner
-1	🏃‍♀️	1	runner female sign
-1	🏃‍♂️	1	runner male sign
-1	🏃‍➡️	1	runner black rightwards arrow
-1	🏃‍♀️‍➡️	1	runner female sign black rightwards arrow
-1	🏃‍♂️‍➡️	1	runner male sign black rightwards arrow
-1	🏄	1	surfer
-1	🏄‍♀️	1	surfer female sign
-1	🏄‍♂️	1	surfer male sign
-1	🏇	1	horse racing
-1	🏊	1	swimmer
-1	🏊‍♀️	1	swimmer female sign
-1	🏊‍♂️	1	swimmer male sign
-1	🏋️	1	weight lifter
-1	🏋️‍♀️	1	weight lifter female sign
-1	🏋️‍♂️	1	weight lifter male sign
-1	🏌️	1	golfer
-1	🏌️‍♀️	1	golfer female sign
-1	🏌️‍♂️	1	golfer male sign
-1	👀	0	eyes
-1	👁️	0	eye
-1	👁️‍🗨️	0	eye left speech bubble
-1	👂	1	ear
-1	👃	1	nose
-1	👄	0	mouth
-1	👅	0	tongue
-1	👋	1	waving hand sign
-1	👌	1	ok hand sign ok perfect
-1	👍	1	thumbs up sign ok yes good like thumbs up
-1	👎	1	thumbs down sign no bad dislike thumbs down
-1	👏	1	clapping hands sign clap applause
-1	👐	1	open hands sign
-1	👤	0	bust in silhouette
-1	👥	0	busts in silhouette
-1	👦	1	boy
-1	👧	1	girl
-1	👨	1	man
-1	👨‍🌾	1	man ear of rice
-1	👨‍🍳	1	man cooking
-1	👨‍🍼	1	man baby bottle
-1	👨‍🎓	1	man graduation cap
-1	👨‍🎤	1	man microphone
-1	👨‍🎨	1	man artist palette
-1	👨‍🏫	1	man school
-1	👨‍🏭	1	man factory
-1	👨‍👦	0	man boy
-1	👨‍👧	0	man girl
-1	👨‍💻	1	man personal computer
-1	👨‍💼	1	man briefcase
-1	👨‍🔧	1	man wrench
-1	👨‍🔬	1	man microscope
-1	👨‍🚀	1	man rocket
-1	👨‍🚒	1	man fire engine
-1	👨‍🦯	1	man probing cane
-1	👨‍🦰	1	man emoji component red hair
-1	👨‍🦱	1	man emoji component curly hair
-1	👨‍🦲	1	man emoji component bald
-1	👨‍🦳	1	man emoji component white hair
-1	👨‍🦼	1	man motorized wheelchair
-1	👨‍🦽	1	man manual wheelchair
-1	👨‍⚕️	1	man staff of aesculapius
-1	👨‍⚖️	1	man scales
-1	👨‍✈️	1	man airplane
-1	👨‍👦‍👦	0	man boy boy
-1	👨‍👧‍👦	0	man girl boy
-1	👨‍👧‍👧	0	man girl girl
-1	👨‍👨‍👦	0	man man boy
-1	👨‍👨‍👧	0	man man girl
-1	👨‍👩‍👦	0	man woman boy
-1	👨‍👩‍👧	0	man woman girl
-1	👨‍❤️‍👨	0	man heavy black heart man
-1	👨‍🦯‍➡️	1	man probing cane black rightwards arrow
-1	👨‍🦼‍➡️	1	man motorized wheelchair black rightwards arrow
-1	👨‍🦽‍➡️	1	man manual wheelchair black rightwards arrow
-1	👨‍👨‍👦‍👦	0	man man boy boy
-1	👨‍👨‍👧‍👦	0	man man girl boy
-1	👨‍👨‍👧‍👧	0	man man girl girl
-1	👨‍👩‍👦‍👦	0	man woman boy boy
-1	👨‍👩‍👧‍👦	0	man woman girl boy
-1	👨‍👩‍👧‍👧	0	man woman girl girl
-1	👨‍❤️‍💋‍👨	0	man heavy black heart kiss mark man
-1	👩	1	woman
-1	👩‍🌾	1	woman ear of rice
-1	👩‍🍳	1	woman cooking
-1	👩‍🍼	1	woman baby bottle
-1	👩‍🎓	1	woman graduation cap
-1	👩‍🎤	1	woman microphone
-1	👩‍🎨	1	woman artist palette
-1	👩‍🏫	1	woman school
-1	👩‍🏭	1	woman factory
-1	👩‍👦	0	woman boy
-1	👩‍👧	0	woman girl
-1	👩‍💻	1	woman personal computer
-1	👩‍💼	1	woman briefcase
-1	👩‍🔧	1	woman wrench
-1	👩‍🔬	1	woman microscope
-1	👩‍🚀	1	woman rocket
-1	👩‍🚒	1	woman fire engine
-1	👩‍🦯	1	woman probing cane
-1	👩‍🦰	1	woman emoji component red hair
-1	👩‍🦱	1	woman emoji component curly hair
-1	👩‍🦲	1	woman emoji component bald
-1	👩‍🦳	1	woman emoji component white hair
-1	👩‍🦼	1	woman motorized wheelchair
-1	👩‍🦽	1	woman manual wheelchair
-1	👩‍⚕️	1	woman staff of aesculapius
-1	👩‍⚖️	1	woman scales
-1	👩‍✈️	1	woman airplane
-1	👩‍👦‍👦	0	woman boy boy
-1	👩‍👧‍👦	0	woman girl boy
-1	👩‍👧‍👧	0	woman girl girl
-1	👩‍👩‍👦	0	woman woman boy
-1	👩‍👩‍👧	0	woman woman girl
-1	👩‍❤️‍👨	0	woman heavy black heart man
-1	👩‍❤️‍👩	0	woman heavy black heart woman
-1	👩‍🦯‍➡️	1	woman probing cane black rightwards arrow
-1	👩‍🦼‍➡️	1	woman motorized wheelchair black rightwards arrow
-1	👩‍🦽‍➡️	1	woman manual wheelchair black rightwards arrow
-1	👩‍👩‍👦‍👦	0	woman woman boy boy
-1	👩‍👩‍👧‍👦	0	woman woman girl boy
-1	👩‍👩‍👧‍👧	0	woman woman girl girl
-1	👩‍❤️‍💋‍👨	0	woman heavy black heart kiss mark man
-1	👩‍❤️‍💋‍👩	0	woman heavy black heart kiss mark woman
-1	👪	0	family
-1	👫	1	man and woman holding hands
-1	👬	1	two men holding hands
-1	👭	1	two women holding hands
-1	👮	1	police officer
-1	👮‍♀️	1	police officer female sign
-1	👮‍♂️	1	police officer male sign
-1	👯	1	woman with bunny ears
-1	👯‍♀️	1	woman with bunny ears female sign
-1	👯‍♂️	1	woman with bunny ears male sign
-1	👰	1	bride with veil
-1	👰‍♀️	1	bride with veil female sign
-1	👰‍♂️	1	bride with veil male sign
-1	👱	1	person with blond hair
-1	👱‍♀️	1	person with blond hair female sign
-1	👱‍♂️	1	person with blond hair male sign
-1	👲	1	man with gua pi mao
-1	👳	1	man with turban
-1	👳‍♀️	1	man with turban female sign
-1	👳‍♂️	1	man with turban male sign
-1	👴	1	older man
-1	👵	1	older woman
-1	👶	1	baby
-1	👷	1	construction worker
-1	👷‍♀️	1	construction worker female sign
-1	👷‍♂️	1	construction worker male sign
-1	👸	1	princess
-1	👼	1	baby angel
-1	💁	1	information desk person
-1	💁‍♀️	1	information desk person female sign
-1	💁‍♂️	1	information desk person male sign
-1	💂	1	guardsman
-1	💂‍♀️	1	guardsman female sign
-1	💂‍♂️	1	guardsman male sign
-1	💃	1	dancer
-1	💅	1	nail polish
-1	💆	1	face massage
-1	💆‍♀️	1	face massage female sign
-1	💆‍♂️	1	face massage male sign
-1	💇	1	haircut
-1	💇‍♀️	1	haircut female sign
-1	💇‍♂️	1	haircut male sign
-1	💪	1	flexed biceps strong muscle flex
-1	🕴️	1	man in business suit levitating
-1	🕵️	1	sleuth or spy
-1	🕵️‍♀️	1	sleuth or spy female sign
-1	🕵️‍♂️	1	sleuth or spy male sign
-1	🕺	1	man dancing
-1	🖐️	1	raised hand with fingers splayed
-1	🖕	1	reversed hand with middle finger extended
-1	🖖	1	raised hand with part between middle and ring fingers
-1	🙅	1	face with no good gesture
-1	🙅‍♀️	1	face with no good gesture female sign
-1	🙅‍♂️	1	face with no good gesture male sign
-1	🙆	1	face with ok gesture
-1	🙆‍♀️	1	face with ok gesture female sign
-1	🙆‍♂️	1	face with ok gesture male sign
-1	🙇	1	person bowing deeply
-1	🙇‍♀️	1	person bowing deeply female sign
-1	🙇‍♂️	1	person bowing deeply male sign
-1	🙋	1	happy person raising one hand
-1	🙋‍♀️	1	happy person raising one hand female sign
-1	🙋‍♂️	1	happy person raising one hand male sign
-1	🙌	1	person raising both hands in celebration
-1	🙍	1	person frowning
-1	🙍‍♀️	1	person frowning female sign
-1	🙍‍♂️	1	person frowning male sign
-1	🙎	1	person with pouting face
-1	🙎‍♀️	1	person with pouting face female sign
-1	🙎‍♂️	1	person with pouting face male sign
-1	🙏	1	person with folded hands please thanks pray namaste
-1	🚣	1	rowboat
-1	🚣‍♀️	1	rowboat female sign
-1	🚣‍♂️	1	rowboat male sign
-1	🚴	1	bicyclist
-1	🚴‍♀️	1	bicyclist female sign
-1	🚴‍♂️	1	bicyclist male sign
-1	🚵	1	mountain bicyclist
-1	🚵‍♀️	1	mountain bicyclist female sign
-1	🚵‍♂️	1	mountain bicyclist male sign
-1	🚶	1	pedestrian
-1	🚶‍♀️	1	pedestrian female sign
-1	🚶‍♂️	1	pedestrian male sign
-1	🚶‍➡️	1	pedestrian black rightwards arrow
-1	🚶‍♀️‍➡️	1	pedestrian female sign black rightwards arrow
-1	🚶‍♂️‍➡️	1	pedestrian male sign black rightwards arrow
-1	🛀	1	bath
-1	🛌	1	sleeping accommodation
-1	🤘	1	sign of the horns
-1	🤙	1	call me hand
-1	🤚	1	raised back of hand
-1	🤛	1	left-facing fist
-1	🤜	1	right-facing fist
-1	🤝	1	handshake deal handshake
-1	🤞	1	hand with index and middle fingers crossed
-1	🤟	1	i love you hand sign
-1	🤦	1	face palm
-1	🤦‍♀️	1	face palm female sign
-1	🤦‍♂️	1	face palm male sign
-1	🤰	1	pregnant woman
-1	🤱	1	breast-feeding
-1	🤲	1	palms up together
-1	🤳	1	selfie
-1	🤴	1	prince
-1	🤵	1	man in tuxedo
-1	🤵‍♀️	1	man in tuxedo female sign
-1	🤵‍♂️	1	man in tuxedo male sign
-1	🤶	1	mother christmas
-1	🤷	1	shrug
-1	🤷‍♀️	1	shrug female sign
-1	🤷‍♂️	1	shrug male sign
-1	🤸	1	person doing cartwheel
-1	🤸‍♀️	1	person doing cartwheel female sign
-1	🤸‍♂️	1	person doing cartwheel male sign
-1	🤹	1	juggling
-1	🤹‍♀️	1	juggling female sign
-1	🤹‍♂️	1	juggling male sign
-1	🤺	0	fencer
-1	🤼	1	wrestlers
-1	🤼‍♀️	1	wrestlers female sign
-1	🤼‍♂️	1	wrestlers male sign
-1	🤽	1	water polo
-1	🤽‍♀️	1	water polo female sign
-1	🤽‍♂️	1	water polo male sign
-1	🤾	1	handball
-1	🤾‍♀️	1	handball female sign
-1	🤾‍♂️	1	handball male sign
-1	🥷	1	ninja
-1	🦴	0	bone
-1	🦵	1	leg
-1	🦶	1	foot
-1	🦷	0	tooth
-1	🦸	1	superhero
-1	🦸‍♀️	1	superhero female sign
-1	🦸‍♂️	1	superhero male sign
-1	🦹	1	supervillain
-1	🦹‍♀️	1	supervillain female sign
-1	🦹‍♂️	1	supervillain male sign
-1	🦺	0	safety vest
-1	🦻	1	ear with hearing aid
-1	🦼	0	motorized wheelchair
-1	🦽	0	manual wheelchair
-1	🦾	0	mechanical arm
-1	🦿	0	mechanical leg
-1	🧌	0	troll
-1	🧍	1	standing person
-1	🧍‍♀️	1	standing person female sign
-1	🧍‍♂️	1	standing person male sign
-1	🧎	1	kneeling person
-1	🧎‍♀️	1	kneeling person female sign
-1	🧎‍♂️	1	kneeling person male sign
-1	🧎‍➡️	1	kneeling person black rightwards arrow
-1	🧎‍♀️‍➡️	1	kneeling person female sign black rightwards arrow
-1	🧎‍♂️‍➡️	1	kneeling person male sign black rightwards arrow
-1	🧏	1	deaf person
-1	🧏‍♀️	1	deaf person female sign
-1	🧏‍♂️	1	deaf person male sign
-1	🧑	1	adult
-1	🧑‍🌾	1	adult ear of rice
-1	🧑‍🍳	1	adult cooking
-1	🧑‍🍼	1	adult baby bottle
-1	🧑‍🎄	1	adult christmas tree
-1	🧑‍🎓	1	adult graduation cap
-1	🧑‍🎤	1	adult microphone
-1	🧑‍🎨	1	adult artist palette
-1	🧑‍🏫	1	adult school
-1	🧑‍🏭	1	adult factory
-1	🧑‍💻	1	adult personal computer
-1	🧑‍💼	1	adult briefcase
-1	🧑‍🔧	1	adult wrench
-1	🧑‍🔬	1	adult microscope
-1	🧑‍🚀	1	adult rocket
-1	🧑‍🚒	1	adult fire engine
-1	🧑‍🦯	1	adult probing cane
-1	🧑‍🦰	1	adult emoji component red hair
-1	🧑‍🦱	1	adult emoji component curly hair
-1	🧑‍🦲	1	adult emoji component bald
-1	🧑‍🦳	1	adult emoji component white hair
-1	🧑‍🦼	1	adult motorized wheelchair
-1	🧑‍🦽	1	adult manual wheelchair
-1	🧑‍🧒	0	adult child
-1	🧑‍🩰	1	adult ballet shoes
-1	🧑‍⚕️	1	adult staff of aesculapius
-1	🧑‍⚖️	1	adult scales
-1	🧑‍✈️	1	adult airplane
-1	🧑‍🤝‍🧑	0	adult handshake adult
-1	🧑‍🦯‍➡️	1	adult probing cane black rightwards arrow
-1	🧑‍🦼‍➡️	1	adult motorized wheelchair black rightwards arrow
-1	🧑‍🦽‍➡️	1	adult manual wheelchair black rightwards arrow
-1	🧒	1	child
-1	🧓	1	older adult
-1	🧔	1	bearded person
-1	🧔‍♀️	1	bearded person female sign
-1	🧔‍♂️	1	bearded person male sign
-1	🧕	1	person with headscarf
-1	🧖	1	person in steamy room
-1	🧖‍♀️	1	person in steamy room female sign
-1	🧖‍♂️	1	person in steamy room male sign
-1	🧗	1	person climbing
-1	🧗‍♀️	1	person climbing female sign
-1	🧗‍♂️	1	person climbing male sign
-1	🧘	1	person in lotus position
-1	🧘‍♀️	1	person in lotus position female sign
-1	🧘‍♂️	1	person in lotus position male sign
-1	🧙	1	mage
-1	🧙‍♀️	1	mage female sign
-1	🧙‍♂️	1	mage male sign
-1	🧚	1	fairy
-1	🧚‍♀️	1	fairy female sign
-1	🧚‍♂️	1	fairy male sign
-1	🧛	1	vampire
-1	🧛‍♀️	1	vampire female sign
-1	🧛‍♂️	1	vampire male sign
-1	🧜	1	merperson
-1	🧜‍♀️	1	merperson female sign
-1	🧜‍♂️	1	merperson male sign
-1	🧝	1	elf
-1	🧝‍♀️	1	elf female sign
-1	🧝‍♂️	1	elf male sign
-1	🧞	0	genie
-1	🧞‍♀️	0	genie female sign
-1	🧞‍♂️	0	genie male sign
-1	🧟	0	zombie
-1	🧟‍♀️	0	zombie female sign
-1	🧟‍♂️	0	zombie male sign
-1	🧠	0	brain
-1	🫀	0	anatomical heart
-1	🫁	0	lungs
-1	🫂	0	people hugging
-1	🫃	1	pregnant man
-1	🫄	1	pregnant person
-1	🫅	1	person with crown
-1	🫰	1	hand with index finger and thumb crossed
-1	🫱	1	rightwards hand
-1	🫲	1	leftwards hand
-1	🫳	1	palm down hand
-1	🫴	1	palm up hand
-1	🫵	1	index pointing at the viewer
-1	🫷	1	leftwards pushing hand
-1	🫸	1	rightwards pushing hand
-2	☘️	0	shamrock
-2	🌱	0	seedling
-2	🌲	0	evergreen tree
-2	🌳	0	deciduous tree
-2	🌴	0	palm tree
-2	🌵	0	cactus
-2	🌷	0	tulip
-2	🌸	0	cherry blossom
-2	🌹	0	rose rose flower
-2	🌺	0	hibiscus
-2	🌻	0	sunflower
-2	🌼	0	blossom
-2	🌾	0	ear of rice
-2	🍀	0	four leaf clover
-2	🍁	0	maple leaf
-2	🍂	0	fallen leaf
-2	🍃	0	leaf fluttering in wind
-2	🍄	0	mushroom
-2	🍄‍🟫	0	mushroom large brown square
-2	🏵️	0	rosette
-2	🐀	0	rat
-2	🐁	0	mouse
-2	🐂	0	ox
-2	🐃	0	water buffalo
-2	🐄	0	cow
-2	🐅	0	tiger
-2	🐆	0	leopard
-2	🐇	0	rabbit
-2	🐈	0	cat
-2	🐈‍⬛	0	cat black large square
-2	🐉	0	dragon
-2	🐊	0	crocodile
-2	🐋	0	whale
-2	🐌	0	snail
-2	🐍	0	snake
-2	🐎	0	horse
-2	🐏	0	ram
-2	🐐	0	goat
-2	🐑	0	sheep
-2	🐒	0	monkey
-2	🐓	0	rooster
-2	🐔	0	chicken
-2	🐕	0	dog
-2	🐕‍🦺	0	dog safety vest
-2	🐖	0	pig
-2	🐗	0	boar
-2	🐘	0	elephant
-2	🐙	0	octopus
-2	🐚	0	spiral shell
-2	🐛	0	bug
-2	🐜	0	ant
-2	🐝	0	honeybee
-2	🐞	0	lady beetle
-2	🐟	0	fish
-2	🐠	0	tropical fish
-2	🐡	0	blowfish
-2	🐢	0	turtle
-2	🐣	0	hatching chick
-2	🐤	0	baby chick
-2	🐥	0	front-facing baby chick
-2	🐦	0	bird
-2	🐦‍⬛	0	bird black large square
-2	🐦‍🔥	0	bird fire
-2	🐧	0	penguin
-2	🐨	0	koala
-2	🐩	0	poodle
-2	🐪	0	dromedary camel
-2	🐫	0	bactrian camel
-2	🐬	0	dolphin
-2	🐭	0	mouse face
-2	🐮	0	cow face
-2	🐯	0	tiger face
-2	🐰	0	rabbit face
-2	🐱	0	cat face
-2	🐲	0	dragon face
-2	🐳	0	spouting whale
-2	🐴	0	horse face
-2	🐵	0	monkey face
-2	🐶	0	dog face
-2	🐷	0	pig face
-2	🐸	0	frog face
-2	🐹	0	hamster face
-2	🐺	0	wolf face
-2	🐻	0	bear face
-2	🐻‍❄️	0	bear face snowflake
-2	🐼	0	panda face
-2	🐽	0	pig nose
-2	🐾	0	paw prints
-2	🐿️	0	chipmunk
-2	💐	0	bouquet
-2	💮	0	white flower
-2	🕊️	0	dove of peace
-2	🕷️	0	spider
-2	🕸️	0	spider web
-2	🥀	0	wilted flower
-2	🦀	0	crab
-2	🦁	0	lion face
-2	🦂	0	scorpion
-2	🦃	0	turkey
-2	🦄	0	unicorn face
-2	🦅	0	eagle
-2	🦆	0	duck
-2	🦇	0	bat
-2	🦈	0	shark
-2	🦉	0	owl
-2	🦊	0	fox face
-2	🦋	0	butterfly
-2	🦌	0	deer
-2	🦍	0	gorilla
-2	🦎	0	lizard
-2	🦏	0	rhinoceros
-2	🦐	0	shrimp
-2	🦑	0	squid
-2	🦒	0	giraffe face
-2	🦓	0	zebra face
-2	🦔	0	hedgehog
-2	🦕	0	sauropod
-2	🦖	0	t-rex
-2	🦗	0	cricket
-2	🦘	0	kangaroo
-2	🦙	0	llama
-2	🦚	0	peacock
-2	🦛	0	hippopotamus
-2	🦜	0	parrot
-2	🦝	0	raccoon
-2	🦞	0	lobster
-2	🦟	0	mosquito
-2	🦠	0	microbe
-2	🦡	0	badger
-2	🦢	0	swan
-2	🦣	0	mammoth
-2	🦤	0	dodo
-2	🦥	0	sloth
-2	🦦	0	otter
-2	🦧	0	orangutan
-2	🦨	0	skunk
-2	🦩	0	flamingo
-2	🦪	0	oyster
-2	🦫	0	beaver
-2	🦬	0	bison
-2	🦭	0	seal
-2	🦮	0	guide dog
-2	🦯	0	probing cane
-2	🪰	0	fly
-2	🪱	0	worm
-2	🪲	0	beetle
-2	🪳	0	cockroach
-2	🪴	0	potted plant
-2	🪵	0	wood
-2	🪶	0	feather
-2	🪷	0	lotus
-2	🪸	0	coral
-2	🪹	0	empty nest
-2	🪺	0	nest with eggs
-2	🪻	0	hyacinth
-2	🪼	0	jellyfish
-2	🪽	0	wing
-2	🪾	0	
-2	🪿	0	goose
-2	🫎	0	moose
-2	🫏	0	donkey
-3	☕	0	hot beverage coffee tea
-3	🌭	0	hot dog
-3	🌮	0	taco
-3	🌯	0	burrito
-3	🌰	0	chestnut
-3	🌽	0	ear of maize
-3	🍅	0	tomato
-3	🍆	0	aubergine
-3	🍇	0	grapes
-3	🍈	0	melon
-3	🍉	0	watermelon
-3	🍊	0	tangerine
-3	🍋	0	lemon
-3	🍋‍🟩	0	lemon large green square
-3	🍌	0	banana
-3	🍍	0	pineapple
-3	🍎	0	red apple
-3	🍏	0	green apple
-3	🍐	0	pear
-3	🍑	0	peach
-3	🍒	0	cherries
-3	🍓	0	strawberry
-3	🍔	0	hamburger burger
-3	🍕	0	slice of pizza pizza
-3	🍖	0	meat on bone
-3	🍗	0	poultry leg
-3	🍘	0	rice cracker
-3	🍙	0	rice ball
-3	🍚	0	cooked rice
-3	🍛	0	curry and rice
-3	🍜	0	steaming bowl
-3	🍝	0	spaghetti
-3	🍞	0	bread
-3	🍟	0	french fries
-3	🍠	0	roasted sweet potato
-3	🍡	0	dango
-3	🍢	0	oden
-3	🍣	0	sushi
-3	🍤	0	fried shrimp
-3	🍥	0	fish cake with swirl design
-3	🍦	0	soft ice cream
-3	🍧	0	shaved ice
-3	🍨	0	ice cream
-3	🍩	0	doughnut
-3	🍪	0	cookie
-3	🍫	0	chocolate bar
-3	🍬	0	candy
-3	🍭	0	lollipop
-3	🍮	0	custard
-3	🍯	0	honey pot
-3	🍰	0	shortcake
-3	🍱	0	bento box
-3	🍲	0	pot of food
-3	🍳	0	cooking
-3	🍴	0	fork and knife
-3	🍵	0	teacup without handle
-3	🍶	0	sake bottle and cup
-3	🍷	0	wine glass
-3	🍸	0	cocktail glass
-3	🍹	0	tropical drink
-3	🍺	0	beer mug
-3	🍻	0	clinking beer mugs
-3	🍼	0	baby bottle
-3	🍽️	0	fork and knife with plate
-3	🍾	0	bottle with popping cork
-3	🍿	0	popcorn
-3	🥂	0	clinking glasses
-3	🥃	0	tumbler glass
-3	🥄	0	spoon
-3	🥐	0	croissant
-3	🥑	0	avocado
-3	🥒	0	cucumber
-3	🥓	0	bacon
-3	🥔	0	potato
-3	🥕	0	carrot
-3	🥖	0	baguette bread
-3	🥗	0	green salad
-3	🥘	0	shallow pan of food
-3	🥙	0	stuffed flatbread
-3	🥚	0	egg
-3	🥛	0	glass of milk
-3	🥜	0	peanuts
-3	🥝	0	kiwifruit
-3	🥞	0	pancakes
-3	🥟	0	dumpling
-3	🥠	0	fortune cookie
-3	🥡	0	takeout box
-3	🥢	0	chopsticks
-3	🥣	0	bowl with spoon
-3	🥤	0	cup with straw
-3	🥥	0	coconut
-3	🥦	0	broccoli
-3	🥧	0	pie
-3	🥨	0	pretzel
-3	🥩	0	cut of meat
-3	🥪	0	sandwich
-3	🥫	0	canned food
-3	🥬	0	leafy green
-3	🥭	0	mango
-3	🥮	0	moon cake
-3	🥯	0	bagel
-3	🧀	0	cheese wedge
-3	🧁	0	cupcake
-3	🧂	0	salt shaker
-3	🧃	0	beverage box
-3	🧄	0	garlic
-3	🧅	0	onion
-3	🧆	0	falafel
-3	🧇	0	waffle
-3	🧈	0	butter
-3	🧉	0	mate drink
-3	🧊	0	ice cube
-3	🧋	0	bubble tea
-3	🫐	0	blueberries
-3	🫑	0	bell pepper
-3	🫒	0	olive
-3	🫓	0	flatbread
-3	🫔	0	tamale
-3	🫕	0	fondue
-3	🫖	0	teapot
-3	🫗	0	pouring liquid
-3	🫘	0	beans
-3	🫙	0	jar
-3	🫚	0	ginger root
-3	🫛	0	pea pod
-3	🫜	0	
-3	🫟	0	
-4	⌛	0	hourglass
-4	⏰	0	alarm clock
-4	⏱️	0	stopwatch
-4	⏲️	0	timer clock
-4	⏳	0	hourglass with flowing sand
-4	☀️	0	black sun with rays sun
-4	☁️	0	cloud
-4	☂️	0	umbrella
-4	☃️	0	snowman
-4	☄️	0	comet
-4	☔	0	umbrella with rain drops
-4	⚓	0	anchor
-4	⚡	0	high voltage sign
-4	⛄	0	snowman without snow
-4	⛅	0	sun behind cloud
-4	⛈️	0	thunder cloud and rain
-4	⛪	0	church
-4	⛰️	0	mountain
-4	⛱️	0	umbrella on ground
-4	⛲	0	fountain
-4	⛴️	0	ferry
-4	⛵	0	sailboat
-4	⛺	0	tent
-4	⛽	0	fuel pump
-4	✈️	0	airplane
-4	❄️	0	snowflake
-4	⭐	0	white medium star star
-4	🌀	0	cyclone
-4	🌁	0	foggy
-4	🌂	0	closed umbrella
-4	🌃	0	night with stars
-4	🌄	0	sunrise over mountains
-4	🌅	0	sunrise
-4	🌆	0	cityscape at dusk
-4	🌇	0	sunset over buildings
-4	🌈	0	rainbow
-4	🌉	0	bridge at night
-4	🌊	0	water wave
-4	🌋	0	volcano
-4	🌌	0	milky way
-4	🌍	0	earth globe europe-africa
-4	🌎	0	earth globe americas
-4	🌏	0	earth globe asia-australia
-4	🌐	0	globe with meridians
-4	🌑	0	new moon symbol
-4	🌒	0	waxing crescent moon symbol
-4	🌓	0	first quarter moon symbol
-4	🌔	0	waxing gibbous moon symbol
-4	🌕	0	full moon symbol
-4	🌖	0	waning gibbous moon symbol
-4	🌗	0	last quarter moon symbol
-4	🌘	0	waning crescent moon symbol
-4	🌙	0	crescent moon moon night
-4	🌚	0	new moon with face
-4	🌛	0	first quarter moon with face
-4	🌜	0	last quarter moon with face
-4	🌝	0	full moon with face
-4	🌞	0	sun with face
-4	🌟	0	glowing star
-4	🌠	0	shooting star
-4	🌡️	0	thermometer
-4	🌤️	0	white sun with small cloud
-4	🌥️	0	white sun behind cloud
-4	🌦️	0	white sun behind cloud with rain
-4	🌧️	0	cloud with rain rain
-4	🌨️	0	cloud with snow
-4	🌩️	0	cloud with lightning
-4	🌪️	0	cloud with tornado
-4	🌫️	0	fog
-4	🌬️	0	wind blowing face
-4	🎠	0	carousel horse
-4	🎡	0	ferris wheel
-4	🎢	0	roller coaster
-4	🏔️	0	snow capped mountain
-4	🏕️	0	camping
-4	🏖️	0	beach with umbrella
-4	🏗️	0	building construction
-4	🏘️	0	house buildings
-4	🏙️	0	cityscape
-4	🏚️	0	derelict house building
-4	🏛️	0	classical building
-4	🏜️	0	desert
-4	🏝️	0	desert island
-4	🏞️	0	national park
-4	🏟️	0	stadium
-4	🏠	0	house building
-4	🏡	0	house with garden
-4	🏢	0	office building
-4	🏣	0	japanese post office
-4	🏤	0	european post office
-4	🏥	0	hospital
-4	🏦	0	bank
-4	🏧	0	automated teller machine
-4	🏨	0	hotel
-4	🏩	0	love hotel
-4	🏪	0	convenience store
-4	🏫	0	school
-4	🏬	0	department store
-4	🏭	0	factory
-4	🏮	0	izakaya lantern
-4	🏯	0	japanese castle
-4	🏰	0	european castle
-4	🔥	0	fire fire hot lit
-4	🕐	0	clock face one oclock
-4	🕑	0	clock face two oclock
-4	🕒	0	clock face three oclock
-4	🕓	0	clock face four oclock
-4	🕔	0	clock face five oclock
-4	🕕	0	clock face six oclock
-4	🕖	0	clock face seven oclock
-4	🕗	0	clock face eight oclock
-4	🕘	0	clock face nine oclock
-4	🕙	0	clock face ten oclock
-4	🕚	0	clock face eleven oclock
-4	🕛	0	clock face twelve oclock
-4	🕜	0	clock face one-thirty
-4	🕝	0	clock face two-thirty
-4	🕞	0	clock face three-thirty
-4	🕟	0	clock face four-thirty
-4	🕠	0	clock face five-thirty
-4	🕡	0	clock face six-thirty
-4	🕢	0	clock face seven-thirty
-4	🕣	0	clock face eight-thirty
-4	🕤	0	clock face nine-thirty
-4	🕥	0	clock face ten-thirty
-4	🕦	0	clock face eleven-thirty
-4	🕧	0	clock face twelve-thirty
-4	🕰️	0	mantelpiece clock
-4	🗺️	0	world map
-4	🗻	0	mount fuji
-4	🗼	0	tokyo tower
-4	🗽	0	statue of liberty
-4	🗾	0	silhouette of japan
-4	🗿	0	moyai
-4	🚀	0	rocket
-4	🚁	0	helicopter
-4	🚂	0	steam locomotive
-4	🚃	0	railway car
-4	🚄	0	high-speed train
-4	🚅	0	high-speed train with bullet nose
-4	🚆	0	train
-4	🚇	0	metro
-4	🚈	0	light rail
-4	🚉	0	station
-4	🚊	0	tram
-4	🚋	0	tram car
-4	🚌	0	bus
-4	🚍	0	oncoming bus
-4	🚎	0	trolleybus
-4	🚏	0	bus stop
-4	🚐	0	minibus
-4	🚑	0	ambulance
-4	🚒	0	fire engine
-4	🚓	0	police car
-4	🚔	0	oncoming police car
-4	🚕	0	taxi
-4	🚖	0	oncoming taxi
-4	🚗	0	automobile
-4	🚘	0	oncoming automobile
-4	🚙	0	recreational vehicle
-4	🚚	0	delivery truck
-4	🚛	0	articulated lorry
-4	🚜	0	tractor
-4	🚝	0	monorail
-4	🚞	0	mountain railway
-4	🚟	0	suspension railway
-4	🚠	0	mountain cableway
-4	🚡	0	aerial tramway
-4	🚢	0	ship
-4	🚤	0	speedboat
-4	🚥	0	horizontal traffic light
-4	🚦	0	vertical traffic light
-4	🚧	0	construction sign
-4	🚨	0	police cars revolving light
-4	🚲	0	bicycle
-4	🛎️	0	bellhop bell
-4	🛏️	0	bed
-4	🛑	0	octagonal sign
-4	🛕	0	hindu temple
-4	🛖	0	hut
-4	🛗	0	elevator
-4	🛜	0	wireless
-4	🛝	0	playground slide
-4	🛞	0	wheel
-4	🛟	0	ring buoy
-4	🛠️	0	hammer and wrench
-4	🛡️	0	shield
-4	🛢️	0	oil drum
-4	🛣️	0	motorway
-4	🛤️	0	railway track
-4	🛥️	0	motor boat
-4	🛩️	0	small airplane
-4	🛫	0	airplane departure
-4	🛬	0	airplane arriving
-4	🛰️	0	satellite
-4	🛳️	0	passenger ship
-4	🛴	0	scooter
-4	🛵	0	motor scooter
-4	🛶	0	canoe
-4	🛷	0	sled
-4	🛸	0	flying saucer
-4	🛹	0	skateboard
-4	🛺	0	auto rickshaw
-4	🛻	0	pickup truck
-4	🛼	0	roller skate
-4	🧭	0	compass
-4	🧳	0	luggage
-5	♟️	0	black chess pawn
-5	♠️	0	black spade suit
-5	♣️	0	black club suit
-5	♥️	0	black heart suit
-5	♦️	0	black diamond suit
-5	⚽	0	soccer ball football soccer
-5	⚾	0	baseball
-5	⛳	0	flag in hole
-5	✨	0	sparkles
-5	🀄	0	mahjong tile red dragon
-5	🃏	0	playing card black joker
-5	🎃	0	jack-o-lantern
-5	🎄	0	christmas tree
-5	🎅	1	father christmas
-5	🎆	0	fireworks
-5	🎇	0	firework sparkler
-5	🎈	0	balloon
-5	🎉	0	party popper party congrats celebrate
-5	🎊	0	confetti ball
-5	🎋	0	tanabata tree
-5	🎍	0	pine decoration
-5	🎎	0	japanese dolls
-5	🎏	0	carp streamer
-5	🎐	0	wind chime
-5	🎑	0	moon viewing ceremony
-5	🎣	0	fishing pole and fish
-5	🎨	0	artist palette
-5	🎫	0	ticket
-5	🎬	0	clapper board
-5	🎭	0	performing arts
-5	🎮	0	video game
-5	🎯	0	direct hit
-5	🎰	0	slot machine
-5	🎱	0	billiards
-5	🎲	0	game die
-5	🎳	0	bowling
-5	🎴	0	flower playing cards
-5	🎽	0	running shirt with sash
-5	🎾	0	tennis racquet and ball
-5	🎿	0	ski and ski boot
-5	🏀	0	basketball and hoop
-5	🏅	0	sports medal
-5	🏆	0	trophy
-5	🏈	0	american football
-5	🏉	0	rugby football
-5	🏏	0	cricket bat and ball cricket
-5	🏐	0	volleyball
-5	🏑	0	field hockey stick and ball
-5	🏒	0	ice hockey stick and puck
-5	🏓	0	table tennis paddle and ball
-5	🏸	0	badminton racquet and shuttlecock
-5	🏹	0	bow and arrow
-5	🔮	0	crystal ball
-5	🤿	0	diving mask
-5	🥅	0	goal net
-5	🥇	0	first place medal
-5	🥈	0	second place medal
-5	🥉	0	third place medal
-5	🥊	0	boxing glove
-5	🥋	0	martial arts uniform
-5	🥌	0	curling stone
-5	🥍	0	lacrosse stick and ball
-5	🥎	0	softball
-5	🥏	0	flying disc
-5	🧨	0	firecracker
-5	🧩	0	jigsaw puzzle piece
-5	🧸	0	teddy bear
-5	🧿	0	nazar amulet
-5	🪀	0	yo-yo
-5	🪁	0	kite
-5	🪂	0	parachute
-5	🪃	0	boomerang
-5	🪄	0	magic wand
-5	🪅	0	pinata
-5	🪆	0	nesting dolls
-5	🪇	0	maracas
-5	🪈	0	flute
-5	🪩	0	mirror ball
-6	⌚	0	watch
-6	⌨️	0	keyboard
-6	☎️	0	black telephone
-6	⚒️	0	hammer and pick
-6	⚔️	0	crossed swords
-6	⚕️	0	staff of aesculapius
-6	⚖️	0	scales
-6	⚗️	0	alembic
-6	⚙️	0	gear
-6	⚰️	0	coffin
-6	⚱️	0	funeral urn
-6	⛏️	0	pick
-6	⛑️	0	helmet with white cross
-6	⛓️	0	chains
-6	⛓️‍💥	0	chains collision symbol
-6	⛩️	0	shinto shrine
-6	✂️	0	black scissors
-6	✉️	0	envelope
-6	✏️	0	pencil
-6	✒️	0	black nib
-6	🌶️	0	hot pepper
-6	🌿	0	herb
-6	🎀	0	ribbon
-6	🎁	0	wrapped present
-6	🎂	0	birthday cake cake birthday
-6	🎒	0	school satchel
-6	🎓	0	graduation cap
-6	🎖️	0	military medal
-6	🎗️	0	reminder ribbon
-6	🎙️	0	studio microphone
-6	🎚️	0	level slider
-6	🎛️	0	control knobs
-6	🎞️	0	film frames
-6	🎟️	0	admission tickets
-6	🎤	0	microphone
-6	🎥	0	movie camera
-6	🎦	0	cinema
-6	🎧	0	headphone
-6	🎩	0	top hat
-6	🎪	0	circus tent
-6	🎵	0	musical note
-6	🎶	0	multiple musical notes
-6	🎷	0	saxophone
-6	🎸	0	guitar
-6	🎹	0	musical keyboard
-6	🎺	0	trumpet
-6	🎻	0	violin
-6	🎼	0	musical score
-6	🏍️	0	racing motorcycle
-6	🏎️	0	racing car
-6	🏷️	0	label
-6	🏺	0	amphora
-6	👆	1	white up pointing backhand index
-6	👇	1	white down pointing backhand index
-6	👈	1	white left pointing backhand index
-6	👉	1	white right pointing backhand index
-6	👊	1	fisted hand sign
-6	👑	0	crown
-6	👒	0	womans hat
-6	👓	0	eyeglasses
-6	👔	0	necktie
-6	👕	0	t-shirt
-6	👖	0	jeans
-6	👗	0	dress
-6	👘	0	kimono
-6	👙	0	bikini
-6	👚	0	womans clothes
-6	👛	0	purse
-6	👜	0	handbag
-6	👝	0	pouch
-6	👞	0	mans shoe
-6	👟	0	athletic shoe
-6	👠	0	high-heeled shoe
-6	👡	0	womans sandal
-6	👢	0	womans boots
-6	👣	0	footprints
-6	💄	0	lipstick
-6	💈	0	barber pole
-6	💉	0	syringe
-6	💊	0	pill
-6	💍	0	ring
-6	💎	0	gem stone
-6	💏	1	kiss
-6	💑	1	couple with heart
-6	💒	0	wedding
-6	💠	0	diamond shape with a dot inside
-6	💡	0	electric light bulb
-6	💣	0	bomb
-6	💧	0	droplet
-6	💰	0	money bag
-6	💱	0	currency exchange
-6	💲	0	heavy dollar sign
-6	💳	0	credit card
-6	💴	0	banknote with yen sign
-6	💵	0	banknote with dollar sign
-6	💶	0	banknote with euro sign
-6	💷	0	banknote with pound sign
-6	💸	0	money with wings
-6	💹	0	chart with upwards trend and yen sign
-6	💺	0	seat
-6	💻	0	personal computer
-6	💼	0	briefcase
-6	💽	0	minidisc
-6	💾	0	floppy disk
-6	💿	0	optical disc
-6	📀	0	dvd
-6	📁	0	file folder
-6	📂	0	open file folder
-6	📃	0	page with curl
-6	📄	0	page facing up
-6	📅	0	calendar
-6	📆	0	tear-off calendar
-6	📇	0	card index
-6	📈	0	chart with upwards trend
-6	📉	0	chart with downwards trend
-6	📊	0	bar chart
-6	📋	0	clipboard
-6	📌	0	pushpin
-6	📍	0	round pushpin
-6	📎	0	paperclip
-6	📏	0	straight ruler
-6	📐	0	triangular ruler
-6	📑	0	bookmark tabs
-6	📒	0	ledger
-6	📓	0	notebook
-6	📔	0	notebook with decorative cover
-6	📕	0	closed book
-6	📖	0	open book
-6	📗	0	green book
-6	📘	0	blue book
-6	📙	0	orange book
-6	📚	0	books
-6	📛	0	name badge
-6	📜	0	scroll
-6	📝	0	memo
-6	📞	0	telephone receiver
-6	📟	0	pager
-6	📠	0	fax machine
-6	📡	0	satellite antenna
-6	📢	0	public address loudspeaker
-6	📣	0	cheering megaphone
-6	📤	0	outbox tray
-6	📥	0	inbox tray
-6	📦	0	package
-6	📧	0	e-mail symbol
-6	📨	0	incoming envelope
-6	📩	0	envelope with downwards arrow above
-6	📪	0	closed mailbox with lowered flag
-6	📫	0	closed mailbox with raised flag
-6	📬	0	open mailbox with raised flag
-6	📭	0	open mailbox with lowered flag
-6	📮	0	postbox
-6	📯	0	postal horn
-6	📰	0	newspaper
-6	📱	0	mobile phone
-6	📲	0	mobile phone with rightwards arrow at left
-6	📷	0	camera
-6	📸	0	camera with flash
-6	📹	0	video camera
-6	📺	0	television
-6	📻	0	radio
-6	📼	0	videocassette
-6	📽️	0	film projector
-6	📿	0	prayer beads
-6	🔦	0	electric torch
-6	🔧	0	wrench
-6	🔨	0	hammer
-6	🔩	0	nut and bolt
-6	🔪	0	hocho
-6	🔫	0	pistol
-6	🔬	0	microscope
-6	🔭	0	telescope
-6	🔱	0	trident emblem
-6	🕉️	0	om symbol
-6	🕋	0	kaaba
-6	🕌	0	mosque
-6	🕍	0	synagogue
-6	🕎	0	menorah with nine branches
-6	🕯️	0	candle
-6	🕶️	0	dark sunglasses
-6	🕹️	0	joystick
-6	🖇️	0	linked paperclips
-6	🖊️	0	lower left ballpoint pen
-6	🖋️	0	lower left fountain pen
-6	🖌️	0	lower left paintbrush
-6	🖍️	0	lower left crayon
-6	🖥️	0	desktop computer
-6	🖨️	0	printer
-6	🖱️	0	three button mouse
-6	🖲️	0	trackball
-6	🖼️	0	frame with picture
-6	🗂️	0	card index dividers
-6	🗃️	0	card file box
-6	🗄️	0	file cabinet
-6	🗑️	0	wastebasket
-6	🗒️	0	spiral note pad
-6	🗓️	0	spiral calendar pad
-6	🗜️	0	compression
-6	🗝️	0	old key
-6	🗞️	0	rolled-up newspaper
-6	🗡️	0	dagger knife
-6	🗣️	0	speaking head in silhouette
-6	🗳️	0	ballot box with ballot
-6	🚪	0	door
-6	🚬	0	smoking symbol
-6	🚽	0	toilet
-6	🚿	0	shower
-6	🛁	0	bathtub
-6	🛋️	0	couch and lamp
-6	🛍️	0	shopping bags
-6	🛒	0	shopping trolley
-6	🛘	0	
-6	🤌	1	pinched fingers
-6	🤏	1	pinching hand
-6	🥁	0	drum with drumsticks
-6	🥻	0	sari
-6	🥼	0	lab coat
-6	🥽	0	goggles
-6	🥾	0	hiking boot
-6	🥿	0	flat shoe
-6	🧢	0	billed cap
-6	🧣	0	scarf
-6	🧤	0	gloves
-6	🧥	0	coat
-6	🧦	0	socks
-6	🧧	0	red gift envelope
-6	🧪	0	test tube
-6	🧫	0	petri dish
-6	🧬	0	dna double helix
-6	🧮	0	abacus
-6	🧯	0	fire extinguisher
-6	🧰	0	toolbox
-6	🧱	0	brick
-6	🧲	0	magnet
-6	🧴	0	lotion bottle
-6	🧵	0	spool of thread
-6	🧶	0	ball of yarn
-6	🧷	0	safety pin
-6	🧹	0	broom
-6	🧺	0	basket
-6	🧻	0	roll of paper
-6	🧼	0	bar of soap
-6	🧽	0	sponge
-6	🧾	0	receipt
-6	🩰	0	ballet shoes
-6	🩱	0	one-piece swimsuit
-6	🩲	0	briefs
-6	🩳	0	shorts
-6	🩴	0	thong sandal
-6	🩵	0	light blue heart
-6	🩶	0	grey heart
-6	🩷	0	pink heart
-6	🩸	0	drop of blood
-6	🩹	0	adhesive bandage
-6	🩺	0	stethoscope
-6	🩻	0	x-ray
-6	🩼	0	crutch
-6	🪉	0	
-6	🪊	0	
-6	🪎	0	
-6	🪏	0	
-6	🪐	0	ringed planet
-6	🪑	0	chair
-6	🪒	0	razor
-6	🪓	0	axe
-6	🪔	0	diya lamp
-6	🪕	0	banjo
-6	🪖	0	military helmet
-6	🪗	0	accordion
-6	🪘	0	long drum
-6	🪙	0	coin
-6	🪚	0	carpentry saw
-6	🪛	0	screwdriver
-6	🪜	0	ladder
-6	🪝	0	hook
-6	🪞	0	mirror
-6	🪟	0	window
-6	🪠	0	plunger
-6	🪡	0	sewing needle
-6	🪢	0	knot
-6	🪣	0	bucket
-6	🪤	0	mouse trap
-6	🪥	0	toothbrush
-6	🪦	0	headstone
-6	🪧	0	placard
-6	🪨	0	rock
-6	🪪	0	identification card
-6	🪫	0	low battery
-6	🪬	0	hamsa
-6	🪭	0	folding hand fan
-6	🪮	0	hair pick
-6	🪯	0	khanda
-6	🫈	0	
-6	🫍	0	
-6	🫪	0	
-6	🫯	0	
-7	#️⃣	0	number sign
-7	*️⃣	0	asterisk
-7	0️⃣	0	digit zero
-7	1️⃣	0	digit one
-7	2️⃣	0	digit two
-7	3️⃣	0	digit three
-7	4️⃣	0	digit four
-7	5️⃣	0	digit five
-7	6️⃣	0	digit six
-7	7️⃣	0	digit seven
-7	8️⃣	0	digit eight
-7	9️⃣	0	digit nine
-7	©️	0	copyright sign
-7	®️	0	registered sign
-7	‼️	0	double exclamation mark
-7	⁉️	0	exclamation question mark
-7	™️	0	trade mark sign
-7	ℹ️	0	information source
-7	↔️	0	left right arrow
-7	↕️	0	up down arrow
-7	↖️	0	north west arrow
-7	↗️	0	north east arrow
-7	↘️	0	south east arrow
-7	↙️	0	south west arrow
-7	↩️	0	leftwards arrow with hook
-7	↪️	0	rightwards arrow with hook
-7	⏏️	0	eject symbol
-7	⏩	0	black right-pointing double triangle
-7	⏪	0	black left-pointing double triangle
-7	⏫	0	black up-pointing double triangle
-7	⏬	0	black down-pointing double triangle
-7	⏭️	0	black right-pointing double triangle with vertical bar
-7	⏮️	0	black left-pointing double triangle with vertical bar
-7	⏯️	0	black right-pointing triangle with double vertical bar
-7	⏸️	0	double vertical bar
-7	⏹️	0	black square for stop
-7	⏺️	0	black circle for record
-7	Ⓜ️	0	circled latin capital letter m
-7	▪️	0	black small square
-7	▫️	0	white small square
-7	▶️	0	black right-pointing triangle
-7	◀️	0	black left-pointing triangle
-7	◻️	0	white medium square
-7	◼️	0	black medium square
-7	◽	0	white medium small square
-7	◾	0	black medium small square
-7	☑️	0	ballot box with check
-7	☢️	0	radioactive sign
-7	☣️	0	biohazard sign
-7	☦️	0	orthodox cross
-7	☪️	0	star and crescent
-7	☮️	0	peace symbol
-7	☯️	0	yin yang
-7	☸️	0	wheel of dharma
-7	♀️	0	female sign
-7	♂️	0	male sign
-7	♈	0	aries
-7	♉	0	taurus
-7	♊	0	gemini
-7	♋	0	cancer
-7	♌	0	leo
-7	♍	0	virgo
-7	♎	0	libra
-7	♏	0	scorpius
-7	♐	0	sagittarius
-7	♑	0	capricorn
-7	♒	0	aquarius
-7	♓	0	pisces
-7	♨️	0	hot springs
-7	♻️	0	black universal recycling symbol
-7	♾️	0	permanent paper sign
-7	♿	0	wheelchair symbol
-7	⚛️	0	atom symbol
-7	⚜️	0	fleur-de-lis
-7	⚠️	0	warning sign
-7	⚧️	0	male with stroke and male and female sign
-7	⚪	0	medium white circle
-7	⚫	0	medium black circle
-7	⛎	0	ophiuchus
-7	⛔	0	no entry
-7	✅	0	white heavy check mark check done tick
-7	✔️	0	heavy check mark
-7	✖️	0	heavy multiplication x
-7	✝️	0	latin cross
-7	✡️	0	star of david
-7	✳️	0	eight spoked asterisk
-7	✴️	0	eight pointed black star
-7	❇️	0	sparkle
-7	❌	0	cross mark cross no wrong
-7	❎	0	negative squared cross mark
-7	❓	0	black question mark ornament
-7	❔	0	white question mark ornament
-7	❕	0	white exclamation mark ornament
-7	❗	0	heavy exclamation mark symbol
-7	➕	0	heavy plus sign
-7	➖	0	heavy minus sign
-7	➗	0	heavy division sign
-7	➡️	0	black rightwards arrow
-7	➰	0	curly loop
-7	➿	0	double curly loop
-7	⤴️	0	arrow pointing rightwards then curving upwards
-7	⤵️	0	arrow pointing rightwards then curving downwards
-7	⬅️	0	leftwards black arrow
-7	⬆️	0	upwards black arrow
-7	⬇️	0	downwards black arrow
-7	⬛	0	black large square
-7	⬜	0	white large square
-7	⭕	0	heavy large circle
-7	〰️	0	wavy dash
-7	〽️	0	part alternation mark
-7	㊗️	0	circled ideograph congratulation
-7	㊙️	0	circled ideograph secret
-7	🅰️	0	negative squared latin capital letter a
-7	🅱️	0	negative squared latin capital letter b
-7	🅾️	0	negative squared latin capital letter o
-7	🅿️	0	negative squared latin capital letter p
-7	🆎	0	negative squared ab
-7	🆑	0	squared cl
-7	🆒	0	squared cool
-7	🆓	0	squared free
-7	🆔	0	squared id
-7	🆕	0	squared new
-7	🆖	0	squared ng
-7	🆗	0	squared ok
-7	🆘	0	squared sos
-7	🆙	0	squared up with exclamation mark
-7	🆚	0	squared vs
-7	🈁	0	squared katakana koko
-7	🈂️	0	squared katakana sa
-7	🈚	0	squared cjk unified ideograph-7121
-7	🈯	0	squared cjk unified ideograph-6307
-7	🈲	0	squared cjk unified ideograph-7981
-7	🈳	0	squared cjk unified ideograph-7a7a
-7	🈴	0	squared cjk unified ideograph-5408
-7	🈵	0	squared cjk unified ideograph-6e80
-7	🈶	0	squared cjk unified ideograph-6709
-7	🈷️	0	squared cjk unified ideograph-6708
-7	🈸	0	squared cjk unified ideograph-7533
-7	🈹	0	squared cjk unified ideograph-5272
-7	🈺	0	squared cjk unified ideograph-55b6
-7	🉐	0	circled ideograph advantage
-7	🉑	0	circled ideograph accept
-7	📳	0	vibration mode
-7	📴	0	mobile phone off
-7	📵	0	no mobile phones
-7	📶	0	antenna with bars
-7	🔀	0	twisted rightwards arrows
-7	🔁	0	clockwise rightwards and leftwards open circle arrows
-7	🔂	0	clockwise rightwards and leftwards open circle arrows with circled one overlay
-7	🔃	0	clockwise downwards and upwards open circle arrows
-7	🔄	0	anticlockwise downwards and upwards open circle arrows
-7	🔅	0	low brightness symbol
-7	🔆	0	high brightness symbol
-7	🔇	0	speaker with cancellation stroke
-7	🔈	0	speaker
-7	🔉	0	speaker with one sound wave
-7	🔊	0	speaker with three sound waves
-7	🔋	0	battery
-7	🔌	0	electric plug
-7	🔍	0	left-pointing magnifying glass
-7	🔎	0	right-pointing magnifying glass
-7	🔏	0	lock with ink pen
-7	🔐	0	closed lock with key
-7	🔑	0	key
-7	🔒	0	lock
-7	🔓	0	open lock
-7	🔔	0	bell
-7	🔕	0	bell with cancellation stroke
-7	🔖	0	bookmark
-7	🔗	0	link symbol
-7	🔘	0	radio button
-7	🔙	0	back with leftwards arrow above
-7	🔚	0	end with leftwards arrow above
-7	🔛	0	on with exclamation mark with left right arrow above
-7	🔜	0	soon with rightwards arrow above
-7	🔝	0	top with upwards arrow above
-7	🔞	0	no one under eighteen symbol
-7	🔟	0	keycap ten
-7	🔠	0	input symbol for latin capital letters
-7	🔡	0	input symbol for latin small letters
-7	🔢	0	input symbol for numbers
-7	🔣	0	input symbol for symbols
-7	🔤	0	input symbol for latin letters
-7	🔯	0	six pointed star with middle dot
-7	🔰	0	japanese symbol for beginner
-7	🔲	0	black square button
-7	🔳	0	white square button
-7	🔴	0	large red circle
-7	🔵	0	large blue circle
-7	🔶	0	large orange diamond
-7	🔷	0	large blue diamond
-7	🔸	0	small orange diamond
-7	🔹	0	small blue diamond
-7	🔺	0	up-pointing red triangle
-7	🔻	0	down-pointing red triangle
-7	🔼	0	up-pointing small red triangle
-7	🔽	0	down-pointing small red triangle
-7	🚫	0	no entry sign
-7	🚭	0	no smoking symbol
-7	🚮	0	put litter in its place symbol
-7	🚯	0	do not litter symbol
-7	🚰	0	potable water symbol
-7	🚱	0	non-potable water symbol
-7	🚳	0	no bicycles
-7	🚷	0	no pedestrians
-7	🚸	0	children crossing
-7	🚹	0	mens symbol
-7	🚺	0	womens symbol
-7	🚻	0	restroom
-7	🚼	0	baby symbol
-7	🚾	0	water closet
-7	🛂	0	passport control
-7	🛃	0	customs
-7	🛄	0	baggage claim
-7	🛅	0	left luggage
-7	🛐	0	place of worship
-7	🟠	0	large orange circle
-7	🟡	0	large yellow circle
-7	🟢	0	large green circle
-7	🟣	0	large purple circle
-7	🟤	0	large brown circle
-7	🟥	0	large red square
-7	🟦	0	large blue square
-7	🟧	0	large orange square
-7	🟨	0	large yellow square
-7	🟩	0	large green square
-7	🟪	0	large purple square
-7	🟫	0	large brown square
-7	🟰	0	heavy equals sign
-8	🇦🇨	0	
-8	🇦🇩	0	
-8	🇦🇪	0	
-8	🇦🇫	0	
-8	🇦🇬	0	
-8	🇦🇮	0	
-8	🇦🇱	0	
-8	🇦🇲	0	
-8	🇦🇴	0	
-8	🇦🇶	0	
-8	🇦🇷	0	
-8	🇦🇸	0	
-8	🇦🇹	0	
-8	🇦🇺	0	
-8	🇦🇼	0	
-8	🇦🇽	0	
-8	🇦🇿	0	
-8	🇧🇦	0	
-8	🇧🇧	0	
-8	🇧🇩	0	
-8	🇧🇪	0	
-8	🇧🇫	0	
-8	🇧🇬	0	
-8	🇧🇭	0	
-8	🇧🇮	0	
-8	🇧🇯	0	
-8	🇧🇱	0	
-8	🇧🇲	0	
-8	🇧🇳	0	
-8	🇧🇴	0	
-8	🇧🇶	0	
-8	🇧🇷	0	
-8	🇧🇸	0	
-8	🇧🇹	0	
-8	🇧🇻	0	
-8	🇧🇼	0	
-8	🇧🇾	0	
-8	🇧🇿	0	
-8	🇨🇦	0	
-8	🇨🇨	0	
-8	🇨🇩	0	
-8	🇨🇫	0	
-8	🇨🇬	0	
-8	🇨🇭	0	
-8	🇨🇮	0	
-8	🇨🇰	0	
-8	🇨🇱	0	
-8	🇨🇲	0	
-8	🇨🇳	0	
-8	🇨🇴	0	
-8	🇨🇵	0	
-8	🇨🇶	0	
-8	🇨🇷	0	
-8	🇨🇺	0	
-8	🇨🇻	0	
-8	🇨🇼	0	
-8	🇨🇽	0	
-8	🇨🇾	0	
-8	🇨🇿	0	
-8	🇩🇪	0	
-8	🇩🇬	0	
-8	🇩🇯	0	
-8	🇩🇰	0	
-8	🇩🇲	0	
-8	🇩🇴	0	
-8	🇩🇿	0	
-8	🇪🇦	0	
-8	🇪🇨	0	
-8	🇪🇪	0	
-8	🇪🇬	0	
-8	🇪🇭	0	
-8	🇪🇷	0	
-8	🇪🇸	0	
-8	🇪🇹	0	
-8	🇪🇺	0	
-8	🇫🇮	0	
-8	🇫🇯	0	
-8	🇫🇰	0	
-8	🇫🇲	0	
-8	🇫🇴	0	
-8	🇫🇷	0	
-8	🇬🇦	0	
-8	🇬🇧	0	
-8	🇬🇩	0	
-8	🇬🇪	0	
-8	🇬🇫	0	
-8	🇬🇬	0	
-8	🇬🇭	0	
-8	🇬🇮	0	
-8	🇬🇱	0	
-8	🇬🇲	0	
-8	🇬🇳	0	
-8	🇬🇵	0	
-8	🇬🇶	0	
-8	🇬🇷	0	
-8	🇬🇸	0	
-8	🇬🇹	0	
-8	🇬🇺	0	
-8	🇬🇼	0	
-8	🇬🇾	0	
-8	🇭🇰	0	
-8	🇭🇲	0	
-8	🇭🇳	0	
-8	🇭🇷	0	
-8	🇭🇹	0	
-8	🇭🇺	0	
-8	🇮🇨	0	
-8	🇮🇩	0	
-8	🇮🇪	0	
-8	🇮🇱	0	
-8	🇮🇲	0	
-8	🇮🇳	0	
-8	🇮🇴	0	
-8	🇮🇶	0	
-8	🇮🇷	0	
-8	🇮🇸	0	
-8	🇮🇹	0	
-8	🇯🇪	0	
-8	🇯🇲	0	
-8	🇯🇴	0	
-8	🇯🇵	0	
-8	🇰🇪	0	
-8	🇰🇬	0	
-8	🇰🇭	0	
-8	🇰🇮	0	
-8	🇰🇲	0	
-8	🇰🇳	0	
-8	🇰🇵	0	
-8	🇰🇷	0	
-8	🇰🇼	0	
-8	🇰🇾	0	
-8	🇰🇿	0	
-8	🇱🇦	0	
-8	🇱🇧	0	
-8	🇱🇨	0	
-8	🇱🇮	0	
-8	🇱🇰	0	
-8	🇱🇷	0	
-8	🇱🇸	0	
-8	🇱🇹	0	
-8	🇱🇺	0	
-8	🇱🇻	0	
-8	🇱🇾	0	
-8	🇲🇦	0	
-8	🇲🇨	0	
-8	🇲🇩	0	
-8	🇲🇪	0	
-8	🇲🇫	0	
-8	🇲🇬	0	
-8	🇲🇭	0	
-8	🇲🇰	0	
-8	🇲🇱	0	
-8	🇲🇲	0	
-8	🇲🇳	0	
-8	🇲🇴	0	
-8	🇲🇵	0	
-8	🇲🇶	0	
-8	🇲🇷	0	
-8	🇲🇸	0	
-8	🇲🇹	0	
-8	🇲🇺	0	
-8	🇲🇻	0	
-8	🇲🇼	0	
-8	🇲🇽	0	
-8	🇲🇾	0	
-8	🇲🇿	0	
-8	🇳🇦	0	
-8	🇳🇨	0	
-8	🇳🇪	0	
-8	🇳🇫	0	
-8	🇳🇬	0	
-8	🇳🇮	0	
-8	🇳🇱	0	
-8	🇳🇴	0	
-8	🇳🇵	0	
-8	🇳🇷	0	
-8	🇳🇺	0	
-8	🇳🇿	0	
-8	🇴🇲	0	
-8	🇵🇦	0	
-8	🇵🇪	0	
-8	🇵🇫	0	
-8	🇵🇬	0	
-8	🇵🇭	0	
-8	🇵🇰	0	
-8	🇵🇱	0	
-8	🇵🇲	0	
-8	🇵🇳	0	
-8	🇵🇷	0	
-8	🇵🇸	0	
-8	🇵🇹	0	
-8	🇵🇼	0	
-8	🇵🇾	0	
-8	🇶🇦	0	
-8	🇷🇪	0	
-8	🇷🇴	0	
-8	🇷🇸	0	
-8	🇷🇺	0	
-8	🇷🇼	0	
-8	🇸🇦	0	
-8	🇸🇧	0	
-8	🇸🇨	0	
-8	🇸🇩	0	
-8	🇸🇪	0	
-8	🇸🇬	0	
-8	🇸🇭	0	
-8	🇸🇮	0	
-8	🇸🇯	0	
-8	🇸🇰	0	
-8	🇸🇱	0	
-8	🇸🇲	0	
-8	🇸🇳	0	
-8	🇸🇴	0	
-8	🇸🇷	0	
-8	🇸🇸	0	
-8	🇸🇹	0	
-8	🇸🇻	0	
-8	🇸🇽	0	
-8	🇸🇾	0	
-8	🇸🇿	0	
-8	🇹🇦	0	
-8	🇹🇨	0	
-8	🇹🇩	0	
-8	🇹🇫	0	
-8	🇹🇬	0	
-8	🇹🇭	0	
-8	🇹🇯	0	
-8	🇹🇰	0	
-8	🇹🇱	0	
-8	🇹🇲	0	
-8	🇹🇳	0	
-8	🇹🇴	0	
-8	🇹🇷	0	
-8	🇹🇹	0	
-8	🇹🇻	0	
-8	🇹🇼	0	
-8	🇹🇿	0	
-8	🇺🇦	0	
-8	🇺🇬	0	
-8	🇺🇲	0	
-8	🇺🇳	0	
-8	🇺🇸	0	
-8	🇺🇾	0	
-8	🇺🇿	0	
-8	🇻🇦	0	
-8	🇻🇨	0	
-8	🇻🇪	0	
-8	🇻🇬	0	
-8	🇻🇮	0	
-8	🇻🇳	0	
-8	🇻🇺	0	
-8	🇼🇫	0	
-8	🇼🇸	0	
-8	🇽🇰	0	
-8	🇾🇪	0	
-8	🇾🇹	0	
-8	🇿🇦	0	
-8	🇿🇲	0	
-8	🇿🇼	0	
-8	🎌	0	crossed flags
-8	🏁	0	chequered flag
-8	🏳️	0	waving white flag
-8	🏳️‍🌈	0	waving white flag rainbow
-8	🏳️‍⚧️	0	waving white flag male with stroke and male and female sign
-8	🏴	0	waving black flag
-8	🏴‍☠️	0	waving black flag skull and crossbones
-8	🏴󠁧󠁢󠁥󠁮󠁧󠁿	0	waving black flag
-8	🏴󠁧󠁢󠁳󠁣󠁴󠁿	0	waving black flag
-8	🏴󠁧󠁢󠁷󠁬󠁳󠁿	0	waving black flag
-8	🚩	0	triangular flag on post
+0	😀	0	grinning face happy	happy:1
+0	😃	0	grinning face with big eyes smiling open mouth	
+0	😄	0	grinning face with smiling eyes open mouth and happy smile	happy:2 smile:2
+0	😁	0	beaming face with smiling eyes grinning	
+0	😆	0	grinning squinting face smiling with open mouth and tightly-closed eyes haha	haha:1
+0	😅	0	grinning face with sweat smiling open mouth and cold nervous	sweat:0 nervous:1
+0	🤣	0	rolling on the floor laughing lol rofl laugh funny	laugh:1 lol:1 funny:1
+0	😂	0	face with tears of joy lol laugh funny haha	laugh:0 lol:0 haha:0 funny:0
+0	🙂	0	slightly smiling face smile	smile:0
+0	🙃	0	upside down face upside-down	
+0	🫠	0	melting face	
+0	🫫	0	cracking face	
+0	😉	0	winking face wink	wink:0
+0	😊	0	smiling face with eyes happy blush smile thanks good cute	happy:0 smile:1 thanks:1 good:1 cute:1 blush:0
+0	😇	0	smiling face with halo angel bless blessed	angel:0 bless:1 blessed:1
+0	🥰	0	smiling face with hearts eyes and three love cute sweet	love:2 sweet:1 cute:0
+0	😍	0	smiling face with heart eyes heart-shaped love crush beautiful	love:1 beautiful:0
+0	🤩	0	star struck grinning face with eyes wow excited	wow:2 excited:0
+0	😘	0	face blowing a kiss throwing love	love:3 kiss:0
+0	😗	0	kissing face	
+0	☺️	0	smiling face white	
+0	😚	0	kissing face with closed eyes	
+0	😙	0	kissing face with smiling eyes	
+0	🥲	0	smiling face with tear	
+0	😋	0	face savoring food savouring delicious eat hungry	eat:1 hungry:0
+0	😛	0	face with tongue stuck-out	tongue:0
+0	😜	0	winking face with tongue stuck-out and eye	tongue:1
+0	🤪	0	zany face grinning with one large and small eye crazy	crazy:0
+0	😝	0	squinting face with tongue stuck-out and tightly-closed eyes	
+0	🤑	0	money mouth face money-mouth	money:2
+0	🤗	0	smiling face with open hands hugging hug welcome	hug:0 welcome:0
+0	🤭	0	face with hand over mouth smiling eyes and covering	
+0	🫢	0	face with open eyes and hand over mouth	
+0	🫣	0	face with peeking eye	
+0	🤫	0	shushing face with finger covering closed lips shush secret	shush:0 secret:0
+0	🤔	0	thinking face think hmm	think:0 thinking:0
+0	🫡	0	saluting face	
+0	🤐	0	zipper mouth face zipper-mouth	
+0	🤨	0	face with raised eyebrow one	
+0	😐	0	neutral face	
+0	😑	0	expressionless face bored	bored:0
+0	😶	0	face without mouth	
+0	🫥	0	dotted line face	
+0	😶‍🌫️	0	face in clouds without mouth fog	
+0	😏	0	smirking face	
+0	😒	0	unamused face	
+0	🙄	0	face with rolling eyes eyeroll	
+0	😬	0	grimacing face nervous	nervous:0
+0	😮‍💨	0	face exhaling with open mouth dash symbol	
+0	🤥	0	lying face	
+0	🫨	0	shaking face	
+0	🙂‍↔️	0	head shaking horizontally slightly smiling face left right arrow	
+0	🙂‍↕️	0	head shaking vertically slightly smiling face up down arrow	
+0	😌	0	relieved face proud relax relief	proud:1 relax:0 relief:0
+0	😔	0	pensive face sorry	sorry:0
+0	😪	0	sleepy face	
+0	🤤	0	drooling face	
+0	😴	0	sleeping face sleep tired sleepy	sleep:0 sleepy:0 tired:1
+0	🫩	0	face with bags under eyes	
+0	😷	0	face with medical mask	mask:0
+0	🤒	0	face with thermometer sick	sick:0
+0	🤕	0	face with head bandage head-bandage	
+0	🤢	0	nauseated face sick	sick:1
+0	🤮	0	face vomiting with open mouth	
+0	🤧	0	sneezing face	
+0	🥵	0	hot face overheated	hot:0
+0	🥶	0	cold face freezing	cold:0
+0	🥴	0	woozy face with uneven eyes and wavy mouth	
+0	😵	0	face with crossed out eyes dizzy	
+0	😵‍💫	0	face with spiral eyes dizzy symbol	
+0	🤯	0	exploding head shocked face with	
+0	🤠	0	cowboy hat face with	
+0	🥳	0	partying face with party horn and hat birthday excited celebrate	party:0 birthday:2 excited:1 celebrate:1
+0	🥸	0	disguised face	
+0	😎	0	smiling face with sunglasses cool	cool:0 sunglasses:0
+0	🤓	0	nerd face smart	smart:0
+0	🧐	0	face with monocle	
+0	😕	0	confused face	
+0	🫤	0	face with diagonal mouth	
+0	😟	0	worried face	
+0	🙁	0	slightly frowning face	
+0	☹️	0	frowning face white sad	sad:2
+0	😮	0	face with open mouth wow	wow:0
+0	😯	0	hushed face	
+0	😲	0	astonished face wow	wow:1
+0	😳	0	flushed face shy blush	shy:0 blush:1
+0	🫪	0	distorted face	
+0	🥺	0	pleading face with eyes please miss	please:1 miss:0
+0	🥹	0	face holding back tears proud	proud:0
+0	😦	0	frowning face with open mouth	
+0	😧	0	anguished face	
+0	😨	0	fearful face scared fear	scared:1 fear:1
+0	😰	0	anxious face with sweat open mouth and cold	
+0	😥	0	sad but relieved face disappointed	
+0	😢	0	crying face cry sad	sad:0 cry:1 crying:1
+0	😭	0	loudly crying face cry sad sob	cry:0 crying:0
+0	😱	0	face screaming in fear scared	scared:0 fear:0
+0	😖	0	confounded face	
+0	😣	0	persevering face	
+0	😞	0	disappointed face sad	sad:1
+0	😓	0	downcast face with sweat cold	
+0	😩	0	weary face	
+0	😫	0	tired face	tired:0
+0	🥱	0	yawning face tired bored	tired:2 bored:1
+0	😤	0	face with steam from nose look of triumph	
+0	😡	0	enraged face pouting angry mad	angry:1 mad:0
+0	😠	0	angry face mad	angry:0 mad:1
+0	🤬	0	face with symbols on mouth serious covering angry	angry:2
+0	😈	0	smiling face with horns demon devil evil	demon:0 devil:0 evil:0
+0	👿	0	angry face with horns imp demon devil evil	demon:1 devil:1 evil:1
+0	💀	0	skull dead	skull:0 dead:0
+0	☠️	0	skull and crossbones	skull:1
+0	💩	0	pile of poo poop shit	poop:0
+0	🤡	0	clown face	
+0	👹	0	ogre japanese demon	demon:2
+0	👺	0	goblin japanese	
+0	👻	0	ghost halloween	ghost:0 halloween:1
+0	👽	0	alien extraterrestrial	
+0	👾	0	alien monster	
+0	🤖	0	robot face	
+0	😺	0	grinning cat smiling face with open mouth	
+0	😸	0	grinning cat with smiling eyes face	
+0	😹	0	cat with tears of joy face	
+0	😻	0	smiling cat with heart eyes face heart-shaped	
+0	😼	0	cat with wry smile face	
+0	😽	0	kissing cat face with closed eyes	
+0	🙀	0	weary cat face	
+0	😿	0	crying cat face	
+0	😾	0	pouting cat face	
+0	🙈	0	see no evil monkey see-no-evil shy	shy:1 monkey:1
+0	🙉	0	hear no evil monkey hear-no-evil	
+0	🙊	0	speak no evil monkey speak-no-evil	
+0	💌	0	love letter	
+0	💘	0	heart with arrow	
+0	💝	0	heart with ribbon	
+0	💖	0	sparkling heart	
+0	💗	0	growing heart	
+0	💓	0	beating heart	
+0	💞	0	revolving hearts	
+0	💕	0	two hearts love	love:4
+0	💟	0	heart decoration	
+0	❣️	0	heart exclamation heavy mark ornament	
+0	💔	0	broken heart heartbreak miss	heart:8 broken:0 heartbreak:0 miss:1
+0	❤️‍🔥	0	heart on fire heavy black	
+0	❤️‍🩹	0	mending heart heavy black adhesive bandage	
+0	❤️	0	red heart heavy black love	heart:0 love:0
+0	🩷	0	pink heart	
+0	🧡	0	orange heart	heart:1
+0	💛	0	yellow heart	heart:2
+0	💚	0	green heart	heart:3
+0	💙	0	blue heart	heart:4
+0	🩵	0	light blue heart	
+0	💜	0	purple heart	heart:5
+0	🤎	0	brown heart	
+0	🖤	0	black heart	heart:6
+0	🩶	0	grey heart	
+0	🤍	0	white heart	heart:7
+0	💋	0	kiss mark	kiss:1
+0	💯	0	hundred points symbol perfect	
+0	💢	0	anger symbol	
+0	🫯	0	fight cloud	
+0	💥	0	collision symbol	
+0	💫	0	dizzy symbol	
+0	💦	0	sweat droplets splashing symbol	sweat:1
+0	💨	0	dashing away dash symbol wind	wind:0
+0	🕳️	0	hole	
+0	💬	0	speech balloon	
+0	👁️‍🗨️	0	eye in speech bubble left	
+0	🗨️	0	left speech bubble	
+0	🗯️	0	right anger bubble	
+0	💭	0	thought balloon	
+0	💤	0	zzz sleeping symbol sleep	sleep:1
+1	👋	1	waving hand sign bye hi hello hey	bye:0 hi:0 hello:0 hey:0
+1	🤚	1	raised back of hand	
+1	🖐️	1	hand with fingers splayed raised	
+1	✋	1	raised hand	
+1	🖖	1	vulcan salute raised hand with part between middle and ring fingers	
+1	🫱	1	rightwards hand	
+1	🫲	1	leftwards hand	
+1	🫳	1	palm down hand	
+1	🫴	1	palm up hand	
+1	🫷	1	leftwards pushing hand	
+1	🫸	1	rightwards pushing hand	
+1	👌	1	ok hand sign perfect okay	ok:0 okay:0
+1	🤌	1	pinched fingers	
+1	🤏	1	pinching hand	
+1	✌️	1	victory hand peace	peace:0 victory:0
+1	🤞	1	crossed fingers hand with index and middle luck	luck:1
+1	🫰	1	hand with index finger and thumb crossed	
+1	🤟	1	love you gesture i hand sign	
+1	🤘	1	sign of the horns	
+1	🤙	1	call me hand	
+1	👈	1	backhand index pointing left white	
+1	👉	1	backhand index pointing right white	
+1	👆	1	backhand index pointing up white	
+1	🖕	1	middle finger reversed hand with extended	
+1	👇	1	backhand index pointing down white	
+1	☝️	1	index pointing up white	
+1	🫵	1	index pointing at the viewer	
+1	👍	1	thumbs up sign ok yes good like okay	ok:1 okay:1 yes:0 good:0
+1	👎	1	thumbs down sign no bad dislike	no:2 bad:0
+1	🫹	1	leftwards thumb sign	
+1	🫺	1	rightwards thumb sign	
+1	✊	1	raised fist	
+1	👊	1	oncoming fist fisted hand sign fight	fight:0
+1	🤛	1	left facing fist left-facing	
+1	🤜	1	right facing fist right-facing	
+1	👏	1	clapping hands sign clap applause congrats	clap:0 congrats:1
+1	🙌	1	raising hands person both in celebration	
+1	🫶	1	heart hands	
+1	👐	1	open hands sign	
+1	🤲	1	palms up together dua	dua:0
+1	🤝	1	handshake deal	
+1	🙏	1	folded hands person with please thanks pray namaste thank sorry welcome bless blessed amen	thanks:0 thank:0 please:0 pray:0 sorry:1 welcome:1 bless:0 blessed:0 amen:0
+1	✍️	1	writing hand write	write:0
+1	💅	1	nail polish	
+1	🤳	1	selfie	
+1	💪	1	flexed biceps strong muscle flex	strong:0 muscle:0
+1	🦾	0	mechanical arm	
+1	🦿	0	mechanical leg	
+1	🦵	1	leg	
+1	🦶	1	foot	
+1	👂	1	ear	
+1	🦻	1	ear with hearing aid	
+1	👃	1	nose	
+1	🧠	0	brain smart	smart:1
+1	🫀	0	anatomical heart	
+1	🫁	0	lungs	
+1	🦷	0	tooth	
+1	🦴	0	bone	
+1	👀	0	eyes	eyes:0
+1	👁️	0	eye	
+1	👅	0	tongue	
+1	👄	0	mouth	
+1	🫦	0	biting lip	
+1	👶	1	baby	baby:0
+1	🧒	1	child	
+1	👦	1	boy	boy:0
+1	👧	1	girl	girl:0
+1	🧑	1	person adult	
+1	👱	1	person blond hair with	
+1	👨	1	man	man:0
+1	🧔	1	person beard bearded	
+1	🧔‍♂️	1	man beard bearded person male sign	
+1	🧔‍♀️	1	woman beard bearded person female sign	
+1	👨‍🦰	1	man red hair emoji component	
+1	👨‍🦱	1	man curly hair emoji component	
+1	👨‍🦳	1	man white hair emoji component	
+1	👨‍🦲	1	man bald emoji component	
+1	👩	1	woman	woman:0
+1	👩‍🦰	1	woman red hair emoji component	
+1	🧑‍🦰	1	person red hair adult emoji component	
+1	👩‍🦱	1	woman curly hair emoji component	
+1	🧑‍🦱	1	person curly hair adult emoji component	
+1	👩‍🦳	1	woman white hair emoji component	
+1	🧑‍🦳	1	person white hair adult emoji component	
+1	👩‍🦲	1	woman bald emoji component	
+1	🧑‍🦲	1	person bald adult emoji component	
+1	👱‍♀️	1	woman blond hair person with female sign	
+1	👱‍♂️	1	man blond hair person with male sign	
+1	🧓	1	older person adult	
+1	👴	1	old man older	
+1	👵	1	old woman older	
+1	🙍	1	person frowning	
+1	🙍‍♂️	1	man frowning person male sign	
+1	🙍‍♀️	1	woman frowning person female sign	
+1	🙎	1	person pouting with face	
+1	🙎‍♂️	1	man pouting person with face male sign	
+1	🙎‍♀️	1	woman pouting person with face female sign	
+1	🙅	1	person gesturing no face with good gesture	no:0
+1	🙅‍♂️	1	man gesturing no face with good gesture male sign	
+1	🙅‍♀️	1	woman gesturing no face with good gesture female sign	
+1	🙆	1	person gesturing ok face with gesture	
+1	🙆‍♂️	1	man gesturing ok face with gesture male sign	
+1	🙆‍♀️	1	woman gesturing ok face with gesture female sign	
+1	💁	1	person tipping hand information desk	
+1	💁‍♂️	1	man tipping hand information desk person male sign	
+1	💁‍♀️	1	woman tipping hand information desk person female sign	
+1	🙋	1	person raising hand happy one	
+1	🙋‍♂️	1	man raising hand happy person one male sign	
+1	🙋‍♀️	1	woman raising hand happy person one female sign	
+1	🧏	1	deaf person	
+1	🧏‍♂️	1	deaf man person male sign	
+1	🧏‍♀️	1	deaf woman person female sign	
+1	🙇	1	person bowing deeply	
+1	🙇‍♂️	1	man bowing person deeply male sign	
+1	🙇‍♀️	1	woman bowing person deeply female sign	
+1	🤦	1	person facepalming face palm	
+1	🤦‍♂️	1	man facepalming face palm male sign	
+1	🤦‍♀️	1	woman facepalming face palm female sign	
+1	🤷	1	person shrugging shrug	
+1	🤷‍♂️	1	man shrugging shrug male sign	
+1	🤷‍♀️	1	woman shrugging shrug female sign	
+1	🧑‍⚕️	1	health worker adult staff of aesculapius	
+1	👨‍⚕️	1	man health worker staff of aesculapius	
+1	👩‍⚕️	1	woman health worker staff of aesculapius	
+1	🧑‍🎓	1	student adult graduation cap	
+1	👨‍🎓	1	man student graduation cap	
+1	👩‍🎓	1	woman student graduation cap	
+1	🧑‍🏫	1	teacher adult school	
+1	👨‍🏫	1	man teacher school	
+1	👩‍🏫	1	woman teacher school	
+1	🧑‍⚖️	1	judge adult scales	
+1	👨‍⚖️	1	man judge scales	
+1	👩‍⚖️	1	woman judge scales	
+1	🧑‍🌾	1	farmer adult ear of rice	
+1	👨‍🌾	1	man farmer ear of rice	
+1	👩‍🌾	1	woman farmer ear of rice	
+1	🧑‍🍳	1	cook adult cooking	
+1	👨‍🍳	1	man cook cooking	
+1	👩‍🍳	1	woman cook cooking	
+1	🧑‍🔧	1	mechanic adult wrench	
+1	👨‍🔧	1	man mechanic wrench	
+1	👩‍🔧	1	woman mechanic wrench	
+1	🧑‍🏭	1	factory worker adult	
+1	👨‍🏭	1	man factory worker	
+1	👩‍🏭	1	woman factory worker	
+1	🧑‍💼	1	office worker adult briefcase	
+1	👨‍💼	1	man office worker briefcase	
+1	👩‍💼	1	woman office worker briefcase	
+1	🧑‍🔬	1	scientist adult microscope	
+1	👨‍🔬	1	man scientist microscope	
+1	👩‍🔬	1	woman scientist microscope	
+1	🧑‍💻	1	technologist adult personal computer	
+1	👨‍💻	1	man technologist personal computer	
+1	👩‍💻	1	woman technologist personal computer	
+1	🧑‍🎤	1	singer adult microphone	
+1	👨‍🎤	1	man singer microphone	
+1	👩‍🎤	1	woman singer microphone	
+1	🧑‍🎨	1	artist adult palette	
+1	👨‍🎨	1	man artist palette	
+1	👩‍🎨	1	woman artist palette	
+1	🧑‍✈️	1	pilot adult airplane	
+1	👨‍✈️	1	man pilot airplane	
+1	👩‍✈️	1	woman pilot airplane	
+1	🧑‍🚀	1	astronaut adult rocket	
+1	👨‍🚀	1	man astronaut rocket	
+1	👩‍🚀	1	woman astronaut rocket	
+1	🧑‍🚒	1	firefighter adult fire engine	
+1	👨‍🚒	1	man firefighter fire engine	
+1	👩‍🚒	1	woman firefighter fire engine	
+1	👮	1	police officer	
+1	👮‍♂️	1	man police officer male sign	
+1	👮‍♀️	1	woman police officer female sign	
+1	🕵️	1	detective sleuth or spy	
+1	🕵️‍♂️	1	man detective sleuth or spy male sign	
+1	🕵️‍♀️	1	woman detective sleuth or spy female sign	
+1	💂	1	guard guardsman	
+1	💂‍♂️	1	man guard guardsman male sign	
+1	💂‍♀️	1	woman guard guardsman female sign	
+1	🥷	1	ninja	
+1	👷	1	construction worker	
+1	👷‍♂️	1	man construction worker male sign	
+1	👷‍♀️	1	woman construction worker female sign	
+1	🫅	1	person with crown	
+1	🤴	1	prince king	king:0
+1	👸	1	princess queen	queen:0
+1	👳	1	person wearing turban man with	
+1	👳‍♂️	1	man wearing turban with male sign	
+1	👳‍♀️	1	woman wearing turban man with female sign	
+1	👲	1	person with skullcap man gua pi mao	
+1	🧕	1	woman with headscarf person	
+1	🤵	1	person in tuxedo man	
+1	🤵‍♂️	1	man in tuxedo male sign	
+1	🤵‍♀️	1	woman in tuxedo man female sign	
+1	👰	1	person with veil bride	
+1	👰‍♂️	1	man with veil bride male sign	
+1	👰‍♀️	1	woman with veil bride female sign	
+1	🤰	1	pregnant woman	
+1	🫃	1	pregnant man	
+1	🫄	1	pregnant person	
+1	🤱	1	breast feeding breast-feeding	
+1	👩‍🍼	1	woman feeding baby bottle	
+1	👨‍🍼	1	man feeding baby bottle	
+1	🧑‍🍼	1	person feeding baby adult bottle	
+1	👼	1	baby angel	
+1	🎅	1	santa claus father christmas	christmas:1
+1	🤶	1	mrs claus mother christmas	
+1	🧑‍🎄	1	mx claus adult christmas tree	
+1	🦸	1	superhero	
+1	🦸‍♂️	1	man superhero male sign	
+1	🦸‍♀️	1	woman superhero female sign	
+1	🦹	1	supervillain	
+1	🦹‍♂️	1	man supervillain male sign	
+1	🦹‍♀️	1	woman supervillain female sign	
+1	🧙	1	mage	
+1	🧙‍♂️	1	man mage male sign	
+1	🧙‍♀️	1	woman mage female sign	
+1	🧚	1	fairy	
+1	🧚‍♂️	1	man fairy male sign	
+1	🧚‍♀️	1	woman fairy female sign	
+1	🧛	1	vampire	
+1	🧛‍♂️	1	man vampire male sign	
+1	🧛‍♀️	1	woman vampire female sign	
+1	🧜	1	merperson	
+1	🧜‍♂️	1	merman merperson male sign	
+1	🧜‍♀️	1	mermaid merperson female sign	
+1	🧝	1	elf	
+1	🧝‍♂️	1	man elf male sign	
+1	🧝‍♀️	1	woman elf female sign	
+1	🧞	0	genie	
+1	🧞‍♂️	0	man genie male sign	
+1	🧞‍♀️	0	woman genie female sign	
+1	🧟	0	zombie	
+1	🧟‍♂️	0	man zombie male sign	
+1	🧟‍♀️	0	woman zombie female sign	
+1	🧌	0	troll	
+1	🫈	0	hairy creature	
+1	💆	1	person getting massage face	
+1	💆‍♂️	1	man getting massage face male sign	
+1	💆‍♀️	1	woman getting massage face female sign	
+1	💇	1	person getting haircut	
+1	💇‍♂️	1	man getting haircut male sign	
+1	💇‍♀️	1	woman getting haircut female sign	
+1	🚶	1	person walking pedestrian	
+1	🚶‍♂️	1	man walking pedestrian male sign	
+1	🚶‍♀️	1	woman walking pedestrian female sign	
+1	🚶‍➡️	1	person walking facing right pedestrian black rightwards arrow	
+1	🚶‍♀️‍➡️	1	woman walking facing right pedestrian female sign black rightwards arrow	
+1	🚶‍♂️‍➡️	1	man walking facing right pedestrian male sign black rightwards arrow	
+1	🧍	1	person standing	
+1	🧍‍♂️	1	man standing person male sign	
+1	🧍‍♀️	1	woman standing person female sign	
+1	🧎	1	person kneeling	
+1	🧎‍♂️	1	man kneeling person male sign	
+1	🧎‍♀️	1	woman kneeling person female sign	
+1	🧎‍➡️	1	person kneeling facing right black rightwards arrow	
+1	🧎‍♀️‍➡️	1	woman kneeling facing right person female sign black rightwards arrow	
+1	🧎‍♂️‍➡️	1	man kneeling facing right person male sign black rightwards arrow	
+1	🧑‍🦯	1	person with white cane adult probing	
+1	🧑‍🦯‍➡️	1	person with white cane facing right adult probing black rightwards arrow	
+1	👨‍🦯	1	man with white cane probing	
+1	👨‍🦯‍➡️	1	man with white cane facing right probing black rightwards arrow	
+1	👩‍🦯	1	woman with white cane probing	
+1	👩‍🦯‍➡️	1	woman with white cane facing right probing black rightwards arrow	
+1	🧑‍🦼	1	person in motorized wheelchair adult	
+1	🧑‍🦼‍➡️	1	person in motorized wheelchair facing right adult black rightwards arrow	
+1	👨‍🦼	1	man in motorized wheelchair	
+1	👨‍🦼‍➡️	1	man in motorized wheelchair facing right black rightwards arrow	
+1	👩‍🦼	1	woman in motorized wheelchair	
+1	👩‍🦼‍➡️	1	woman in motorized wheelchair facing right black rightwards arrow	
+1	🧑‍🦽	1	person in manual wheelchair adult	
+1	🧑‍🦽‍➡️	1	person in manual wheelchair facing right adult black rightwards arrow	
+1	👨‍🦽	1	man in manual wheelchair	
+1	👨‍🦽‍➡️	1	man in manual wheelchair facing right black rightwards arrow	
+1	👩‍🦽	1	woman in manual wheelchair	
+1	👩‍🦽‍➡️	1	woman in manual wheelchair facing right black rightwards arrow	
+1	🏃	1	person running runner run	run:0
+1	🏃‍♂️	1	man running runner male sign	
+1	🏃‍♀️	1	woman running runner female sign	
+1	🏃‍➡️	1	person running facing right runner black rightwards arrow	
+1	🏃‍♀️‍➡️	1	woman running facing right runner female sign black rightwards arrow	
+1	🏃‍♂️‍➡️	1	man running facing right runner male sign black rightwards arrow	
+1	🧑‍🩰	1	ballet dancer adult shoes	
+1	💃	1	woman dancing dancer dance	dance:0
+1	🕺	1	man dancing dance	dance:1
+1	🕴️	1	person in suit levitating man business	
+1	👯	1	people with bunny ears woman	
+1	👯‍♂️	1	men with bunny ears woman male sign	
+1	👯‍♀️	1	women with bunny ears woman female sign	
+1	🧖	1	person in steamy room	
+1	🧖‍♂️	1	man in steamy room person male sign	
+1	🧖‍♀️	1	woman in steamy room person female sign	
+1	🧗	1	person climbing	
+1	🧗‍♂️	1	man climbing person male sign	
+1	🧗‍♀️	1	woman climbing person female sign	
+1	🤺	0	person fencing fencer	
+1	🏇	1	horse racing	
+1	⛷️	0	skier	
+1	🏂	1	snowboarder	
+1	🏌️	1	person golfing golfer	
+1	🏌️‍♂️	1	man golfing golfer male sign	
+1	🏌️‍♀️	1	woman golfing golfer female sign	
+1	🏄	1	person surfing surfer	
+1	🏄‍♂️	1	man surfing surfer male sign	
+1	🏄‍♀️	1	woman surfing surfer female sign	
+1	🚣	1	person rowing boat rowboat	
+1	🚣‍♂️	1	man rowing boat rowboat male sign	
+1	🚣‍♀️	1	woman rowing boat rowboat female sign	
+1	🏊	1	person swimming swimmer swim	swim:0
+1	🏊‍♂️	1	man swimming swimmer male sign	
+1	🏊‍♀️	1	woman swimming swimmer female sign	
+1	⛹️	1	person bouncing ball with	
+1	⛹️‍♂️	1	man bouncing ball person with male sign	
+1	⛹️‍♀️	1	woman bouncing ball person with female sign	
+1	🏋️	1	person lifting weights weight lifter	
+1	🏋️‍♂️	1	man lifting weights weight lifter male sign	
+1	🏋️‍♀️	1	woman lifting weights weight lifter female sign	
+1	🚴	1	person biking bicyclist bike	bike:0
+1	🚴‍♂️	1	man biking bicyclist male sign	
+1	🚴‍♀️	1	woman biking bicyclist female sign	
+1	🚵	1	person mountain biking bicyclist	
+1	🚵‍♂️	1	man mountain biking bicyclist male sign	
+1	🚵‍♀️	1	woman mountain biking bicyclist female sign	
+1	🤸	1	person cartwheeling doing cartwheel	
+1	🤸‍♂️	1	man cartwheeling person doing cartwheel male sign	
+1	🤸‍♀️	1	woman cartwheeling person doing cartwheel female sign	
+1	🤼	1	people wrestling wrestlers	
+1	🤼‍♂️	1	men wrestling wrestlers male sign	
+1	🤼‍♀️	1	women wrestling wrestlers female sign	
+1	🤽	1	person playing water polo	
+1	🤽‍♂️	1	man playing water polo male sign	
+1	🤽‍♀️	1	woman playing water polo female sign	
+1	🤾	1	person playing handball	
+1	🤾‍♂️	1	man playing handball male sign	
+1	🤾‍♀️	1	woman playing handball female sign	
+1	🤹	1	person juggling	
+1	🤹‍♂️	1	man juggling male sign	
+1	🤹‍♀️	1	woman juggling female sign	
+1	🧘	1	person in lotus position	
+1	🧘‍♂️	1	man in lotus position person male sign	
+1	🧘‍♀️	1	woman in lotus position person female sign	
+1	🛀	1	person taking bath	
+1	🛌	1	person in bed sleeping accommodation	
+1	🧑‍🤝‍🧑	0	people holding hands adult handshake	
+1	👭	1	women holding hands two	
+1	👫	1	woman and man holding hands	
+1	👬	1	men holding hands two	
+1	💏	1	kiss	
+1	👩‍❤️‍💋‍👨	0	kiss woman man heavy black heart mark	
+1	👨‍❤️‍💋‍👨	0	kiss man heavy black heart mark	
+1	👩‍❤️‍💋‍👩	0	kiss woman heavy black heart mark	
+1	💑	1	couple with heart	
+1	👩‍❤️‍👨	0	couple with heart woman man heavy black	
+1	👨‍❤️‍👨	0	couple with heart man heavy black	
+1	👩‍❤️‍👩	0	couple with heart woman heavy black	
+1	👨‍👩‍👦	0	family man woman boy	
+1	👨‍👩‍👧	0	family man woman girl	
+1	👨‍👩‍👧‍👦	0	family man woman girl boy	
+1	👨‍👩‍👦‍👦	0	family man woman boy	
+1	👨‍👩‍👧‍👧	0	family man woman girl	
+1	👨‍👨‍👦	0	family man boy	
+1	👨‍👨‍👧	0	family man girl	
+1	👨‍👨‍👧‍👦	0	family man girl boy	
+1	👨‍👨‍👦‍👦	0	family man boy	
+1	👨‍👨‍👧‍👧	0	family man girl	
+1	👩‍👩‍👦	0	family woman boy	
+1	👩‍👩‍👧	0	family woman girl	
+1	👩‍👩‍👧‍👦	0	family woman girl boy	
+1	👩‍👩‍👦‍👦	0	family woman boy	
+1	👩‍👩‍👧‍👧	0	family woman girl	
+1	👨‍👦	0	family man boy	
+1	👨‍👦‍👦	0	family man boy	
+1	👨‍👧	0	family man girl	
+1	👨‍👧‍👦	0	family man girl boy	
+1	👨‍👧‍👧	0	family man girl	
+1	👩‍👦	0	family woman boy	
+1	👩‍👦‍👦	0	family woman boy	
+1	👩‍👧	0	family woman girl	
+1	👩‍👧‍👦	0	family woman girl boy	
+1	👩‍👧‍👧	0	family woman girl	
+1	🗣️	0	speaking head in silhouette	
+1	👤	0	bust in silhouette	
+1	👥	0	busts in silhouette	
+1	🫂	0	people hugging	
+1	👪	0	family	
+1	🧑‍🧑‍🧒	0	family adult child	
+1	🧑‍🧑‍🧒‍🧒	0	family adult child	
+1	🧑‍🧒	0	family adult child	
+1	🧑‍🧒‍🧒	0	family adult child	
+1	👣	0	footprints	
+1	🫆	0	fingerprint	
+2	🐵	0	monkey face	monkey:0
+2	🐒	0	monkey	
+2	🦍	0	gorilla	
+2	🦧	0	orangutan	
+2	🐶	0	dog face	dog:0
+2	🐕	0	dog	dog:1
+2	🦮	0	guide dog	
+2	🐕‍🦺	0	service dog safety vest	
+2	🐩	0	poodle	
+2	🐺	0	wolf face	
+2	🦊	0	fox face	fox:0
+2	🦝	0	raccoon	
+2	🐱	0	cat face	cat:0
+2	🐈	0	cat	cat:1
+2	🐈‍⬛	0	black cat large square	
+2	🦁	0	lion face	lion:0
+2	🐯	0	tiger face	tiger:0
+2	🐅	0	tiger	
+2	🐆	0	leopard	
+2	🐴	0	horse face	
+2	🫎	0	moose	
+2	🫏	0	donkey	
+2	🐎	0	horse	
+2	🦄	0	unicorn face	unicorn:0
+2	🦓	0	zebra face	
+2	🦌	0	deer	
+2	🦬	0	bison	
+2	🐮	0	cow face	cow:0
+2	🐂	0	ox	
+2	🐃	0	water buffalo	
+2	🐄	0	cow	
+2	🐷	0	pig face	pig:0
+2	🐖	0	pig	
+2	🐗	0	boar	
+2	🐽	0	pig nose	
+2	🐏	0	ram	
+2	🐑	0	ewe sheep	
+2	🐐	0	goat	
+2	🐪	0	camel dromedary	
+2	🐫	0	two hump camel bactrian	
+2	🦙	0	llama	
+2	🦒	0	giraffe face	
+2	🐘	0	elephant	
+2	🦣	0	mammoth	
+2	🦏	0	rhinoceros	
+2	🦛	0	hippopotamus	
+2	🐭	0	mouse face	
+2	🐁	0	mouse	
+2	🐀	0	rat	
+2	🐹	0	hamster face	
+2	🐰	0	rabbit face	rabbit:0
+2	🐇	0	rabbit	
+2	🐿️	0	chipmunk	
+2	🦫	0	beaver	
+2	🦔	0	hedgehog	
+2	🦇	0	bat	
+2	🐻	0	bear face	bear:0
+2	🐻‍❄️	0	polar bear face snowflake	
+2	🐨	0	koala	
+2	🐼	0	panda face	panda:0
+2	🦥	0	sloth	
+2	🦦	0	otter	
+2	🦨	0	skunk	
+2	🦘	0	kangaroo	
+2	🦡	0	badger	
+2	🐾	0	paw prints	
+2	🦃	0	turkey	
+2	🐔	0	chicken	chicken:1
+2	🐓	0	rooster	
+2	🐣	0	hatching chick	
+2	🐤	0	baby chick	
+2	🐥	0	front facing baby chick front-facing	
+2	🐦	0	bird	bird:0
+2	🐧	0	penguin	
+2	🕊️	0	dove of peace	
+2	🦅	0	eagle	
+2	🦆	0	duck	
+2	🦢	0	swan	
+2	🦉	0	owl	
+2	🦤	0	dodo	
+2	🪶	0	feather	
+2	🦩	0	flamingo	
+2	🦚	0	peacock	
+2	🦜	0	parrot	
+2	🪽	0	wing	
+2	🐦‍⬛	0	black bird large square	
+2	🪿	0	goose	
+2	🐦‍🔥	0	phoenix bird fire	
+2	🐸	0	frog face	
+2	🐊	0	crocodile	
+2	🐢	0	turtle	
+2	🦎	0	lizard	
+2	🐍	0	snake	snake:0
+2	🐲	0	dragon face	
+2	🐉	0	dragon	
+2	🦕	0	sauropod	
+2	🦖	0	t rex t-rex	
+2	🐳	0	spouting whale	
+2	🐋	0	whale	
+2	🐬	0	dolphin	
+2	🫍	0	orca	
+2	🦭	0	seal	
+2	🐟	0	fish	fish:0
+2	🐠	0	tropical fish	fish:1
+2	🐡	0	blowfish	
+2	🦈	0	shark	
+2	🐙	0	octopus	
+2	🐚	0	spiral shell	
+2	🪸	0	coral	
+2	🪼	0	jellyfish	
+2	🦀	0	crab	
+2	🦞	0	lobster	
+2	🦐	0	shrimp	
+2	🦑	0	squid	
+2	🦪	0	oyster	
+2	🐌	0	snail	
+2	🦋	0	butterfly	butterfly:0
+2	🫌	0	monarch butterfly	
+2	🐛	0	bug	
+2	🐜	0	ant	
+2	🐝	0	honeybee	
+2	🪲	0	beetle	
+2	🐞	0	lady beetle	
+2	🦗	0	cricket	
+2	🪳	0	cockroach	
+2	🕷️	0	spider	spider:0
+2	🕸️	0	spider web	
+2	🦂	0	scorpion	
+2	🦟	0	mosquito	
+2	🪰	0	fly	
+2	🪱	0	worm	
+2	🦠	0	microbe	
+2	💐	0	bouquet	
+2	🌸	0	cherry blossom beautiful flower	beautiful:1 flower:0
+2	💮	0	white flower	
+2	🪷	0	lotus	
+2	🏵️	0	rosette	
+2	🌹	0	rose flower	flower:1 rose:0
+2	🥀	0	wilted flower	
+2	🌺	0	hibiscus	
+2	🌻	0	sunflower	
+2	🌼	0	blossom	
+2	🌷	0	tulip	
+2	🪻	0	hyacinth	
+2	🌱	0	seedling	
+2	🪴	0	potted plant	
+2	🌲	0	evergreen tree	tree:1
+2	🌳	0	deciduous tree	tree:0
+2	🌴	0	palm tree	
+2	🌵	0	cactus	
+2	🌾	0	sheaf of rice ear	
+2	🌿	0	herb	
+2	☘️	0	shamrock	
+2	🍀	0	four leaf clover luck lucky	luck:0 lucky:0
+2	🍁	0	maple leaf	
+2	🍂	0	fallen leaf	
+2	🍃	0	leaf fluttering in wind	
+2	🪹	0	empty nest	
+2	🪺	0	nest with eggs	
+2	🍄	0	mushroom	
+2	🪾	0	leafless tree	
+3	🍇	0	grapes	
+3	🍈	0	melon	
+3	🍉	0	watermelon	watermelon:0
+3	🍊	0	tangerine	
+3	🍋	0	lemon	
+3	🍋‍🟩	0	lime lemon large green square	
+3	🍌	0	banana	banana:0
+3	🍍	0	pineapple	
+3	🥭	0	mango	mango:0
+3	🍎	0	red apple	apple:0
+3	🍏	0	green apple	
+3	🍐	0	pear	
+3	🍑	0	peach	
+3	🍒	0	cherries cherry	cherry:0
+3	🍓	0	strawberry	strawberry:0
+3	🫐	0	blueberries	
+3	🥝	0	kiwi fruit kiwifruit	
+3	🍅	0	tomato	
+3	🫒	0	olive	
+3	🥥	0	coconut	
+3	🥑	0	avocado	
+3	🍆	0	eggplant aubergine	
+3	🥔	0	potato	
+3	🥕	0	carrot	
+3	🌽	0	ear of corn maize	
+3	🌶️	0	hot pepper	hot:2
+3	🫑	0	bell pepper	
+3	🥒	0	cucumber	
+3	🫝	0	pickle	
+3	🥬	0	leafy green	
+3	🥦	0	broccoli	
+3	🧄	0	garlic	
+3	🧅	0	onion	
+3	🥜	0	peanuts	
+3	🫘	0	beans	
+3	🌰	0	chestnut	
+3	🫚	0	ginger root	
+3	🫛	0	pea pod	
+3	🍄‍🟫	0	brown mushroom large square	
+3	🫜	0	root vegetable	
+3	🍞	0	bread	bread:0
+3	🥐	0	croissant	
+3	🥖	0	baguette bread	
+3	🫓	0	flatbread	
+3	🥨	0	pretzel	
+3	🥯	0	bagel	
+3	🥞	0	pancakes	
+3	🧇	0	waffle	
+3	🧀	0	cheese wedge	
+3	🍖	0	meat on bone	
+3	🍗	0	poultry leg chicken	chicken:0
+3	🥩	0	cut of meat	
+3	🥓	0	bacon	
+3	🍔	0	hamburger burger food hungry	burger:0 food:1 hungry:1
+3	🍟	0	french fries	
+3	🍕	0	pizza slice of	pizza:0
+3	🌭	0	hot dog	
+3	🥪	0	sandwich	
+3	🌮	0	taco	
+3	🌯	0	burrito	
+3	🫔	0	tamale	
+3	🥙	0	stuffed flatbread	
+3	🧆	0	falafel	
+3	🥚	0	egg	egg:0
+3	🍳	0	cooking	
+3	🥘	0	shallow pan of food	
+3	🍲	0	pot of food	
+3	🫕	0	fondue	
+3	🥣	0	bowl with spoon	
+3	🥗	0	green salad	
+3	🍿	0	popcorn	
+3	🧈	0	butter	
+3	🧂	0	salt shaker	
+3	🥫	0	canned food	
+3	🍱	0	bento box	
+3	🍘	0	rice cracker	
+3	🍙	0	rice ball	
+3	🍚	0	cooked rice	rice:0
+3	🍛	0	curry rice and	
+3	🍜	0	steaming bowl	
+3	🍝	0	spaghetti	
+3	🍠	0	roasted sweet potato	
+3	🍢	0	oden	
+3	🍣	0	sushi	
+3	🍤	0	fried shrimp	
+3	🍥	0	fish cake with swirl design	
+3	🥮	0	moon cake	
+3	🍡	0	dango	
+3	🥟	0	dumpling	
+3	🥠	0	fortune cookie	
+3	🥡	0	takeout box	
+3	🍦	0	soft ice cream icecream	icecream:0
+3	🍧	0	shaved ice	
+3	🍨	0	ice cream	
+3	🍩	0	doughnut	
+3	🍪	0	cookie	cookie:0
+3	🎂	0	birthday cake	birthday:0 cake:0
+3	🍰	0	shortcake cake	cake:1
+3	🧁	0	cupcake	
+3	🥧	0	pie	
+3	🍫	0	chocolate bar	chocolate:0
+3	🍬	0	candy sweet	sweet:0 candy:0
+3	🍭	0	lollipop	
+3	🍮	0	custard	
+3	🍯	0	honey pot	
+3	🍼	0	baby bottle	
+3	🥛	0	glass of milk	
+3	☕	0	hot beverage coffee tea	coffee:0 tea:1
+3	🫖	0	teapot	
+3	🍵	0	teacup without handle tea	tea:0
+3	🍶	0	sake bottle and cup	
+3	🍾	0	bottle with popping cork	
+3	🍷	0	wine glass	wine:0
+3	🍸	0	cocktail glass	
+3	🍹	0	tropical drink	drink:1
+3	🍺	0	beer mug	beer:0
+3	🍻	0	clinking beer mugs cheers	cheers:0
+3	🥂	0	clinking glasses cheers	cheers:1
+3	🥃	0	tumbler glass	
+3	🫗	0	pouring liquid	
+3	🥤	0	cup with straw drink	drink:0
+3	🧋	0	bubble tea	
+3	🧃	0	beverage box	
+3	🧉	0	mate drink	
+3	🧊	0	ice cube	
+3	🥢	0	chopsticks	
+3	🍽️	0	fork and knife with plate food eat	food:0 eat:0
+3	🍴	0	fork and knife	
+3	🥄	0	spoon	
+3	🔪	0	kitchen knife hocho	
+3	🫙	0	jar	
+3	🏺	0	amphora	
+4	🌍	0	globe showing europe africa earth europe-africa world	earth:0 world:0
+4	🌎	0	globe showing americas earth	
+4	🌏	0	globe showing asia australia earth asia-australia	
+4	🌐	0	globe with meridians	
+4	🗺️	0	world map	
+4	🗾	0	map of japan silhouette	
+4	🧭	0	compass	
+4	🏔️	0	snow capped mountain	
+4	⛰️	0	mountain	
+4	🛘	0	landslide	
+4	🌋	0	volcano	
+4	🗻	0	mount fuji	
+4	🏕️	0	camping	
+4	🏖️	0	beach with umbrella	beach:0
+4	🏜️	0	desert	
+4	🏝️	0	desert island	
+4	🏞️	0	national park	
+4	🏟️	0	stadium	
+4	🏛️	0	classical building	
+4	🏗️	0	building construction	
+4	🧱	0	brick	
+4	🪨	0	rock	
+4	🪵	0	wood	
+4	🛖	0	hut	
+4	🏘️	0	houses house buildings	
+4	🏚️	0	derelict house building	
+4	🏠	0	house building home	home:0 house:0
+4	🏡	0	house with garden	
+4	🏢	0	office building	office:0
+4	🏣	0	japanese post office	
+4	🏤	0	post office european	
+4	🏥	0	hospital	
+4	🏦	0	bank	
+4	🏨	0	hotel	
+4	🏩	0	love hotel	
+4	🏪	0	convenience store	
+4	🏫	0	school	school:0
+4	🏬	0	department store	
+4	🏭	0	factory	
+4	🏯	0	japanese castle	
+4	🏰	0	castle european	
+4	💒	0	wedding	
+4	🗼	0	tokyo tower	
+4	🗽	0	statue of liberty	
+4	⛪	0	church	
+4	🕌	0	mosque eid ramadan mubarak	mosque:0 eid:1 ramadan:1 mubarak:1
+4	🛕	0	hindu temple	
+4	🕍	0	synagogue	
+4	⛩️	0	shinto shrine	
+4	🕋	0	kaaba	
+4	⛲	0	fountain	
+4	⛺	0	tent	
+4	🌁	0	foggy	
+4	🌃	0	night with stars	night:1
+4	🏙️	0	cityscape	
+4	🌄	0	sunrise over mountains	
+4	🌅	0	sunrise morning	morning:0 sunrise:0
+4	🌆	0	cityscape at dusk	
+4	🌇	0	sunset over buildings	sunset:0
+4	🌉	0	bridge at night	
+4	♨️	0	hot springs	
+4	🎠	0	carousel horse	
+4	🛝	0	playground slide	
+4	🎡	0	ferris wheel	
+4	🎢	0	roller coaster	
+4	💈	0	barber pole	
+4	🎪	0	circus tent	
+4	🚂	0	locomotive steam	
+4	🚃	0	railway car	
+4	🚄	0	high speed train high-speed	
+4	🚅	0	bullet train high-speed with nose	
+4	🚆	0	train	train:0
+4	🚇	0	metro	
+4	🚈	0	light rail	
+4	🚉	0	station	
+4	🚊	0	tram	
+4	🚝	0	monorail	
+4	🚞	0	mountain railway	
+4	🚋	0	tram car	
+4	🚌	0	bus	bus:0
+4	🚍	0	oncoming bus	
+4	🚎	0	trolleybus	
+4	🚐	0	minibus	
+4	🚑	0	ambulance	
+4	🚒	0	fire engine	
+4	🚓	0	police car	
+4	🚔	0	oncoming police car	
+4	🚕	0	taxi	
+4	🚖	0	oncoming taxi	
+4	🚗	0	automobile car	car:0
+4	🚘	0	oncoming automobile	
+4	🚙	0	sport utility vehicle recreational	
+4	🛻	0	pickup truck	
+4	🚚	0	delivery truck	
+4	🚛	0	articulated lorry	
+4	🚜	0	tractor	
+4	🏎️	0	racing car	
+4	🏍️	0	motorcycle racing	
+4	🛵	0	motor scooter	
+4	🦽	0	manual wheelchair	
+4	🦼	0	motorized wheelchair	
+4	🛺	0	auto rickshaw	
+4	🚲	0	bicycle bike	bike:1
+4	🛴	0	kick scooter	
+4	🛹	0	skateboard	
+4	🛼	0	roller skate	
+4	🚏	0	bus stop	
+4	🛣️	0	motorway	
+4	🛤️	0	railway track	
+4	🛢️	0	oil drum	
+4	⛽	0	fuel pump	
+4	🛞	0	wheel	
+4	🚨	0	police car light cars revolving	
+4	🚥	0	horizontal traffic light	
+4	🚦	0	vertical traffic light	
+4	🛑	0	stop sign octagonal	
+4	🚧	0	construction sign	
+4	🛙	0	lighthouse	
+4	⚓	0	anchor	
+4	🛟	0	ring buoy	
+4	⛵	0	sailboat boat	boat:0
+4	🛶	0	canoe	
+4	🚤	0	speedboat boat	boat:1
+4	🛳️	0	passenger ship	
+4	⛴️	0	ferry	
+4	🛥️	0	motor boat	
+4	🚢	0	ship	ship:0
+4	✈️	0	airplane plane flight	plane:0 flight:0
+4	🛩️	0	small airplane	
+4	🛫	0	airplane departure	
+4	🛬	0	airplane arrival arriving	
+4	🪂	0	parachute	
+4	💺	0	seat	
+4	🚁	0	helicopter	
+4	🚟	0	suspension railway	
+4	🚠	0	mountain cableway	
+4	🚡	0	aerial tramway	
+4	🛰️	0	satellite	
+4	🚀	0	rocket	rocket:0
+4	🛸	0	flying saucer	
+4	🛎️	0	bellhop bell	
+4	🧳	0	luggage	
+4	⌛	0	hourglass done	
+4	⏳	0	hourglass not done with flowing sand	
+4	⌚	0	watch	
+4	⏰	0	alarm clock time	time:0 alarm:0
+4	⏱️	0	stopwatch	
+4	⏲️	0	timer clock	
+4	🕰️	0	mantelpiece clock	
+4	🕛	0	twelve o clock face oclock	
+4	🕧	0	twelve thirty clock face twelve-thirty	
+4	🕐	0	one o clock face oclock	clock:0
+4	🕜	0	one thirty clock face one-thirty	
+4	🕑	0	two o clock face oclock	
+4	🕝	0	two thirty clock face two-thirty	
+4	🕒	0	three o clock face oclock	
+4	🕞	0	three thirty clock face three-thirty	
+4	🕓	0	four o clock face oclock	
+4	🕟	0	four thirty clock face four-thirty	
+4	🕔	0	five o clock face oclock	
+4	🕠	0	five thirty clock face five-thirty	
+4	🕕	0	six o clock face oclock	
+4	🕡	0	six thirty clock face six-thirty	
+4	🕖	0	seven o clock face oclock	
+4	🕢	0	seven thirty clock face seven-thirty	
+4	🕗	0	eight o clock face oclock	
+4	🕣	0	eight thirty clock face eight-thirty	
+4	🕘	0	nine o clock face oclock	
+4	🕤	0	nine thirty clock face nine-thirty	
+4	🕙	0	ten o clock face oclock	
+4	🕥	0	ten thirty clock face ten-thirty	
+4	🕚	0	eleven o clock face oclock	
+4	🕦	0	eleven thirty clock face eleven-thirty	
+4	🌑	0	new moon symbol	
+4	🌒	0	waxing crescent moon symbol	
+4	🌓	0	first quarter moon symbol	
+4	🌔	0	waxing gibbous moon symbol	
+4	🌕	0	full moon symbol	
+4	🌖	0	waning gibbous moon symbol	
+4	🌗	0	last quarter moon symbol	
+4	🌘	0	waning crescent moon symbol	
+4	🌙	0	crescent moon night eid ramadan mubarak	moon:0 night:0 eid:0 ramadan:0 mubarak:0
+4	🌚	0	new moon face with	
+4	🌛	0	first quarter moon face with	moon:1
+4	🌜	0	last quarter moon face with	
+4	🌡️	0	thermometer	
+4	☀️	0	sun black with rays morning	sun:0 morning:1
+4	🌝	0	full moon face with	
+4	🌞	0	sun with face	sun:1
+4	🪐	0	ringed planet	
+4	⭐	0	star white medium	star:0
+4	🌟	0	glowing star	star:1
+4	🌠	0	shooting star	
+4	🌌	0	milky way	
+4	☁️	0	cloud	cloud:0
+4	⛅	0	sun behind cloud	
+4	⛈️	0	cloud with lightning and rain thunder storm	storm:0
+4	🌤️	0	sun behind small cloud white with	
+4	🌥️	0	sun behind large cloud white	
+4	🌦️	0	sun behind rain cloud white with	
+4	🌧️	0	cloud with rain	rain:0
+4	🌨️	0	cloud with snow	
+4	🌩️	0	cloud with lightning	
+4	🌪️	0	tornado cloud with	
+4	🌫️	0	fog	
+4	🌬️	0	wind face blowing	
+4	🌀	0	cyclone	
+4	🌈	0	rainbow	rainbow:0
+4	🌂	0	closed umbrella	
+4	☂️	0	umbrella	
+4	☔	0	umbrella with rain drops	rain:1
+4	⛱️	0	umbrella on ground	
+4	⚡	0	high voltage sign lightning	lightning:0
+4	❄️	0	snowflake cold snow	cold:1 snow:0
+4	☃️	0	snowman	
+4	⛄	0	snowman without snow	snow:1
+4	☄️	0	comet	
+4	🪋	0	meteor	
+4	🔥	0	fire hot lit	fire:0 hot:1
+4	💧	0	droplet water	water:0
+4	🌊	0	water wave	water:1
+5	🎃	0	jack o lantern jack-o-lantern halloween	halloween:0
+5	🎄	0	christmas tree	christmas:0
+5	🎆	0	fireworks	
+5	🎇	0	sparkler firework	
+5	🧨	0	firecracker	
+5	✨	0	sparkles	
+5	🎈	0	balloon	
+5	🎉	0	party popper congrats celebrate birthday win	party:1 birthday:1 congrats:0 win:1 celebrate:0
+5	🎊	0	confetti ball	
+5	🎋	0	tanabata tree	
+5	🎍	0	pine decoration	
+5	🎎	0	japanese dolls	
+5	🎏	0	carp streamer	
+5	🎐	0	wind chime	
+5	🎑	0	moon viewing ceremony	
+5	🧧	0	red envelope gift	
+5	🎀	0	ribbon	
+5	🎁	0	wrapped gift present	gift:0
+5	🎗️	0	reminder ribbon	
+5	🎟️	0	admission tickets	
+5	🎫	0	ticket	
+5	🎖️	0	military medal	
+5	🏆	0	trophy win winner	win:0 winner:0 trophy:0
+5	🏅	0	sports medal	medal:0
+5	🥇	0	1st place medal first	
+5	🥈	0	2nd place medal second	
+5	🥉	0	3rd place medal third	
+5	⚽	0	soccer ball football	football:0 soccer:0
+5	⚾	0	baseball	
+5	🥎	0	softball	
+5	🏀	0	basketball and hoop	basketball:0
+5	🏐	0	volleyball	
+5	🏈	0	american football	football:1
+5	🏉	0	rugby football	
+5	🎾	0	tennis racquet and ball	
+5	🥏	0	flying disc	
+5	🎳	0	bowling	
+5	🏏	0	cricket game bat and ball	cricket:0
+5	🏑	0	field hockey stick and ball	
+5	🏒	0	ice hockey stick and puck	
+5	🥍	0	lacrosse stick and ball	
+5	🏓	0	ping pong table tennis paddle and ball	
+5	🏸	0	badminton racquet and shuttlecock	
+5	🥊	0	boxing glove fight	fight:1
+5	🥋	0	martial arts uniform	
+5	🥅	0	goal net	
+5	⛳	0	flag in hole	
+5	⛸️	0	ice skate	
+5	🎣	0	fishing pole and fish	
+5	🤿	0	diving mask	
+5	🎽	0	running shirt with sash	
+5	🎿	0	skis ski and boot	
+5	🛷	0	sled	
+5	🥌	0	curling stone	
+5	🎯	0	bullseye direct hit	
+5	🪀	0	yo yo-yo	
+5	🪁	0	kite	
+5	🔫	0	water pistol	
+5	🎱	0	pool 8 ball billiards	
+5	🔮	0	crystal ball	
+5	🪄	0	magic wand	
+5	🎮	0	video game gaming	game:0 gaming:0
+5	🕹️	0	joystick	
+5	🎰	0	slot machine	
+5	🎲	0	game die	
+5	🧩	0	puzzle piece jigsaw	
+5	🧸	0	teddy bear	
+5	🪅	0	piñata pinata	
+5	🪩	0	mirror ball	
+5	🪆	0	nesting dolls	
+5	♠️	0	spade suit black	
+5	♥️	0	heart suit black	
+5	♦️	0	diamond suit black	
+5	♣️	0	club suit black	
+5	♟️	0	chess pawn black	
+5	🃏	0	joker playing card black	
+5	🀄	0	mahjong red dragon tile	
+5	🎴	0	flower playing cards	
+5	🎭	0	performing arts	
+5	🖼️	0	framed picture frame with	
+5	🎨	0	artist palette	
+5	🧵	0	thread spool of	
+5	🪡	0	sewing needle	
+5	🧶	0	yarn ball of	
+5	🪢	0	knot	
+6	👓	0	glasses eyeglasses	
+6	🕶️	0	sunglasses dark	
+6	🥽	0	goggles	
+6	🥼	0	lab coat	
+6	🦺	0	safety vest	
+6	👔	0	necktie	
+6	👕	0	t shirt t-shirt	
+6	👖	0	jeans	
+6	🧣	0	scarf	
+6	🧤	0	gloves	
+6	🧥	0	coat	
+6	🧦	0	socks	
+6	👗	0	dress	
+6	👘	0	kimono	
+6	🥻	0	sari	
+6	🩱	0	one piece swimsuit one-piece	
+6	🩲	0	briefs	
+6	🩳	0	shorts	
+6	👙	0	bikini	
+6	👚	0	woman s clothes womans	
+6	🪭	0	folding hand fan	
+6	👛	0	purse	
+6	👜	0	handbag	
+6	👝	0	clutch bag pouch	
+6	🛍️	0	shopping bags	
+6	🎒	0	backpack school satchel	
+6	🩴	0	thong sandal	
+6	👞	0	man s shoe mans	
+6	👟	0	running shoe athletic	
+6	🥾	0	hiking boot	
+6	🥿	0	flat shoe	
+6	👠	0	high heeled shoe high-heeled	
+6	👡	0	woman s sandal womans	
+6	🩰	0	ballet shoes	
+6	👢	0	woman s boot womans boots	
+6	🪮	0	hair pick	
+6	👑	0	crown king queen	king:1 queen:1 crown:0
+6	👒	0	woman s hat womans	
+6	🎩	0	top hat	
+6	🎓	0	graduation cap	
+6	🧢	0	billed cap	
+6	🪖	0	military helmet	
+6	⛑️	0	rescue worker s helmet with white cross	
+6	📿	0	prayer beads	
+6	💄	0	lipstick	
+6	💍	0	ring	
+6	💎	0	gem stone	
+6	🔇	0	muted speaker with cancellation stroke	
+6	🔈	0	speaker low volume	
+6	🔉	0	speaker medium volume with one sound wave	
+6	🔊	0	speaker high volume with three sound waves	
+6	📢	0	loudspeaker public address	
+6	📣	0	megaphone cheering	
+6	📯	0	postal horn	
+6	🔔	0	bell	
+6	🔕	0	bell with slash cancellation stroke	
+6	🎼	0	musical score	
+6	🎵	0	musical note music	music:0
+6	🎶	0	musical notes multiple music	music:1
+6	🎙️	0	studio microphone	
+6	🎚️	0	level slider	
+6	🎛️	0	control knobs	
+6	🎤	0	microphone	
+6	🎧	0	headphone	
+6	📻	0	radio	
+6	🎷	0	saxophone	
+6	🎺	0	trumpet	
+6	🪊	0	trombone	
+6	🪗	0	accordion	
+6	🎸	0	guitar	
+6	🎹	0	musical keyboard	
+6	🎻	0	violin	
+6	🪕	0	banjo	
+6	🥁	0	drum with drumsticks	
+6	🪘	0	long drum	
+6	🪇	0	maracas	
+6	🪈	0	flute	
+6	🪉	0	harp	
+6	📱	0	mobile phone	phone:0
+6	📲	0	mobile phone with arrow rightwards at left	
+6	☎️	0	telephone black	
+6	📞	0	telephone receiver	
+6	📟	0	pager	
+6	📠	0	fax machine	
+6	🔋	0	battery	
+6	🪫	0	low battery	
+6	🔌	0	electric plug	
+6	💻	0	laptop personal computer	computer:0 laptop:0
+6	🖥️	0	desktop computer	
+6	🖨️	0	printer	
+6	⌨️	0	keyboard	
+6	🖱️	0	computer mouse three button	
+6	🖲️	0	trackball	
+6	💽	0	computer disk minidisc	
+6	💾	0	floppy disk	
+6	💿	0	optical disk disc	
+6	📀	0	dvd	
+6	🧮	0	abacus	
+6	🎥	0	movie camera video	video:0
+6	🎞️	0	film frames	
+6	📽️	0	film projector	
+6	🎬	0	clapper board	
+6	📺	0	television	
+6	📷	0	camera	camera:0
+6	📸	0	camera with flash	
+6	📹	0	video camera	
+6	📼	0	videocassette	
+6	🔍	0	magnifying glass tilted left left-pointing	
+6	🔎	0	magnifying glass tilted right right-pointing	
+6	🕯️	0	candle	
+6	💡	0	light bulb electric idea	idea:0
+6	🔦	0	flashlight electric torch	
+6	🏮	0	red paper lantern izakaya	
+6	🪔	0	diya lamp	
+6	📔	0	notebook with decorative cover	
+6	📕	0	closed book	
+6	📖	0	open book read	book:0 read:0
+6	📗	0	green book	
+6	📘	0	blue book	
+6	📙	0	orange book	
+6	📚	0	books book study	book:1 study:0
+6	📓	0	notebook	
+6	📒	0	ledger	
+6	📃	0	page with curl	
+6	📜	0	scroll	
+6	📄	0	page facing up	
+6	📰	0	newspaper	
+6	🗞️	0	rolled up newspaper rolled-up	
+6	📑	0	bookmark tabs	
+6	🔖	0	bookmark	
+6	🏷️	0	label	
+6	🪙	0	coin	
+6	💰	0	money bag	money:0
+6	🪎	0	treasure chest	
+6	💴	0	yen banknote with sign	
+6	💵	0	dollar banknote with sign money	money:1
+6	💶	0	euro banknote with sign	
+6	💷	0	pound banknote with sign	
+6	💸	0	money with wings	
+6	💳	0	credit card	
+6	🧾	0	receipt	
+6	💹	0	chart increasing with yen upwards trend and sign	
+6	✉️	0	envelope	
+6	📧	0	e mail e-mail symbol	
+6	📨	0	incoming envelope	
+6	📩	0	envelope with arrow downwards above	
+6	📤	0	outbox tray	
+6	📥	0	inbox tray	
+6	📦	0	package	
+6	📫	0	closed mailbox with raised flag	
+6	📪	0	closed mailbox with lowered flag	
+6	📬	0	open mailbox with raised flag	
+6	📭	0	open mailbox with lowered flag	
+6	📮	0	postbox	
+6	🗳️	0	ballot box with	
+6	✏️	0	pencil	
+6	✒️	0	black nib	
+6	🖋️	0	fountain pen lower left	
+6	🖊️	0	pen lower left ballpoint	
+6	🖌️	0	paintbrush lower left	
+6	🖍️	0	crayon lower left	
+6	📝	0	memo	
+6	🪌	0	eraser	
+6	💼	0	briefcase work office	work:0 office:1
+6	📁	0	file folder	
+6	📂	0	open file folder	
+6	🗂️	0	card index dividers	
+6	📅	0	calendar	
+6	📆	0	tear off calendar tear-off	
+6	🗒️	0	spiral notepad note pad	
+6	🗓️	0	spiral calendar pad	
+6	📇	0	card index	
+6	📈	0	chart increasing with upwards trend	
+6	📉	0	chart decreasing with downwards trend	
+6	📊	0	bar chart	
+6	📋	0	clipboard	
+6	📌	0	pushpin	
+6	📍	0	round pushpin	
+6	📎	0	paperclip	
+6	🖇️	0	linked paperclips	
+6	📏	0	straight ruler	
+6	📐	0	triangular ruler	
+6	✂️	0	scissors black	
+6	🗃️	0	card file box	
+6	🗄️	0	file cabinet	
+6	🗑️	0	wastebasket	
+6	🔒	0	locked lock	
+6	🔓	0	unlocked open lock	
+6	🔏	0	locked with pen lock ink	
+6	🔐	0	locked with key closed lock	
+6	🔑	0	key	
+6	🗝️	0	old key	
+6	🪍	0	net with handle	
+6	🔨	0	hammer	
+6	🪓	0	axe	
+6	⛏️	0	pick	
+6	⚒️	0	hammer and pick	
+6	🛠️	0	hammer and wrench	
+6	🗡️	0	dagger knife	
+6	⚔️	0	crossed swords	
+6	💣	0	bomb	
+6	🪃	0	boomerang	
+6	🏹	0	bow and arrow	
+6	🛡️	0	shield	
+6	🪚	0	carpentry saw	
+6	🔧	0	wrench	
+6	🪛	0	screwdriver	
+6	🔩	0	nut and bolt	
+6	⚙️	0	gear	
+6	🗜️	0	clamp compression	
+6	⚖️	0	balance scale scales	
+6	🦯	0	white cane probing	
+6	🔗	0	link symbol	
+6	⛓️‍💥	0	broken chain chains collision symbol	
+6	⛓️	0	chains	
+6	🪝	0	hook	
+6	🧰	0	toolbox	
+6	🧲	0	magnet	
+6	🪜	0	ladder	
+6	🪏	0	shovel	
+6	⚗️	0	alembic	
+6	🧪	0	test tube	
+6	🧫	0	petri dish	
+6	🧬	0	dna double helix	
+6	🔬	0	microscope	
+6	🔭	0	telescope	
+6	📡	0	satellite antenna	
+6	💉	0	syringe	
+6	🩸	0	drop of blood	
+6	💊	0	pill	
+6	🩹	0	adhesive bandage	
+6	🩼	0	crutch	
+6	🩺	0	stethoscope	
+6	🩻	0	x ray x-ray	
+6	🚪	0	door	
+6	🛗	0	elevator	
+6	🪞	0	mirror	
+6	🪟	0	window	
+6	🛏️	0	bed	
+6	🛋️	0	couch and lamp	
+6	🪑	0	chair	
+6	🚽	0	toilet	
+6	🪠	0	plunger	
+6	🚿	0	shower	
+6	🛁	0	bathtub	
+6	🪤	0	mouse trap	
+6	🪒	0	razor	
+6	🧴	0	lotion bottle	
+6	🧷	0	safety pin	
+6	🧹	0	broom	
+6	🧺	0	basket	
+6	🧻	0	roll of paper	
+6	🪣	0	bucket	
+6	🧼	0	soap bar of	
+6	🫧	0	bubbles	
+6	🪥	0	toothbrush	
+6	🧽	0	sponge	
+6	🧯	0	fire extinguisher	
+6	🛒	0	shopping cart trolley	
+6	🚬	0	cigarette smoking symbol	
+6	⚰️	0	coffin	
+6	🪦	0	headstone	
+6	⚱️	0	funeral urn	
+6	🧿	0	nazar amulet	
+6	🪬	0	hamsa	
+6	🗿	0	moai moyai	
+6	🪧	0	placard	
+6	🪪	0	identification card	
+7	🏧	0	atm sign automated teller machine	
+7	🚮	0	litter in bin sign put its place symbol	
+7	🚰	0	potable water symbol	
+7	♿	0	wheelchair symbol	
+7	🚹	0	men s room mens symbol	
+7	🚺	0	women s room womens symbol	
+7	🚻	0	restroom	
+7	🚼	0	baby symbol	
+7	🚾	0	water closet	
+7	🛂	0	passport control	
+7	🛃	0	customs	
+7	🛄	0	baggage claim	
+7	🛅	0	left luggage	
+7	⚠️	0	warning sign	warning:0
+7	🚸	0	children crossing	
+7	⛔	0	no entry	
+7	🚫	0	prohibited no entry sign	
+7	🚳	0	no bicycles	
+7	🚭	0	no smoking symbol	
+7	🚯	0	no littering do not litter symbol	
+7	🚱	0	non potable water non-potable symbol	
+7	🚷	0	no pedestrians	
+7	📵	0	no mobile phones	
+7	🔞	0	no one under eighteen symbol	
+7	☢️	0	radioactive sign	
+7	☣️	0	biohazard sign	
+7	⬆️	0	up arrow upwards black	
+7	↗️	0	up right arrow north east	
+7	➡️	0	right arrow black rightwards	
+7	↘️	0	down right arrow south east	
+7	⬇️	0	down arrow downwards black	
+7	↙️	0	down left arrow south west	
+7	⬅️	0	left arrow leftwards black	
+7	↖️	0	up left arrow north west	
+7	↕️	0	up down arrow	
+7	↔️	0	left right arrow	
+7	↩️	0	right arrow curving left leftwards with hook	
+7	↪️	0	left arrow curving right rightwards with hook	
+7	⤴️	0	right arrow curving up pointing rightwards then upwards	
+7	⤵️	0	right arrow curving down pointing rightwards then downwards	
+7	🔃	0	clockwise vertical arrows downwards and upwards open circle	
+7	🔄	0	counterclockwise arrows button anticlockwise downwards and upwards open circle	
+7	🔙	0	back arrow with leftwards above	
+7	🔚	0	end arrow with leftwards above	
+7	🔛	0	on arrow with exclamation mark left right above	
+7	🔜	0	soon arrow with rightwards above	
+7	🔝	0	top arrow with upwards above	
+7	🛐	0	place of worship	
+7	⚛️	0	atom symbol	
+7	🕉️	0	om symbol	
+7	✡️	0	star of david	
+7	☸️	0	wheel of dharma	
+7	☯️	0	yin yang	
+7	✝️	0	latin cross	
+7	☦️	0	orthodox cross	
+7	☪️	0	star and crescent	
+7	☮️	0	peace symbol	peace:1
+7	🕎	0	menorah with nine branches	
+7	🔯	0	dotted six pointed star with middle dot	
+7	🪯	0	khanda	
+7	♈	0	aries	
+7	♉	0	taurus	
+7	♊	0	gemini	
+7	♋	0	cancer	
+7	♌	0	leo	
+7	♍	0	virgo	
+7	♎	0	libra	
+7	♏	0	scorpio scorpius	
+7	♐	0	sagittarius	
+7	♑	0	capricorn	
+7	♒	0	aquarius	
+7	♓	0	pisces	
+7	⛎	0	ophiuchus	
+7	🔀	0	shuffle tracks button twisted rightwards arrows	
+7	🔁	0	repeat button clockwise rightwards and leftwards open circle arrows	
+7	🔂	0	repeat single button clockwise rightwards and leftwards open circle arrows with circled one overlay	
+7	▶️	0	play button black right-pointing triangle	
+7	⏩	0	fast forward button black right-pointing double triangle	
+7	⏭️	0	next track button black right-pointing double triangle with vertical bar	
+7	⏯️	0	play or pause button black right-pointing triangle with double vertical bar	
+7	◀️	0	reverse button black left-pointing triangle	
+7	⏪	0	fast reverse button black left-pointing double triangle	
+7	⏮️	0	last track button black left-pointing double triangle with vertical bar	
+7	🔼	0	upwards button up-pointing small red triangle	
+7	⏫	0	fast up button black up-pointing double triangle	
+7	🔽	0	downwards button down-pointing small red triangle	
+7	⏬	0	fast down button black down-pointing double triangle	
+7	⏸️	0	pause button double vertical bar	
+7	⏹️	0	stop button black square for	
+7	⏺️	0	record button black circle for	
+7	⏏️	0	eject button symbol	
+7	🎦	0	cinema	
+7	🔅	0	dim button low brightness symbol	
+7	🔆	0	bright button high brightness symbol	
+7	📶	0	antenna bars with	
+7	🛜	0	wireless	
+7	📳	0	vibration mode	
+7	📴	0	mobile phone off	
+7	♀️	0	female sign	
+7	♂️	0	male sign	
+7	⚧️	0	transgender symbol male with stroke and female sign	
+7	✖️	0	multiply heavy multiplication x	
+7	➕	0	plus heavy sign	
+7	➖	0	minus heavy sign	
+7	➗	0	divide heavy division sign	
+7	🟰	0	heavy equals sign	
+7	♾️	0	infinity permanent paper sign	
+7	‼️	0	double exclamation mark	
+7	⁉️	0	exclamation question mark	
+7	❓	0	red question mark black ornament	question:0
+7	❔	0	white question mark ornament	
+7	❕	0	white exclamation mark ornament	
+7	❗	0	red exclamation mark heavy symbol	
+7	〰️	0	wavy dash	
+7	💱	0	currency exchange	
+7	💲	0	heavy dollar sign	
+7	⚕️	0	medical symbol staff of aesculapius	
+7	♻️	0	recycling symbol black universal	
+7	⚜️	0	fleur de lis fleur-de-lis	
+7	🔱	0	trident emblem	
+7	📛	0	name badge	
+7	🔰	0	japanese symbol for beginner	
+7	⭕	0	hollow red circle heavy large	
+7	✅	0	check mark button white heavy done tick yes	yes:1 check:0
+7	☑️	0	check box with ballot	
+7	✔️	0	check mark heavy	check:1
+7	❌	0	cross mark no wrong	no:1 cross:0
+7	❎	0	cross mark button negative squared	
+7	➰	0	curly loop	
+7	➿	0	double curly loop	
+7	〽️	0	part alternation mark	
+7	✳️	0	eight spoked asterisk	
+7	✴️	0	eight pointed star black	
+7	❇️	0	sparkle	
+7	©️	0	copyright sign	
+7	®️	0	registered sign	
+7	™️	0	trade mark sign	
+7	🫟	0	splatter	
+7	#️⃣	0	keycap # number sign	
+7	*️⃣	0	keycap * asterisk	
+7	0️⃣	0	keycap 0 digit zero	
+7	1️⃣	0	keycap 1 digit one	
+7	2️⃣	0	keycap 2 digit two	
+7	3️⃣	0	keycap 3 digit three	
+7	4️⃣	0	keycap 4 digit four	
+7	5️⃣	0	keycap 5 digit five	
+7	6️⃣	0	keycap 6 digit six	
+7	7️⃣	0	keycap 7 digit seven	
+7	8️⃣	0	keycap 8 digit eight	
+7	9️⃣	0	keycap 9 digit nine	
+7	🔟	0	keycap 10 ten	
+7	🔠	0	input latin uppercase symbol for capital letters	
+7	🔡	0	input latin lowercase symbol for small letters	
+7	🔢	0	input numbers symbol for	
+7	🔣	0	input symbols symbol for	
+7	🔤	0	input latin letters symbol for	
+7	🅰️	0	a button blood type negative squared latin capital letter	
+7	🆎	0	ab button blood type negative squared	
+7	🅱️	0	b button blood type negative squared latin capital letter	
+7	🆑	0	cl button squared	
+7	🆒	0	cool button squared	cool:1
+7	🆓	0	free button squared	
+7	ℹ️	0	information source	
+7	🆔	0	id button squared	
+7	Ⓜ️	0	circled m latin capital letter	
+7	🆕	0	new button squared	
+7	🆖	0	ng button squared	
+7	🅾️	0	o button blood type negative squared latin capital letter	
+7	🆗	0	ok button squared	
+7	🅿️	0	p button negative squared latin capital letter	
+7	🆘	0	sos button squared	
+7	🆙	0	up button squared with exclamation mark	
+7	🆚	0	vs button squared	
+7	🈁	0	japanese here button squared katakana koko	
+7	🈂️	0	japanese service charge button squared katakana sa	
+7	🈷️	0	japanese monthly amount button squared cjk unified ideograph-6708	
+7	🈶	0	japanese not free of charge button squared cjk unified ideograph-6709	
+7	🈯	0	japanese reserved button squared cjk unified ideograph-6307	
+7	🉐	0	japanese bargain button circled ideograph advantage	
+7	🈹	0	japanese discount button squared cjk unified ideograph-5272	
+7	🈚	0	japanese free of charge button squared cjk unified ideograph-7121	
+7	🈲	0	japanese prohibited button squared cjk unified ideograph-7981	
+7	🉑	0	japanese acceptable button circled ideograph accept	
+7	🈸	0	japanese application button squared cjk unified ideograph-7533	
+7	🈴	0	japanese passing grade button squared cjk unified ideograph-5408	
+7	🈳	0	japanese vacancy button squared cjk unified ideograph-7a7a	
+7	㊗️	0	japanese congratulations button circled ideograph congratulation	
+7	㊙️	0	japanese secret button circled ideograph	
+7	🈺	0	japanese open for business button squared cjk unified ideograph-55b6	
+7	🈵	0	japanese no vacancy button squared cjk unified ideograph-6e80	
+7	🔴	0	red circle large	
+7	🟠	0	orange circle large	
+7	🟡	0	yellow circle large	
+7	🟢	0	green circle large	
+7	🔵	0	blue circle large	
+7	🟣	0	purple circle large	
+7	🟤	0	brown circle large	
+7	⚫	0	black circle medium	
+7	⚪	0	white circle medium	
+7	🟥	0	red square large	
+7	🟧	0	orange square large	
+7	🟨	0	yellow square large	
+7	🟩	0	green square large	
+7	🟦	0	blue square large	
+7	🟪	0	purple square large	
+7	🟫	0	brown square large	
+7	⬛	0	black large square	
+7	⬜	0	white large square	
+7	◼️	0	black medium square	
+7	◻️	0	white medium square	
+7	◾	0	black medium small square	
+7	◽	0	white medium small square	
+7	▪️	0	black small square	
+7	▫️	0	white small square	
+7	🔶	0	large orange diamond	
+7	🔷	0	large blue diamond	
+7	🔸	0	small orange diamond	
+7	🔹	0	small blue diamond	
+7	🔺	0	red triangle pointed up up-pointing	
+7	🔻	0	red triangle pointed down down-pointing	
+7	💠	0	diamond with a dot shape inside	
+7	🔘	0	radio button	
+7	🔳	0	white square button	
+7	🔲	0	black square button	
+8	🏁	0	chequered flag	
+8	🚩	0	triangular flag on post	
+8	🎌	0	crossed flags	
+8	🏴	0	black flag waving	
+8	🏳️	0	white flag waving	
+8	🏳️‍🌈	0	rainbow flag waving white	
+8	🏳️‍⚧️	0	transgender flag waving white male with stroke and female sign	
+8	🏴‍☠️	0	pirate flag waving black skull and crossbones	
+8	🇦🇨	0	flag ascension island	
+8	🇦🇩	0	flag andorra	
+8	🇦🇪	0	flag united arab emirates	
+8	🇦🇫	0	flag afghanistan	
+8	🇦🇬	0	flag antigua barbuda	
+8	🇦🇮	0	flag anguilla	
+8	🇦🇱	0	flag albania	
+8	🇦🇲	0	flag armenia	
+8	🇦🇴	0	flag angola	
+8	🇦🇶	0	flag antarctica	
+8	🇦🇷	0	flag argentina	
+8	🇦🇸	0	flag american samoa	
+8	🇦🇹	0	flag austria	
+8	🇦🇺	0	flag australia	
+8	🇦🇼	0	flag aruba	
+8	🇦🇽	0	flag åland islands	
+8	🇦🇿	0	flag azerbaijan	
+8	🇧🇦	0	flag bosnia herzegovina	
+8	🇧🇧	0	flag barbados	
+8	🇧🇩	0	flag bangladesh	bangladesh:0
+8	🇧🇪	0	flag belgium	
+8	🇧🇫	0	flag burkina faso	
+8	🇧🇬	0	flag bulgaria	
+8	🇧🇭	0	flag bahrain	
+8	🇧🇮	0	flag burundi	
+8	🇧🇯	0	flag benin	
+8	🇧🇱	0	flag st barthélemy	
+8	🇧🇲	0	flag bermuda	
+8	🇧🇳	0	flag brunei	
+8	🇧🇴	0	flag bolivia	
+8	🇧🇶	0	flag caribbean netherlands	
+8	🇧🇷	0	flag brazil	
+8	🇧🇸	0	flag bahamas	
+8	🇧🇹	0	flag bhutan	
+8	🇧🇻	0	flag bouvet island	
+8	🇧🇼	0	flag botswana	
+8	🇧🇾	0	flag belarus	
+8	🇧🇿	0	flag belize	
+8	🇨🇦	0	flag canada	
+8	🇨🇨	0	flag cocos keeling islands	
+8	🇨🇩	0	flag congo kinshasa	
+8	🇨🇫	0	flag central african republic	
+8	🇨🇬	0	flag congo brazzaville	
+8	🇨🇭	0	flag switzerland	
+8	🇨🇮	0	flag côte d ivoire	
+8	🇨🇰	0	flag cook islands	
+8	🇨🇱	0	flag chile	
+8	🇨🇲	0	flag cameroon	
+8	🇨🇳	0	flag china	
+8	🇨🇴	0	flag colombia	
+8	🇨🇵	0	flag clipperton island	
+8	🇨🇶	0	flag sark	
+8	🇨🇷	0	flag costa rica	
+8	🇨🇺	0	flag cuba	
+8	🇨🇻	0	flag cape verde	
+8	🇨🇼	0	flag curaçao	
+8	🇨🇽	0	flag christmas island	
+8	🇨🇾	0	flag cyprus	
+8	🇨🇿	0	flag czechia	
+8	🇩🇪	0	flag germany	
+8	🇩🇬	0	flag diego garcia	
+8	🇩🇯	0	flag djibouti	
+8	🇩🇰	0	flag denmark	
+8	🇩🇲	0	flag dominica	
+8	🇩🇴	0	flag dominican republic	
+8	🇩🇿	0	flag algeria	
+8	🇪🇦	0	flag ceuta melilla	
+8	🇪🇨	0	flag ecuador	
+8	🇪🇪	0	flag estonia	
+8	🇪🇬	0	flag egypt	
+8	🇪🇭	0	flag western sahara	
+8	🇪🇷	0	flag eritrea	
+8	🇪🇸	0	flag spain	
+8	🇪🇹	0	flag ethiopia	
+8	🇪🇺	0	flag european union	
+8	🇫🇮	0	flag finland	
+8	🇫🇯	0	flag fiji	
+8	🇫🇰	0	flag falkland islands	
+8	🇫🇲	0	flag micronesia	
+8	🇫🇴	0	flag faroe islands	
+8	🇫🇷	0	flag france	
+8	🇬🇦	0	flag gabon	
+8	🇬🇧	0	flag united kingdom uk	uk:0
+8	🇬🇩	0	flag grenada	
+8	🇬🇪	0	flag georgia	
+8	🇬🇫	0	flag french guiana	
+8	🇬🇬	0	flag guernsey	
+8	🇬🇭	0	flag ghana	
+8	🇬🇮	0	flag gibraltar	
+8	🇬🇱	0	flag greenland	
+8	🇬🇲	0	flag gambia	
+8	🇬🇳	0	flag guinea	
+8	🇬🇵	0	flag guadeloupe	
+8	🇬🇶	0	flag equatorial guinea	
+8	🇬🇷	0	flag greece	
+8	🇬🇸	0	flag south georgia sandwich islands	
+8	🇬🇹	0	flag guatemala	
+8	🇬🇺	0	flag guam	
+8	🇬🇼	0	flag guinea bissau	
+8	🇬🇾	0	flag guyana	
+8	🇭🇰	0	flag hong kong sar china	
+8	🇭🇲	0	flag heard island mcdonald islands	
+8	🇭🇳	0	flag honduras	
+8	🇭🇷	0	flag croatia	
+8	🇭🇹	0	flag haiti	
+8	🇭🇺	0	flag hungary	
+8	🇮🇨	0	flag canary islands	
+8	🇮🇩	0	flag indonesia	
+8	🇮🇪	0	flag ireland	
+8	🇮🇱	0	flag israel	
+8	🇮🇲	0	flag isle of man	
+8	🇮🇳	0	flag india	india:0
+8	🇮🇴	0	flag british indian ocean territory	
+8	🇮🇶	0	flag iraq	
+8	🇮🇷	0	flag iran	
+8	🇮🇸	0	flag iceland	
+8	🇮🇹	0	flag italy	
+8	🇯🇪	0	flag jersey	
+8	🇯🇲	0	flag jamaica	
+8	🇯🇴	0	flag jordan	
+8	🇯🇵	0	flag japan	
+8	🇰🇪	0	flag kenya	
+8	🇰🇬	0	flag kyrgyzstan	
+8	🇰🇭	0	flag cambodia	
+8	🇰🇮	0	flag kiribati	
+8	🇰🇲	0	flag comoros	
+8	🇰🇳	0	flag st kitts nevis	
+8	🇰🇵	0	flag north korea	
+8	🇰🇷	0	flag south korea	
+8	🇰🇼	0	flag kuwait	
+8	🇰🇾	0	flag cayman islands	
+8	🇰🇿	0	flag kazakhstan	
+8	🇱🇦	0	flag laos	
+8	🇱🇧	0	flag lebanon	
+8	🇱🇨	0	flag st lucia	
+8	🇱🇮	0	flag liechtenstein	
+8	🇱🇰	0	flag sri lanka	
+8	🇱🇷	0	flag liberia	
+8	🇱🇸	0	flag lesotho	
+8	🇱🇹	0	flag lithuania	
+8	🇱🇺	0	flag luxembourg	
+8	🇱🇻	0	flag latvia	
+8	🇱🇾	0	flag libya	
+8	🇲🇦	0	flag morocco	
+8	🇲🇨	0	flag monaco	
+8	🇲🇩	0	flag moldova	
+8	🇲🇪	0	flag montenegro	
+8	🇲🇫	0	flag st martin	
+8	🇲🇬	0	flag madagascar	
+8	🇲🇭	0	flag marshall islands	
+8	🇲🇰	0	flag north macedonia	
+8	🇲🇱	0	flag mali	
+8	🇲🇲	0	flag myanmar burma	
+8	🇲🇳	0	flag mongolia	
+8	🇲🇴	0	flag macao sar china	
+8	🇲🇵	0	flag northern mariana islands	
+8	🇲🇶	0	flag martinique	
+8	🇲🇷	0	flag mauritania	
+8	🇲🇸	0	flag montserrat	
+8	🇲🇹	0	flag malta	
+8	🇲🇺	0	flag mauritius	
+8	🇲🇻	0	flag maldives	
+8	🇲🇼	0	flag malawi	
+8	🇲🇽	0	flag mexico	
+8	🇲🇾	0	flag malaysia	
+8	🇲🇿	0	flag mozambique	
+8	🇳🇦	0	flag namibia	
+8	🇳🇨	0	flag new caledonia	
+8	🇳🇪	0	flag niger	
+8	🇳🇫	0	flag norfolk island	
+8	🇳🇬	0	flag nigeria	
+8	🇳🇮	0	flag nicaragua	
+8	🇳🇱	0	flag netherlands	
+8	🇳🇴	0	flag norway	
+8	🇳🇵	0	flag nepal	
+8	🇳🇷	0	flag nauru	
+8	🇳🇺	0	flag niue	
+8	🇳🇿	0	flag new zealand	
+8	🇴🇲	0	flag oman	
+8	🇵🇦	0	flag panama	
+8	🇵🇪	0	flag peru	
+8	🇵🇫	0	flag french polynesia	
+8	🇵🇬	0	flag papua new guinea	
+8	🇵🇭	0	flag philippines	
+8	🇵🇰	0	flag pakistan	pakistan:0
+8	🇵🇱	0	flag poland	
+8	🇵🇲	0	flag st pierre miquelon	
+8	🇵🇳	0	flag pitcairn islands	
+8	🇵🇷	0	flag puerto rico	
+8	🇵🇸	0	flag palestinian territories	
+8	🇵🇹	0	flag portugal	
+8	🇵🇼	0	flag palau	
+8	🇵🇾	0	flag paraguay	
+8	🇶🇦	0	flag qatar	
+8	🇷🇪	0	flag réunion	
+8	🇷🇴	0	flag romania	
+8	🇷🇸	0	flag serbia	
+8	🇷🇺	0	flag russia	
+8	🇷🇼	0	flag rwanda	
+8	🇸🇦	0	flag saudi arabia	
+8	🇸🇧	0	flag solomon islands	
+8	🇸🇨	0	flag seychelles	
+8	🇸🇩	0	flag sudan	
+8	🇸🇪	0	flag sweden	
+8	🇸🇬	0	flag singapore	
+8	🇸🇭	0	flag st helena ascension tristan da cunha	
+8	🇸🇮	0	flag slovenia	
+8	🇸🇯	0	flag svalbard jan mayen	
+8	🇸🇰	0	flag slovakia	
+8	🇸🇱	0	flag sierra leone	
+8	🇸🇲	0	flag san marino	
+8	🇸🇳	0	flag senegal	
+8	🇸🇴	0	flag somalia	
+8	🇸🇷	0	flag suriname	
+8	🇸🇸	0	flag south sudan	
+8	🇸🇹	0	flag são tomé príncipe	
+8	🇸🇻	0	flag el salvador	
+8	🇸🇽	0	flag sint maarten	
+8	🇸🇾	0	flag syria	
+8	🇸🇿	0	flag eswatini	
+8	🇹🇦	0	flag tristan da cunha	
+8	🇹🇨	0	flag turks caicos islands	
+8	🇹🇩	0	flag chad	
+8	🇹🇫	0	flag french southern and antarctic lands	
+8	🇹🇬	0	flag togo	
+8	🇹🇭	0	flag thailand	
+8	🇹🇯	0	flag tajikistan	
+8	🇹🇰	0	flag tokelau	
+8	🇹🇱	0	flag timor leste	
+8	🇹🇲	0	flag turkmenistan	
+8	🇹🇳	0	flag tunisia	
+8	🇹🇴	0	flag tonga	
+8	🇹🇷	0	flag türkiye	
+8	🇹🇹	0	flag trinidad tobago	
+8	🇹🇻	0	flag tuvalu	
+8	🇹🇼	0	flag taiwan	
+8	🇹🇿	0	flag tanzania	
+8	🇺🇦	0	flag ukraine	
+8	🇺🇬	0	flag uganda	
+8	🇺🇲	0	flag u s outlying islands	
+8	🇺🇳	0	flag united nations	
+8	🇺🇸	0	flag united states usa	usa:0
+8	🇺🇾	0	flag uruguay	
+8	🇺🇿	0	flag uzbekistan	
+8	🇻🇦	0	flag vatican city	
+8	🇻🇨	0	flag st vincent grenadines	
+8	🇻🇪	0	flag venezuela	
+8	🇻🇬	0	flag british virgin islands	
+8	🇻🇮	0	flag u s virgin islands	
+8	🇻🇳	0	flag vietnam	
+8	🇻🇺	0	flag vanuatu	
+8	🇼🇫	0	flag wallis futuna	
+8	🇼🇸	0	flag samoa	
+8	🇽🇰	0	flag kosovo	
+8	🇾🇪	0	flag yemen	
+8	🇾🇹	0	flag mayotte	
+8	🇿🇦	0	flag south africa	
+8	🇿🇲	0	flag zambia	
+8	🇿🇼	0	flag zimbabwe	
+8	🏴󠁧󠁢󠁥󠁮󠁧󠁿	0	flag england waving black	
+8	🏴󠁧󠁢󠁳󠁣󠁴󠁿	0	flag scotland waving black	
+8	🏴󠁧󠁢󠁷󠁬󠁳󠁿	0	flag wales waving black	

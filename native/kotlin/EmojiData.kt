@@ -6,7 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import java.util.Locale
 
-class EmojiItem(val s: String, val group: Int, val mod: Boolean, val kw: String)
+class EmojiItem(val s: String, val group: Int, val mod: Boolean, val kw: String, val pri: Map<String, Int> = emptyMap())
 
 /** Full RGI emoji set (assets/emoji/emoji.txt) filtered to what this device can actually draw. */
 object EmojiData {
@@ -14,6 +14,7 @@ object EmojiData {
     val GROUP_ICONS = listOf("emoji", "person", "paw", "restaurant", "car", "trophy", "bulb", "tag", "flag")
 
     @Volatile var items: List<EmojiItem> = emptyList()
+    @Volatile private var index: Map<String, List<EmojiItem>> = emptyMap()
     @Volatile private var toneSet: Set<String> = emptySet()
     @Volatile private var loading = false
     private val waiting = ArrayList<() -> Unit>()
@@ -42,11 +43,16 @@ object EmojiData {
                             val code = "" + ('A' + (cps[0] - 0x1F1E6)) + ('A' + (cps[1] - 0x1F1E6))
                             kw = "flag " + Locale("", code).getDisplayCountry(Locale.ENGLISH).lowercase() + " " + code.lowercase()
                         }
-                        out.add(EmojiItem(s, p[0].toInt(), p[2] == "1", kw))
+                        val pri = HashMap<String, Int>()
+                        p.getOrNull(4)?.split(' ')?.forEach { t -> val i = t.lastIndexOf(':'); if (i > 0) pri[t.substring(0, i)] = t.substring(i + 1).toIntOrNull() ?: 9 }
+                        out.add(EmojiItem(s, p[0].toInt(), p[2] == "1", kw, pri))
                     }
                 }
             } catch (e: Exception) { DevLog.e(app, "Emoji", "emoji.txt failed to load", e) }
             toneSet = out.filter { it.mod }.map { it.s }.toHashSet()
+            val idx = HashMap<String, ArrayList<EmojiItem>>()
+            for (it in out) for (t in it.kw.split(' ').toSet()) if (t.length >= 2) idx.getOrPut(t) { ArrayList() }.add(it)
+            index = idx
             items = out
             main.post {
                 loading = false
@@ -88,5 +94,18 @@ object EmojiData {
             if (ok) scored.add(it to score)
         }
         return scored.sortedByDescending { it.second }.take(limit).map { it.first.s }
+    }
+
+    /** Emoji to offer next to a typed/finished word ("heart" -> ❤️, "demon" -> 😈 👿). Curated picks first, then keyword hits. */
+    fun forWord(word: String, n: Int = 2): List<String> {
+        var w = word.lowercase().trim()
+        if (w.length < 2 || index.isEmpty()) return emptyList()
+        if (index[w] == null && w.endsWith("s")) w = w.dropLast(1)
+        val hits = index[w] ?: return emptyList()
+        val out = LinkedHashSet<String>()
+        hits.filter { it.pri.containsKey(w) }.sortedBy { it.pri[w] }.forEach { out.add(it.s) }
+        if (out.size < n) hits.filter { it.group != 8 && !it.pri.containsKey(w) }
+            .sortedBy { it.kw.count { c -> c == ' ' } }.forEach { out.add(it.s) }
+        return out.take(n)
     }
 }

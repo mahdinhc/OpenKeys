@@ -5,6 +5,7 @@ import org.json.JSONObject
 /**
  * Generic roman -> Unicode converter for Indic-style scripts. Rules (JSON):
  *  consonants: {"k":"ক"}            vowels: {"a":["আ","া"]}  [independent, dependent sign]
+ *  keepMarks: {"Z":"্য"}  (inserted like a mark but a following vowel still becomes a sign: "oZa" = অ্যা)
  *  marks: {"ng":"ং"}                 joiner: "`"  (consonant + joiner => virama, builds conjuncts)
  *  virama: "্"                        autoDouble: true  ("kk" => ক্ক)
  * Longest match wins. Unknown upper-case letters fall back to their lower-case rule.
@@ -25,6 +26,7 @@ class Transliterator(rules: JSONObject) {
             o.keys().forEach { k -> val a = o.getJSONArray(k); put(k, E(1, a.getString(0), a.getString(1))) }
         }
         rules.optJSONObject("marks")?.let { o -> o.keys().forEach { k -> put(k, E(2, o.getString(k), "")) } }
+        rules.optJSONObject("keepMarks")?.let { o -> o.keys().forEach { k -> put(k, E(3, o.getString(k), "")) } }
         if (rules.optBoolean("autoDouble", true)) {
             map.filter { it.value.kind == 0 && it.key.length == 1 }.forEach { (k, e) ->
                 if (!map.containsKey(k + k)) put(k + k, E(0, e.a + virama + e.a, ""))
@@ -62,6 +64,7 @@ class Transliterator(rules: JSONObject) {
             when (e.kind) {
                 0 -> { sb.append(e.a); prevCons = true }
                 1 -> { sb.append(if (prevCons) e.b else e.a); prevCons = false }
+                3 -> { sb.append(e.a); prevCons = true }
                 else -> { sb.append(e.a); prevCons = false }
             }
             i += len

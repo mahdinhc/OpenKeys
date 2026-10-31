@@ -32,6 +32,7 @@ export default function Typing({cfg, update}: any) {
         <Toggle label="Auto-capitalize" value={cfg.autoCap} onChange={T('autoCap')} />
         <Toggle label="Double-space for period" value={cfg.doubleSpacePeriod} onChange={T('doubleSpacePeriod')} />
         <Toggle label="Swipe typing" hint="Glide across letters (English)" value={cfg.swipeTyping} onChange={T('swipeTyping')} />
+        <Toggle label="Emoji suggestions" hint="Suggest emoji in the bar (heart → ❤️)" value={cfg.emojiSuggest} onChange={T('emojiSuggest')} />
         <Toggle label="Learn new words" value={cfg.learnWords} onChange={T('learnWords')} />
         <Btn kind="ghost" title="Clear learned words" onPress={() => Native.clearUserDictionary().then(() => Alert.alert('Done', 'Learned words cleared.'))} />
       </Card>

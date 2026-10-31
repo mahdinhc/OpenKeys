@@ -6,7 +6,7 @@ export type Config = {
   showHints: boolean; popupPreview: boolean;
   haptic: boolean; hapticMs: number; sound: boolean; longPressMs: number;
   suggestions: boolean; autocorrect: boolean; autoCap: boolean; doubleSpacePeriod: boolean;
-  numberRow: boolean; swipeTyping: boolean; learnWords: boolean;
+  numberRow: boolean; swipeTyping: boolean; learnWords: boolean; emojiSuggest: boolean;
   fontFamily: string; fontBold: boolean; customFontName: string;
   emojiCols: number; emojiSize: number; emojiHeaders: boolean; emojiRecents: boolean; emojiHidden: string[];
   devMode: boolean; devLog: boolean; devDebugLog: boolean;
@@ -28,7 +28,7 @@ export const DEFAULTS: Config = {
   showHints: true, popupPreview: true,
   haptic: true, hapticMs: 12, sound: false, longPressMs: 350,
   suggestions: true, autocorrect: true, autoCap: true, doubleSpacePeriod: true,
-  numberRow: true, swipeTyping: true, learnWords: true,
+  numberRow: true, swipeTyping: true, learnWords: true, emojiSuggest: true,
   fontFamily: 'default', fontBold: false, customFontName: '',
   emojiCols: 8, emojiSize: 100, emojiHeaders: true, emojiRecents: true, emojiHidden: [],
   devMode: false, devLog: false, devDebugLog: false,

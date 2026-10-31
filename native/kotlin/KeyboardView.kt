@@ -19,6 +19,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import kotlin.math.abs
+import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 
@@ -30,7 +31,7 @@ class KeyboardView(ctx: Context) : View(ctx) {
         fun onSpecial(type: String)
         fun onDelete()
         fun onCursorMove(steps: Int)
-        fun onSwipe(path: String, shifted: Boolean)
+        fun onSwipe(input: SwipeInput, shifted: Boolean)
         fun onLayerChange(name: String)
         fun onSelectLayout(index: Int)
         fun onKey(keyCode: Int, meta: Int)
@@ -50,6 +51,8 @@ class KeyboardView(ctx: Context) : View(ctx) {
         var lastCx = dx
         var swiping = false
         val path = StringBuilder()
+        val pts = ArrayList<Float>()
+        var trailLen = 0f
         val trail = Path().also { it.moveTo(dx, dy) }
         var lp: Runnable? = null
         var rep: Runnable? = null
@@ -282,7 +285,11 @@ class KeyboardView(ctx: Context) : View(ctx) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
                 val i = e.actionIndex; down(e.getPointerId(i), e.getX(i), e.getY(i))
             }
-            MotionEvent.ACTION_MOVE -> for (i in 0 until e.pointerCount) move(e.getPointerId(i), e.getX(i), e.getY(i))
+            MotionEvent.ACTION_MOVE -> for (i in 0 until e.pointerCount) {
+                val id = e.getPointerId(i)
+                for (h in 0 until e.historySize) move(id, e.getHistoricalX(i, h), e.getHistoricalY(i, h))
+                move(id, e.getX(i), e.getY(i))
+            }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
                 val i = e.actionIndex; up(e.getPointerId(i), e.getX(i), e.getY(i))
             }
@@ -312,6 +319,7 @@ class KeyboardView(ctx: Context) : View(ctx) {
         val k = cell.key
         feedback()
         if (k.type == "char" && k.output.isNotEmpty()) p.path.append(k.output.lowercase())
+        p.pts.add(x); p.pts.add(y)
         if (k.type == "key") {
             fireSpec(k.param ?: "")
             if (repeatable(k.param ?: "")) {
@@ -409,19 +417,48 @@ class KeyboardView(ctx: Context) : View(ctx) {
         }
         if (abs(x - p.dx) > slop || abs(y - p.dy) > slop) {
             if (!p.moved) { p.moved = true; p.lp?.let { handler.removeCallbacks(it) } }
-            val swipeable = swipeOn && layout?.swipe == true && layerName == "base" && k.type == "char"
-            if (swipeable) {
-                val c = hit(x, y)
-                if (c != null && c.key.type == "char" && c.key.output.length == 1 && c.key.output[0].isLetter()) {
-                    val ch = c.key.output.lowercase()
-                    if (p.path.isEmpty() || p.path.last().toString() != ch) p.path.append(ch)
-                }
-                if (p.path.length >= 3) p.swiping = true
-                if (p.swiping) { p.trail.lineTo(x, y); invalidate() }
+        }
+        val swipeable = p.moved && swipeOn && layout?.swipe == true && layerName == "base" && k.type == "char"
+        if (swipeable) {
+            // Sample the whole finger path (not just the key under each event): fast swipes skip keys between events.
+            val n = p.pts.size
+            val lx = p.pts[n - 2]; val ly = p.pts[n - 1]
+            val dist = hypot(x - lx, y - ly)
+            val step = max(4f, context.dpf(6f))
+            val steps = max(1, (dist / step).toInt())
+            for (i in 1..steps) {
+                val sx = lx + (x - lx) * i / steps; val sy = ly + (y - ly) * i / steps
+                val c = hitLetter(sx, sy)
+                if (c != null) { val ch = c.key.output.lowercase(); if (p.path.isEmpty() || p.path.last().toString() != ch) p.path.append(ch) }
             }
+            p.pts.add(x); p.pts.add(y)
+            p.trailLen += dist
+            p.trail.lineTo(x, y)
+            if (!p.swiping && p.path.length >= 3 && p.trailLen > keyWidth() * 1.8f) p.swiping = true
+            if (p.swiping) invalidate()
         }
         if (p.swiping) return
         invalidate()
+    }
+
+    /** Letter key strictly under the point (no snapping to the nearest key). */
+    private fun hitLetter(x: Float, y: Float): Cell? {
+        for (c in cells) {
+            if (c.key.type == "char" && c.key.output.length == 1 && c.key.output[0].isLetter() && c.rect.contains(x, y)) return c
+        }
+        return null
+    }
+
+    private fun letterCenters(): Map<Char, FloatArray> {
+        val m = HashMap<Char, FloatArray>()
+        for (c in cells) if (c.key.type == "char" && c.key.output.length == 1 && c.key.output[0].isLetter())
+            m[c.key.output.lowercase()[0]] = floatArrayOf(c.rect.centerX(), c.rect.centerY())
+        return m
+    }
+
+    private fun keyWidth(): Float {
+        val l = cells.filter { it.key.type == "char" && it.key.output.length == 1 && it.key.output[0].isLetter() }
+        return if (l.isEmpty()) context.dpf(36f) else l.map { it.rect.width() }.average().toFloat()
     }
 
     // ---- desktop-style modifiers and key events
@@ -492,7 +529,11 @@ class KeyboardView(ctx: Context) : View(ctx) {
                 else alts.getOrNull(p.altSel)?.let { afterChar(); listener?.onText(it, layerName == "base") }
                 return
             }
-            if (p.swiping) { val s = shiftState > 0; afterChar(); listener?.onSwipe(p.path.toString(), s); return }
+            if (p.swiping) {
+                val s = shiftState > 0; afterChar()
+                p.pts.add(x); p.pts.add(y)
+                listener?.onSwipe(SwipeInput(p.pts.toFloatArray(), letterCenters(), keyWidth()), s); return
+            }
             if (p.cursorMode) return
             val cell = p.cell ?: return
             if (p.longFired) return

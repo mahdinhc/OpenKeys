@@ -123,7 +123,7 @@ class LayoutDef(val raw: JSONObject) {
 }
 
 class LayoutRepo(private val ctx: Context) {
-    companion object { val BUILTIN = listOf("en_qwerty", "en_desktop", "bn_phonetic", "bn_bijoy", "numeric") }
+    companion object { val BUILTIN = listOf("en_qwerty", "en_desktop", "bn_phonetic", "bn_bijoy", "bn_probhat", "bn_jatiya", "numeric") }
 
     private val cache = HashMap<String, LayoutDef>()
     private val dir: File get() = File(ctx.filesDir, "layouts").also { it.mkdirs() }

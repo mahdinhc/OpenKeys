@@ -43,3 +43,11 @@ Tap the version number on **Setup** 10 times to show the **Developer** tab. It h
   contains typed text. Turn it on *before* reproducing a crash, reopen the keyboard, then press *Refresh*.
   Also visible with `adb logcat -s OpenKeys*`.
 * **Key logs** - the password-protected, encrypted typing log (date/hour organised, export/import).
+
+
+## Bangla (from Avro Keyboard + BengaliDictionary)
+- 180k-word Bangla dictionary with frequencies; sound-alike matching (ই/ঈ, ন/ণ, শ/ষ/স, ত/ট, hasanta-optional…) so `prem` suggests প্রেম
+- Avro autocorrect: 2,200 loanwords typed in roman convert correctly (`academy` → অ্যাকাডেমি)
+- Suffix handling (Avro suffix table) and Avro phonetic extras: `Z` (্য), `x`, `rr`, `oo`, `ee`
+- New fixed layouts: Probhat, Jatiya (National)
+- Regenerate data with the scripts in /scripts if you change the source dictionaries
