@@ -44,6 +44,14 @@ export default function Typing({cfg, update}: any) {
         <Stepper label="Long-press delay" value={cfg.longPressMs} min={150} max={700} step={50} unit="ms" onChange={(v: number) => update({longPressMs: v})} />
       </Card>
 
+      <Card title="Number row long-press">
+        <Text style={{color: C.sub, marginBottom: 6}}>Characters shown when you hold a digit. Separate with spaces (up to 9).</Text>
+        {['1','2','3','4','5','6','7','8','9','0'].map(d => (
+          <Field key={d} label={`Hold ${d}`} value={(cfg.numberAlts || {})[d] ?? ''}
+            onChangeText={(v: string) => update({numberAlts: {...(cfg.numberAlts || {}), [d]: v}})} placeholder="¹ ½ ⅓" />
+        ))}
+      </Card>
+
       <Card title="Text shortcuts">
         {Object.entries(cfg.shortcuts || {}).map(([k, v]: any) => (
           <View key={k} style={{flexDirection: 'row', alignItems: 'center', paddingVertical: 4}}>

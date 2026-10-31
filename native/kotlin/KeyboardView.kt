@@ -71,6 +71,7 @@ class KeyboardView(ctx: Context) : View(ctx) {
     var showHints = true; var popupPreview = true; var swipeOn = true
     var hapticOn = true; var hapticMs = 12; var soundOn = false; var longPressMs = 350
     var numberRow = true; var oneHanded = "off"
+    var numAlts: Map<String, List<String>> = emptyMap()   // digit -> long-press alternatives (customisable in settings)
     var typeface: Typeface? = null
         set(v) { field = v; txt.typeface = v ?: Typeface.DEFAULT; invalidate() }
 
@@ -89,6 +90,15 @@ class KeyboardView(ctx: Context) : View(ctx) {
 
     private fun rowH() = context.dpf(56f) * heightScale / 100f * (layout?.rowScale ?: 1f)
     private fun pad() = context.dpf(6f)
+    private fun withNumAlts(k: KeyDef): KeyDef {
+        if (k.type != "char" || k.output.length != 1) return k
+        val ch = k.output[0]
+        val d = when (ch) { in '0'..'9' -> ch; in '\u09E6'..'\u09EF' -> '0' + (ch - '\u09E6'); else -> return k }
+        val extra = numAlts[d.toString()] ?: return k
+        if (extra.isEmpty()) return k
+        return k.copy(hints = (k.hints + extra).distinct().take(9))
+    }
+
     private fun hasNumRow() = numberRow && layout?.id != "numeric" && layout?.noNumberRow != true
     private fun targetRows() = (layout?.layers?.get("base")?.size ?: 4) + (if (hasNumRow() && layout?.layers?.get("base")?.firstOrNull()?.any { it.type == "stack" } != true) 1 else 0)
 
@@ -124,7 +134,7 @@ class KeyboardView(ctx: Context) : View(ctx) {
         }
         val numpadLike = l.layers["base"]?.firstOrNull()?.any { it.type == "stack" } == true
         if (hasNumRow() && !numpadLike) {
-            if (layerName == "base") r = listOf(l.numberRow ?: LayoutParser.row("1 2 3 4 5 6 7 8 9 0")) + r
+            if (layerName == "base") r = listOf((l.numberRow ?: LayoutParser.row("1 2 3 4 5 6 7 8 9 0")).map { withNumAlts(it) }) + r
             r = r.map { row ->
                 row.map { k ->
                     if (k.type == "char" && k.hints.any { it.length == 1 && it[0] in '0'..'9' })

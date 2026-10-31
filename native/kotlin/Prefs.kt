@@ -43,4 +43,19 @@ class Prefs(ctx: Context) {
         o.keys().forEach { m[it.lowercase()] = o.optString(it) }
         return m
     }
+
+    /** Long-press alternatives for the number row: digit -> list (user overrides merged over defaults). */
+    fun numberAlts(): Map<String, List<String>> {
+        val m = HashMap<String, List<String>>()
+        DEFAULT_NUM_ALTS.forEach { (d, s) -> m[d] = s.split(" ").filter { it.isNotEmpty() } }
+        cfg.optJSONObject("numberAlts")?.let { o -> o.keys().forEach { d -> m[d] = o.optString(d).trim().split(Regex("\\s+")).filter { it.isNotEmpty() } } }
+        return m
+    }
+
+    companion object {
+        val DEFAULT_NUM_ALTS = mapOf(
+            "1" to "¹ ½ ⅓ ¼ ⅕ ⅙ ⅐ ⅛ ⅑", "2" to "² ⅔ ⅖", "3" to "³ ¾ ⅗ ⅜", "4" to "⁴ ⅘", "5" to "⁵ ⅚ ⅝",
+            "6" to "⁶", "7" to "⁷ ⅞", "8" to "⁸ ∞", "9" to "⁹", "0" to "⁰ ⁿ ∅ °"
+        )
+    }
 }

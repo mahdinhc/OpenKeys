@@ -18,6 +18,7 @@ export type Config = {
   pianoSound: boolean; pianoRecord: boolean; pianoTiming: boolean; pianoChordMs: number; pianoQuant: number;
   enabledLayouts: string[];
   shortcuts: Record<string, string>;
+  numberAlts: Record<string, string>;
 };
 
 export const DEFAULTS: Config = {
@@ -40,6 +41,7 @@ export const DEFAULTS: Config = {
   pianoSound: true, pianoRecord: true, pianoTiming: true, pianoChordMs: 60, pianoQuant: 50,
   enabledLayouts: ['en_qwerty', 'bn_phonetic'],
   shortcuts: {omw: 'On my way!'},
+  numberAlts: {'1': '¹ ½ ⅓ ¼ ⅕ ⅙ ⅐ ⅛ ⅑', '2': '² ⅔ ⅖', '3': '³ ¾ ⅗ ⅜', '4': '⁴ ⅘', '5': '⁵ ⅚ ⅝', '6': '⁶', '7': '⁷ ⅞', '8': '⁸ ∞', '9': '⁹', '0': '⁰ ⁿ ∅ °'},
 };
 
 export const PRESETS: Record<string, Config['colors']> = {

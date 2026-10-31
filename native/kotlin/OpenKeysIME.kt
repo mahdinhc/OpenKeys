@@ -76,8 +76,24 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
     private val voiceReceiver = object : BroadcastReceiver() {
         override fun onReceive(c: Context?, i: Intent?) {
             val t = i?.getStringExtra("text") ?: return
-            commitComposing(false); currentInputConnection?.commitText(t, 1)
+            pendingVoice = t; pendingVoiceAt = SystemClock.uptimeMillis()
+            main.post { flushVoice() }
+            main.postDelayed({ flushVoice() }, 400)     // the editor may not have its focus back yet
         }
+    }
+
+    // Voice text can arrive while the editor connection is stale (the voice screen took focus): keep it until it can be typed.
+    private var pendingVoice: String? = null
+    private var pendingVoiceAt = 0L
+
+    private fun flushVoice() {
+        val t = pendingVoice ?: return
+        if (SystemClock.uptimeMillis() - pendingVoiceAt > 30000) { pendingVoice = null; return }
+        val ic = currentInputConnection ?: return
+        commitComposing(false)
+        val before = ic.getTextBeforeCursor(1, 0)?.toString()
+        val lead = if (!before.isNullOrEmpty() && !before[0].isWhitespace() && !"([{\"'".contains(before[0])) " " else ""
+        if (ic.commitText("$lead$t ", 1)) { pendingVoice = null; lastWord = t.substringAfterLast(' '); updateSuggestions() }
     }
 
     // ------------------------------------------------------------ lifecycle
@@ -235,7 +251,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             showHints = prefs.bool("showHints", true); popupPreview = prefs.bool("popupPreview", true)
             swipeOn = prefs.bool("swipeTyping", true); hapticOn = prefs.bool("haptic", true)
             hapticMs = prefs.int("hapticMs", 12); soundOn = prefs.bool("sound", false)
-            longPressMs = prefs.int("longPressMs", 350); numberRow = prefs.bool("numberRow", true)
+            longPressMs = prefs.int("longPressMs", 350); numberRow = prefs.bool("numberRow", true); numAlts = prefs.numberAlts()
             oneHanded = prefs.str("oneHanded", "off")
             typeface = buildTypeface()
         }
@@ -249,6 +265,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
 
     override fun onStartInputView(info: EditorInfo, restarting: Boolean) {
         super.onStartInputView(info, restarting)
+        if (pendingVoice != null) { main.post { flushVoice() }; main.postDelayed({ flushVoice() }, 300) }
         DevLog.d(this, "IME", "onStartInputView pkg=${info.packageName} inputType=0x${Integer.toHexString(info.inputType)} imeOptions=0x${Integer.toHexString(info.imeOptions)} restarting=$restarting viewReady=$viewReady")
         if (!viewReady) return   // the view failed to build (see errorView) - nothing to drive
         composing.setLength(0); lastCorrection = null; lastSwipe = null; lastWord = ""
