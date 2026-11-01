@@ -53,12 +53,13 @@ function makeRuntime(files, settings = {}) {
   return rt;
 }
 
-const load = (id) => fs.readFileSync(path.join(pluginDir, id + '.js'), 'utf8');
+const extraDir = path.join(pluginDir, 'extras'), tplDir = path.join(pluginDir, 'templates');
+const load = (id) => fs.readFileSync(path.join(fs.existsSync(path.join(pluginDir, id + '.js')) ? pluginDir : extraDir, id + '.js'), 'utf8');
 let passed = 0;
 const test = (name, fn) => { fn(); passed++; console.log('  ok  ' + name); };
 
 // ---------------------------------------------------------------- every sample loads cleanly
-const ids = fs.readdirSync(pluginDir).filter((f) => f.endsWith('.js')).map((f) => f.slice(0, -3));
+const ids = [pluginDir, extraDir].flatMap((d) => fs.readdirSync(d).filter((f) => f.endsWith('.js')).map((f) => f.slice(0, -3)));
 test('all ' + ids.length + ' sample plugins load without errors', () => {
   const files = {};
   ids.forEach((id) => { files[id] = load(id); });
@@ -68,6 +69,90 @@ test('all ' + ids.length + ' sample plugins load without errors', () => {
   meta.plugins.forEach((p) => assert.ok(!p.error, p.id + ' failed: ' + p.error));
   const errs = rt.calls.filter((c) => c.fn === 'log' && c.o.level === 'error');
   assert.deepStrictEqual(errs, []);
+});
+
+test('every bootstrap template loads cleanly', () => {
+  const files = {};
+  fs.readdirSync(tplDir).filter((f) => f.endsWith('.js')).forEach((f) => { files['t-' + f.replace(/^\d+-|\.js$/g, '')] = fs.readFileSync(path.join(tplDir, f), 'utf8'); });
+  const meta = makeRuntime(files).meta();
+  assert.strictEqual(meta.plugins.length, Object.keys(files).length);
+  meta.plugins.forEach((p) => assert.ok(!p.error, p.id + ' failed: ' + p.error));
+});
+
+// ---------------------------------------------------------------- calculator
+test('calculator: solves the sum before "=", ignores plain text and bad input', () => {
+  const rt = makeRuntime({calculator: load('calculator')});
+  const eq = (before) => { rt.reset(); rt.dispatch('onText', {text: '=', ctx: {before}}); return rt.take('commit'); };
+  assert.deepStrictEqual(eq('12*3'), [{text: '36', back: 0}]);
+  assert.deepStrictEqual(eq('call me at 2 + 3 x 4'), [{text: '14', back: 0}]);
+  assert.deepStrictEqual(eq('(1+2)*3^2'), [{text: '27', back: 0}]);
+  assert.deepStrictEqual(eq('200*15%'), [{text: '30', back: 0}]);
+  assert.deepStrictEqual(eq('10/4'), [{text: '2.5', back: 0}]);
+  assert.deepStrictEqual(eq('1/3'), [{text: '0.333333', back: 0}]);
+  assert.deepStrictEqual(eq('-5+2'), [{text: '-3', back: 0}]);
+  assert.strictEqual(eq('7').length, 0);            // a lone number
+  assert.strictEqual(eq('hello').length, 0);
+  assert.strictEqual(eq('1/0').length, 0);          // infinity
+  assert.strictEqual(eq('2+').length, 0);           // incomplete
+  assert.strictEqual(eq('(2+3').length, 0);
+  rt.reset(); rt.dispatch('onText', {text: 'a', ctx: {before: '2+2'}});
+  assert.strictEqual(rt.take('commit').length, 0);  // only "=" triggers it
+});
+
+// ---------------------------------------------------------------- panel plugins on a selection
+const panelTap = (id, selected, label) => {
+  const rt = makeRuntime({[id]: load(id)});
+  rt.reset();
+  rt.dispatch('action', {key: id + '.menu', ctx: {selected}});
+  const panel = rt.take('panel')[0];
+  const labels = panel.spec.items.map((i) => i.label);
+  const idx = labels.findIndex((l) => l === label);
+  assert.ok(idx >= 0, label + ' not in ' + labels.join(' | '));
+  rt.dispatch('panel', {plugin: id, index: idx, ctx: {selected}});
+  return rt.take('commit')[0].text;
+};
+test('text-tools: line and text operations', () => {
+  assert.strictEqual(panelTap('text-tools', 'b\na\nc', 'Sort lines A→Z'), 'a\nb\nc');
+  assert.strictEqual(panelTap('text-tools', 'b\na\nc', 'Sort lines Z→A'), 'c\nb\na');
+  assert.strictEqual(panelTap('text-tools', 'a\nb\na\nb\nc', 'Remove duplicate lines'), 'a\nb\nc');
+  assert.strictEqual(panelTap('text-tools', 'one\ntwo', 'Reverse line order'), 'two\none');
+  assert.strictEqual(panelTap('text-tools', 'abc', 'Reverse text'), 'cba');
+  assert.strictEqual(panelTap('text-tools', '  a   b  \n\n\n\n c ', 'Clean spaces'), 'a b\n\nc');
+  assert.strictEqual(panelTap('text-tools', 'a\nb', 'Remove line breaks'), 'a b');
+  assert.strictEqual(panelTap('text-tools', 'x\n- y', '• Bullet list'), '• x\n• y');
+  assert.strictEqual(panelTap('text-tools', 'x\n\ny', '1. Numbered list'), '1. x\n2. y');
+  assert.strictEqual(panelTap('text-tools', 'a b&c', 'URL encode'), 'a%20b%26c');
+  assert.strictEqual(panelTap('text-tools', 'a%20b%26c', 'URL decode'), 'a b&c');
+  assert.strictEqual(panelTap('text-tools', 'café', 'Remove accents'), 'cafe');
+});
+test('fancy-text: styles transform letters and keep the rest', () => {
+  assert.strictEqual(panelTap('fancy-text', 'Hi 5!', '𝗕𝗼𝗹𝗱'), '𝗛𝗶 𝟱!');
+  assert.strictEqual(panelTap('fancy-text', 'ab', 'Ⓒⓘⓡⓒⓛⓔⓓ'), 'ⓐⓑ');
+  assert.strictEqual(panelTap('fancy-text', 'Ab 1', 'Ｆｕｌｌｗｉｄｔｈ'), 'Ａｂ １');
+  assert.strictEqual(panelTap('fancy-text', 'ab', 'S̶t̶r̶i̶k̶e̶'), 'a\u0336b\u0336');
+  assert.strictEqual(panelTap('fancy-text', 'ab', 'ꜱᴍᴀʟʟ ᴄᴀᴘꜱ'), 'ᴀʙ');
+  assert.strictEqual(panelTap('fancy-text', 'up', 'ǝpısdn pɐǝɹ'), 'dn');
+});
+test('quick-search: opens the chosen site with the encoded selection', () => {
+  const rt = makeRuntime({'quick-search': load('quick-search')});
+  rt.reset();
+  rt.dispatch('action', {key: 'quick-search.menu', ctx: {selected: 'cat & dog'}});
+  const panel = rt.take('panel')[0];
+  const i = panel.spec.items.findIndex((x) => x.label === 'Google');
+  rt.dispatch('panel', {plugin: 'quick-search', index: i, ctx: {selected: 'cat & dog'}});
+  assert.deepStrictEqual(rt.take('openUrl'), [{url: 'https://www.google.com/search?q=cat%20%26%20dog'}]);
+  rt.reset();
+  rt.dispatch('action', {key: 'quick-search.menu', ctx: {selected: ''}});
+  assert.strictEqual(rt.take('panel').length, 0);
+});
+test('symbols: category panel opens a symbol panel', () => {
+  const rt = makeRuntime({symbols: load('symbols')});
+  rt.reset();
+  rt.dispatch('action', {key: 'symbols.menu', ctx: {}});
+  const p1 = rt.take('panel')[0];
+  assert.ok(p1.spec.items.length >= 5);
+  rt.dispatch('panel', {plugin: 'symbols', index: 1, ctx: {}});
+  rt.runTimers && rt.runTimers();
 });
 
 // ---------------------------------------------------------------- camel-case

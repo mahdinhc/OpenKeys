@@ -31,7 +31,8 @@ cp -f native/kotlin/*.kt "$PKG_DIR/"
 cp -rf native/res/. android/app/src/main/res/
 cp -rf native/assets/. android/app/src/main/assets/
 mkdir -p android/app/src/main/assets/plugins
-cp -f plugins/*.js android/app/src/main/assets/plugins/   # sample plugins offered in the app
+cp -f plugins/*.js android/app/src/main/assets/plugins/   # plugins shipped with the app (extras/ and templates/ are NOT shipped)
+node scripts/gen_plugin_templates.js                       # Plugins -> Bootstrap templates
 python3 scripts/patch_android.py
 
 # Legacy bridge modules are the most robust choice for the settings module.

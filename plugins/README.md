@@ -10,7 +10,10 @@ plugin({
 });
 ```
 
-The samples in this folder are bundled into the app (`scripts/bootstrap.sh` copies `plugins/*.js` into the APK assets).
+Folder layout:
+* `plugins/*.js` - the plugins **shipped** with the app (Plugins -> *Library*): Auto Pair, Calculator, Case Tools, Clean Paste, Fancy Text, Quick Search, Snippets, Symbols, Text Expander, Text Tools, Word Count.
+* `plugins/templates/` - starter files shown in Plugins -> *Bootstrap* (packed into `src/pluginTemplates.ts` by `scripts/gen_plugin_templates.js`).
+* `plugins/extras/` - demos and test fixtures (Hello, Camel Case, Draw, Online Suggest). **Not shipped**; kept for the test suite and as API examples.
 Test them without a phone: `node scripts/test_plugins.js`.
 
 ## `plugin({...})`
