@@ -1,0 +1,78 @@
+# next-word suggestions for English: previous word <TAB> up to 5 likely next words (learned bigrams always win over these)
+i	am have will think love
+i'm	not going so sorry happy
+i'll	be do see call send
+i've	been got never just
+i'd	like love say rather
+you	are can have will know
+you're	welcome right not the
+we	are have will can need
+they	are have will were did
+he	is was has said had
+she	is was has said had
+it	is was will has would
+it's	a not been the so
+that	is was the I you
+that's	a the not what why
+this	is was will one time
+there	is are was will were
+what	is are do about the
+what's	up the your going that
+where	are is do did can
+when	you i the is are
+how	are to much do many
+why	are is do did not
+who	is are was did can
+the	same first best most other
+a	lot few little good great
+an	example idea hour old
+to	be do the get see
+of	the a course my your
+in	the a my this order
+on	the my a my way
+for	the a you me your
+with	the a you me my
+at	the least all home work
+and	the i then he she
+but	i the it you then
+so	i you much far the
+if	you i the it we
+because	i of the it you
+thank	you
+thanks	for a so you
+good	morning night luck job evening
+have	a to been the you
+has	been a to the not
+had	a to been the no
+do	you not it we the
+does	it not the this he
+did	you not it the he
+can	you i we be not
+could	you i be not we
+would	you be like love not
+will	be you do see not
+should	i we be you have
+let	me us you know it
+let's	go do see talk get
+see	you the it what if
+talk	to about with you later
+going	to home out on back
+want	to a you the some
+need	to a you some the
+like	to a the it you
+love	you it the to this
+how	about are is was
+happy	birthday new to with
+good	morning
+see	you later soon
+call	me you back him
+send	me it the you a
+sorry	for i about to
+please	let send do help call
+very	much good well nice happy
+really	good nice want like love
+too	much many late good
+just	a the got now like
+not	sure a the going really
+no	problem one way worries more
+yes	i please of it we

@@ -17,7 +17,7 @@ import kotlin.math.min
 
 /** Playable piano. Everything played is typed as melody text (see MelodyParser) when all fingers lift. */
 class PianoKeys(ctx: Context, private val synth: Synth, private val onMelody: (String) -> Unit) : View(ctx) {
-    var whiteKeys = 14; var startOct = 4; var blackH = 0.62f; var labels = true; var sound = true
+    var whiteKeys = 14; var startOct = 4; var blackH = 0.62f; var blackW = 0.6f; var labels = true; var sound = true
     var record = true; var timing = true; var chordMs = 60; var quant = 50
     var cWhite = Color.WHITE; var cBlack = Color.parseColor("#1A1A1A"); var cPress = Color.parseColor("#669DF6")
 
@@ -35,7 +35,7 @@ class PianoKeys(ctx: Context, private val synth: Synth, private val onMelody: (S
     private fun hasBlack(i: Int) = i < whiteKeys - 1 && (i % 7) in intArrayOf(0, 1, 3, 4, 5)
 
     private fun blackRect(i: Int): RectF {
-        val ww = width / whiteKeys.toFloat(); val bw = ww * 0.6f
+        val ww = width / whiteKeys.toFloat(); val bw = ww * blackW
         return RectF((i + 1) * ww - bw / 2, 0f, (i + 1) * ww + bw / 2, height * blackH)
     }
 
@@ -43,6 +43,9 @@ class PianoKeys(ctx: Context, private val synth: Synth, private val onMelody: (S
         if (width == 0) return null
         for (i in 0 until whiteKeys) if (hasBlack(i) && blackRect(i).contains(x, y)) return whiteMidi(i) + 1
         val i = (x / (width / whiteKeys.toFloat())).toInt().coerceIn(0, whiteKeys - 1)
+        // Inside the black-key band (above the black keys' bottom edge) white notes never sound: the strip beside a black
+        // key is a dead zone, so a finger that slides off a black key cannot trigger the neighbouring white note.
+        if (y < height * blackH && (hasBlack(i) || (i > 0 && hasBlack(i - 1)))) return null
         return whiteMidi(i)
     }
 
@@ -150,7 +153,7 @@ class PianoPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
         fun col(k: String, d: String) = try { Color.parseColor(pr.str(k, d)) } catch (e: Exception) { Color.parseColor(d) }
         keys.apply {
             whiteKeys = pr.int("pianoKeys", 14).coerceIn(7, 21); startOct = pr.int("pianoOctave", 4).coerceIn(0, 7)
-            blackH = pr.int("pianoBlackH", 62).coerceIn(35, 85) / 100f; labels = pr.bool("pianoLabels", true)
+            blackH = pr.int("pianoBlackH", 62).coerceIn(35, 85) / 100f; blackW = pr.int("pianoBlackW", 60).coerceIn(30, 90) / 100f; labels = pr.bool("pianoLabels", true)
             sound = pr.bool("pianoSound", true); record = pr.bool("pianoRecord", true); timing = pr.bool("pianoTiming", true)
             chordMs = pr.int("pianoChordMs", 60); quant = pr.int("pianoQuant", 50)
             cWhite = col("pianoWhite", "#FFFFFF"); cBlack = col("pianoBlack", "#1A1A1A"); cPress = col("pianoPress", "#669DF6")

@@ -119,6 +119,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         DevLog.session(this, "keyboard service created")
         DevLog.d(this, "IME", "onCreate")
         prefs = Prefs(this); repo = LayoutRepo(this); suggest = SuggestEngine(this)
+        suggest.urbanOn = { prefs.bool("urbanWords", false) }     // Settings -> Typing -> Urban Dictionary words
         Icons.load(this)
         EmojiData.load(this)
         Thread { try { suggest.dict("en"); suggest.dict("bn") } catch (e: Exception) { } }.start()

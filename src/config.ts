@@ -6,7 +6,7 @@ export type Config = {
   showHints: boolean; popupPreview: boolean;
   haptic: boolean; hapticMs: number; sound: boolean; longPressMs: number;
   suggestions: boolean; suggestMode: 'strict' | 'moderate' | 'everywhere'; autocorrect: boolean; autoCap: boolean; doubleSpacePeriod: boolean;
-  numberRow: boolean; swipeTyping: boolean; learnWords: boolean; emojiSuggest: boolean;
+  numberRow: boolean; swipeTyping: boolean; learnWords: boolean; emojiSuggest: boolean; urbanWords: boolean;
   fontFamily: string; fontBold: boolean; fontItalic: boolean; customFontName: string;
   keyAlpha: number; keyBorder: number; keyShadow: boolean;
   bgName: string; bgPath: string; bgRev: number; bgFit: string; bgBlend: string;
@@ -17,7 +17,7 @@ export type Config = {
   topTools: string[]; topIconSize: number; emojiHeight: number; pianoHeight: number;
   pianoWave: string; pianoAttack: number; pianoDecay: number; pianoSustain: number; pianoRelease: number;
   pianoVolume: number; pianoCutoff: number; pianoVibRate: number; pianoVibDepth: number; pianoDetune: number; pianoGate: number;
-  pianoKeys: number; pianoOctave: number; pianoBlackH: number; pianoLabels: boolean;
+  pianoKeys: number; pianoOctave: number; pianoBlackH: number; pianoBlackW: number; pianoLabels: boolean;
   pianoWhite: string; pianoBlack: string; pianoPress: string;
   pianoSound: boolean; pianoRecord: boolean; pianoTiming: boolean; pianoChordMs: number; pianoQuant: number;
   enabledLayouts: string[];
@@ -33,7 +33,7 @@ export const DEFAULTS: Config = {
   showHints: true, popupPreview: true,
   haptic: true, hapticMs: 12, sound: false, longPressMs: 350,
   suggestions: true, suggestMode: 'moderate', autocorrect: true, autoCap: true, doubleSpacePeriod: true,
-  numberRow: true, swipeTyping: true, learnWords: true, emojiSuggest: true,
+  numberRow: true, swipeTyping: true, learnWords: true, emojiSuggest: true, urbanWords: false,
   fontFamily: 'default', fontBold: false, fontItalic: false, customFontName: '',
   keyAlpha: 100, keyBorder: 0, keyShadow: true,
   bgName: '', bgPath: '', bgRev: 0, bgFit: 'cover', bgBlend: 'normal',
@@ -44,7 +44,7 @@ export const DEFAULTS: Config = {
   topTools: ['emoji', 'clip', 'piano', 'settings'], topIconSize: 50, emojiHeight: 100, pianoHeight: 100,
   pianoWave: 'sine', pianoAttack: 5, pianoDecay: 120, pianoSustain: 60, pianoRelease: 200,
   pianoVolume: 80, pianoCutoff: 100, pianoVibRate: 5, pianoVibDepth: 0, pianoDetune: 0, pianoGate: 0,
-  pianoKeys: 14, pianoOctave: 4, pianoBlackH: 62, pianoLabels: true,
+  pianoKeys: 14, pianoOctave: 4, pianoBlackH: 62, pianoBlackW: 60, pianoLabels: true,
   pianoWhite: '#FFFFFF', pianoBlack: '#1A1A1A', pianoPress: '#669DF6',
   pianoSound: true, pianoRecord: true, pianoTiming: true, pianoChordMs: 60, pianoQuant: 50,
   enabledLayouts: ['en_qwerty', 'bn_phonetic'],

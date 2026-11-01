@@ -63,6 +63,7 @@ export default function Piano({cfg, update}: any) {
         {N('pianoOctave', 'Start octave', 0, 6)}
         {N('pianoHeight', 'Piano height', 60, 160, 5, '%')}
         {N('pianoBlackH', 'Black key height', 40, 80, 2, '%')}
+        {N('pianoBlackW', 'Black key width', 30, 90, 2, '%')}
         {T('pianoLabels', 'Show note names')}
         <Field label="White key colour (#RRGGBB)" value={cfg.pianoWhite} onChangeText={(v: string) => update({pianoWhite: v})} />
         <Field label="Black key colour" value={cfg.pianoBlack} onChangeText={(v: string) => update({pianoBlack: v})} />

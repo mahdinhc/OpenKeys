@@ -11,7 +11,9 @@ import kotlin.math.min
 class SuggestEngine(ctx: Context) {
     private val app = ctx.applicationContext
     private val dicts = HashMap<String, WordDict>()
-    @Synchronized fun dict(code: String): WordDict = dicts.getOrPut(code) { WordDict(app, code) }
+    /** Asked on every lookup: may Urban Dictionary words be used? (Settings -> Typing -> Urban Dictionary words) */
+    @Volatile var urbanOn: () -> Boolean = { false }
+    @Synchronized fun dict(code: String): WordDict = dicts.getOrPut(code) { WordDict(app, code, { urbanOn() }) }
     @Synchronized fun flush() = dicts.values.forEach { it.flush() }
     @Synchronized fun clearUser() {
         File(app.filesDir.path).listFiles { f -> f.name.startsWith("user_") }?.forEach { it.delete() }
@@ -27,7 +29,7 @@ class SwipeInput(val pts: FloatArray, val centers: Map<Char, FloatArray>, val ke
  * Autocorrect = keyboard-aware weighted edit distance x frequency x context; swipe = path-shape matching
  * against the ideal path through the key centres of every candidate word (location channel of SHARK2).
  */
-class WordDict(ctx: Context, private val code: String) {
+class WordDict(ctx: Context, private val code: String, private val urbanOn: () -> Boolean = { false }) {
     private var bw: Array<String> = emptyArray()          // base words, sorted
     private var bf = IntArray(0)                          // their frequencies
     private var byLen: Array<IntArray> = emptyArray()     // indices into bw, bucketed by length
@@ -42,9 +44,21 @@ class WordDict(ctx: Context, private val code: String) {
     private val userFile = File(ctx.filesDir, "user_$code.txt")
     private val biFile = File(ctx.filesDir, "user_${code}_bi.txt")
     private var dirty = 0
+    // Large English lists are read through memory-mapped binary files (see BinDict); other languages use the text path.
+    private val mainBin: BinDict? = if (fuzzy) null else BinDict.open(ctx, "dict/$code.bin")
+    private val urbanBin: BinDict? = if (mainBin == null) null else BinDict.open(ctx, "dict/${code}_urban.bin")
+    private val nextTab = HashMap<String, List<String>>()      // curated next-word table (assets/dict/<code>_next.txt)
 
     init {
-        try {
+        if (mainBin != null) {
+            for (i in mainBin.fallback) { if (top.size >= 40) break; top.add(mainBin.word(i)) }
+            try {
+                ctx.assets.open("dict/${code}_next.txt").bufferedReader().forEachLine { ln ->
+                    val p = ln.split("\t"); if (p.size >= 2 && !ln.startsWith("#")) nextTab[p[0]] = p[1].trim().split(" ").filter { it.isNotEmpty() }
+                }
+            } catch (e: Exception) { }
+        }
+        if (mainBin == null) try {
             val lines = ctx.assets.open("dict/$code.txt").bufferedReader().readLines().filter { it.isNotBlank() }
             val n = lines.size
             val ws = arrayOfNulls<String>(n); val fs = IntArray(n)
@@ -91,12 +105,18 @@ class WordDict(ctx: Context, private val code: String) {
     }
     private fun baseIndex(w: String): Int { val i = lower(w); return if (i < bw.size && bw[i] == w) i else -1 }
     private fun freqOf(w: String): Int { val i = baseIndex(w); return (if (i >= 0) bf[i] else 0) + (user[w] ?: 0) * 50 }
-    fun known(w: String) = baseIndex(w) >= 0 || (user[w] ?: 0) >= 2
+    fun known(w: String): Boolean {
+        val m = mainBin
+        if (m != null) return m.indexOf(w) >= 0 || (user[w] ?: 0) >= 2 || urbanIdx(w) >= 0
+        return baseIndex(w) >= 0 || (user[w] ?: 0) >= 2
+    }
+    private fun urbanIdx(w: String): Int { val u = urbanBin ?: return -1; return if (urbanOn()) u.indexOf(w) else -1 }
 
     // ---------------------------------------------------------------- completion
     fun complete(prefix: String, n: Int, prev: String? = null): List<String> {
         if (prefix.isEmpty()) return emptyList()
         if (fuzzy) return completeFuzzy(prefix, n, prev)
+        mainBin?.let { return completeBin(it, prefix, n, prev) }
         val p = prefix.lowercase()
         val hits = HashMap<String, Int>()
         var i = lower(p)
@@ -151,7 +171,7 @@ class WordDict(ctx: Context, private val code: String) {
     }
 
     // ---------------------------------------------------------------- correction
-    private class Cand(val w: String, val score: Double, val cost: Double)
+    private class Cand(val w: String, val score: Double, val cost: Double, val f: Int = 0)
 
     private fun special(w: String): String? = when (w) {
         "i" -> "I"; "im" -> "I'm"; "ive" -> "I've"; "dont" -> "don't"; "cant" -> "can't"; "wont" -> "won't"
@@ -187,6 +207,7 @@ class WordDict(ctx: Context, private val code: String) {
     fun correct(word: String, prev: String? = null): String? {
         val w = word.lowercase()
         special(w)?.let { return if (it == word) null else it }
+        mainBin?.let { return correctBin(it, word, w, prev) }
         if (w.length < 3 || known(w) || w.any { it.isDigit() || !(it.isLetter() || it == '\'') }) return null
         if (word.drop(1).any { it.isUpperCase() } && word.any { it.isLowerCase() }) return null   // CamelCase / names
         val best = cands(w, prev).firstOrNull() ?: return null
@@ -200,7 +221,104 @@ class WordDict(ctx: Context, private val code: String) {
         if (w.length < 2 || w.any { !(it.isLetter() || it == '\'') }) return emptyList()
         special(w)?.let { return listOf(matchCase(word, it)) }
         if (w.length < 3) return emptyList()
+        mainBin?.let { return fixesBin(it, word, w, n, prev) }
         return cands(w, prev).filter { it.cost <= 1.4 && it.w != w }.take(n).map { matchCase(word, it.w) }
+    }
+
+    // ---------------------------------------------------------------- binary dictionary (English)
+    /** Popularity on a log scale. The hand-ranked top words (freq >= 1,000,000, 100 per rank) keep their rank order. */
+    private fun pop(f: Int): Double =
+        if (f >= 1_000_000) 14.5 - 0.9 * ln(1.0 + maxOf(0.0, (2_000_000 - f) / 100.0)) else ln(f.toDouble() + 2)
+
+    private fun isSwap(a: String, b: String): Boolean {
+        if (a.length != b.length) return false
+        var i = 0
+        while (i < a.length && a[i] == b[i]) i++
+        return i + 1 < a.length && a[i] == b[i + 1] && a[i + 1] == b[i] && a.substring(i + 2) == b.substring(i + 2)
+    }
+
+    private fun completeBin(m: BinDict, prefix: String, n: Int, prev: String?): List<String> {
+        val p = prefix.lowercase()
+        val pb = p.toByteArray(Charsets.UTF_8)
+        val hits = HashMap<String, Int>()
+        for (i in m.top(pb, n * 6 + 8)) hits[m.word(i)] = m.freq(i)
+        for ((w, f) in user.subMap(p, p + '\uffff')) hits[w] = (hits[w] ?: 0) + f * 50 + 500
+        val bi = prev?.let { bigram[it.lowercase()] }
+        if (bi != null) for (w in bi.keys) if (w.startsWith(p) && !hits.containsKey(w)) { val i = m.indexOf(w); hits[w] = if (i >= 0) m.freq(i) else 0 }
+        val out = hits.entries.sortedByDescending { it.value + (bi?.get(it.key)?.let { c -> 3000 * c } ?: 0) }
+            .map { it.key }.filter { it != p }.take(n).toMutableList()
+        val u = urbanBin
+        if (out.size < n && u != null && urbanOn()) {
+            for (i in u.top(pb, n * 2 + 4)) { val w = u.word(i); if (w != p && w !in out && out.size < n) out.add(w) }
+        }
+        return out.map { matchCase(prefix, it) }
+    }
+
+    /** Typo candidates from the main list (+ learned words), best first. */
+    private fun binCands(m: BinDict, w: String, prev: String?, limit: Double): List<Cand> {
+        if (w.any { it.code > 127 }) return emptyList()
+        val bi = prev?.let { bigram[it.lowercase()] }
+        val out = ArrayList<Cand>()
+        m.fuzzy(w.toByteArray(Charsets.UTF_8), limit) { i, cost ->
+            val c = m.word(i)
+            if (c != w) {
+                val f = m.freq(i) + (user[c] ?: 0) * 50
+                out.add(Cand(c, pop(f) - 3.0 * cost + (if (bi?.containsKey(c) == true) 2.0 else 0.0), cost, f))
+            }
+        }
+        for ((c, f) in user) if (f >= 2 && abs(c.length - w.length) <= 2 && c != w && m.indexOf(c) < 0 && firstOk(w[0], c[0])) {
+            val cost = wedit(w, c, limit)
+            if (cost <= limit) out.add(Cand(c, pop(f * 50 + 500) - 3.0 * cost + (if (bi?.containsKey(c) == true) 2.0 else 0.0), cost, f * 50 + 500))
+        }
+        out.sortByDescending { it.score }
+        return out
+    }
+
+    /**
+     * Autocorrect with a big word list. A word the list marks as common is never touched. A rare list word (the
+     * english-words list also holds misspellings such as "untill") or an Urban word is only fixed when the evidence is
+     * strong: an adjacent-letter swap (hte -> the), or a long word one edit from a core word (accomodate -> accommodate).
+     * Words the lists do not know are fixed as before.
+     */
+    private fun correctBin(m: BinDict, word: String, w: String, prev: String?): String? {
+        if (w.length < 3 || w.any { it.code > 127 || it.isDigit() || !(it.isLetter() || it == '\'') }) return null
+        if (word.drop(1).any { it.isUpperCase() } && word.any { it.isLowerCase() }) return null   // CamelCase / names
+        val idx = m.indexOf(w)
+        if (idx >= 0 && m.freq(idx) >= m.commonMin) return null
+        if ((user[w] ?: 0) >= 2) return null
+        val rare = idx >= 0
+        val urban = !rare && urbanIdx(w) >= 0
+        var cands = binCands(m, w, prev, 1.4)
+        if (rare || urban) cands = cands.filter { it.f >= m.commonMin }
+        if (urban) return cands.firstOrNull { isSwap(w, it.w) && it.f >= 1000 }?.w
+        if (rare) return cands.firstOrNull { (isSwap(w, it.w) && it.f >= 1000) || (w.length >= 6 && it.cost <= 1.0) }?.w
+        val best = cands.firstOrNull() ?: return null
+        return if (best.cost <= (if (w.length == 3) 1.0 else 1.4)) best.w else null
+    }
+
+    private fun fixesBin(m: BinDict, word: String, w: String, n: Int, prev: String?): List<String> {
+        val res = ArrayList<String>()
+        for (c in binCands(m, w, prev, 1.4)) if (c.cost <= 1.4 && c.w != w && c.w !in res) res.add(c.w)
+        val u = urbanBin
+        if (u != null && urbanOn() && w.none { it.code > 127 } && res.size < n) {
+            val hits = ArrayList<Pair<String, Int>>()
+            u.fuzzy(w.toByteArray(Charsets.UTF_8), 1.0) { i, _ -> hits.add(u.word(i) to u.freq(i)) }
+            hits.sortByDescending { it.second }
+            for ((c, _) in hits) if (c != w && c !in res && res.size < n) res.add(c)
+        }
+        return res.take(n).map { matchCase(word, it) }
+    }
+
+    private fun scanBin(b: BinDict, fc: Char, lastOk: BooleanArray, coreOnly: Boolean, fn: (String, Int) -> Unit) {
+        if (fc.code > 127) return
+        val r = b.range(byteArrayOf(fc.code.toByte()))
+        val minF = if (coreOnly) b.commonMin else 0
+        for (i in r[0] until r[1]) {
+            val l = b.lastByte(i)
+            if (l > 127 || !lastOk[l] || b.len(i) < 2) continue
+            val f = b.freq(i)
+            if (f >= minF) fn(b.word(i), f)
+        }
     }
 
     // ---------------------------------------------------------------- next word
@@ -210,7 +328,7 @@ class WordDict(ctx: Context, private val code: String) {
         return (l + defaultNext(prev.lowercase())).distinct().take(n)
     }
 
-    private fun defaultNext(prev: String): List<String> = when (prev) {
+    private fun defaultNext(prev: String): List<String> = nextTab[prev] ?: when (prev) {
         "i" -> listOf("am", "have", "will", "think", "love")
         "i'm" -> listOf("not", "going", "so", "sorry", "happy")
         "thank" -> listOf("you")
@@ -278,10 +396,18 @@ class WordDict(ctx: Context, private val code: String) {
             val s = shape - ln(f.toDouble() + 2) * 0.07 - (if (bi?.containsKey(w) == true) 0.35 else 0.0)
             scored.add(w to s)
         }
+        val mb = mainBin
+        val lastOk = BooleanArray(128); for (c in lasts) if (c.code < 128) lastOk[c.code] = true
+        val ub = if (mb != null && urbanOn()) urbanBin else null
         for (fc in firsts) {
-            var i = lower(fc.toString())
-            while (i < bw.size && bw[i][0] == fc) { val w = bw[i]; if (w.all { it.isLetter() }) eval(w, bf[i] + (user[w] ?: 0) * 50); i++ }
-            for ((w, f) in user.subMap(fc.toString(), fc.toString() + '\uffff')) if (f >= 2 && baseIndex(w) < 0 && w.all { it.isLetter() }) eval(w, f * 50 + 500)
+            if (mb != null) {
+                scanBin(mb, fc, lastOk, true) { w, f -> eval(w, f + (user[w] ?: 0) * 50) }
+                if (ub != null) scanBin(ub, fc, lastOk, false) { w, f -> eval(w, f + (user[w] ?: 0) * 50) }
+            } else {
+                var i = lower(fc.toString())
+                while (i < bw.size && bw[i][0] == fc) { val w = bw[i]; if (w.all { it.isLetter() }) eval(w, bf[i] + (user[w] ?: 0) * 50); i++ }
+            }
+            for ((w, f) in user.subMap(fc.toString(), fc.toString() + '\uffff')) if (f >= 2 && (mb?.indexOf(w) ?: baseIndex(w)) < 0 && w.all { it.isLetter() }) eval(w, f * 50 + 500)
         }
         return scored.sortedBy { it.second }.map { it.first }.distinct().take(n)
     }

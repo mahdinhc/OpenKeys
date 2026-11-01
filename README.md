@@ -64,3 +64,13 @@ Tap the version number on **Setup** 10 times to show the **Developer** tab. It h
 - Suffix handling (Avro suffix table) and Avro phonetic extras: `Z` (্য), `x`, `rr`, `oo`, `ee`
 - New fixed layouts: Probhat, Jatiya (National)
 - Regenerate data with the scripts in /scripts if you change the source dictionaries
+
+## English dictionaries (large, fast, de-duplicated)
+* `native/assets/dict/en.bin` - ~421k words: the curated seed + a hand-ranked list of the ~1,750 most common words + every word of
+  *english-words* (duplicates removed). `en_urban.bin` - ~19k *Urban Dictionary* words that are not already in `en.bin`.
+  Rebuild with `python3 scripts/build_dict_bin.py --seed scripts/data/en_seed.txt --top scripts/data/en_top.txt --english <english-words dir> --urban <urban-dictionary-word-list dir> --out native/assets/dict` (checked in CI by `scripts/test_dict_bin.py`).
+* The `.bin` files are memory-mapped (no parsing, no heap), completion for 1-3 letter prefixes comes from a precomputed table, and typo
+  candidates come from a pruned walk over the sorted words, so lookups take about the same time whether the list holds 75k or 5M words.
+* **Settings -> Typing -> Urban Dictionary words** (off by default): slang is completed, offered as a fix and no longer auto-corrected.
+* Autocorrect never changes a common word; a *rare* list word or an Urban word is only changed for an obvious slip (swapped letters, or a long
+  word one edit from a core word). `native/assets/dict/en_next.txt` holds curated next-word suggestions.

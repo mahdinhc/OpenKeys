@@ -31,6 +31,9 @@ jobs:
       - name: Test plugin runtime
         run: node scripts/test_plugins.js
 
+      - name: Test dictionaries
+        run: python3 scripts/test_dict_bin.py
+
       # Generates the React Native Android scaffold (if android/ is missing),
       # copies the native keyboard sources into it and patches the manifest.
       - name: Bootstrap project
