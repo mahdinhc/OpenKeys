@@ -158,6 +158,62 @@ test('symbols: category panel opens a symbol panel', () => {
   rt.runTimers && rt.runTimers();
 });
 
+// ---------------------------------------------------------------- piano player
+test('piano-player: validates the selection, plays notes in time, supports pause and seek', () => {
+  const vm = require('vm');
+  const rt = makeRuntime({'piano-player': load('piano-player')});
+  const peek = (fn) => rt.calls.filter((c) => c.fn === fn).map((c) => c.o);      // take() clears everything, peek() does not
+  const tapPlay = (sel) => { rt.reset(); rt.dispatch('action', {key: 'piano-player.play', ctx: {selected: sel}}); };
+  // --- invalid input -> toast, no canvas
+  const invalid = ['hello world', 'C4:abc', '[C4 D4:300', 'H4:100', 'C4:0', 'C4 xyz', '[]:100', '_:500 _:200', 'C99:100', 'C4;D4'];
+  invalid.forEach((t) => {
+    tapPlay(t);
+    assert.strictEqual(peek('canvas').length, 0, 'opened for: ' + t);
+    const toast = peek('toast');
+    assert.ok(toast.length === 1 && /^Not a valid piano code: /.test(toast[0].text), 'no toast for: ' + t + ' -> ' + JSON.stringify(toast));
+  });
+  tapPlay('');  assert.strictEqual(peek('toast')[0].text, 'Select a piano code first');
+  tapPlay('   '); assert.strictEqual(peek('toast')[0].text, 'Select a piano code first');
+  // --- valid code (the example from the request, plus bare notes, flats and negative octaves)
+  ['D#4:50 D#4:100 D#4:50 _:1150 A#4:50 _:500 [E4 D#5]:300', 'C4 D4 E4', 'Bb3:200 db5:100', 'C-1:100 G9:100', '[C4 E4 G4]:400\n_:100\nC5'].forEach((t) => {
+    tapPlay(t);
+    assert.strictEqual(peek('canvas')[0].op, 'open', 'not opened: ' + t);
+  });
+  // --- play the example
+  vm.runInContext('globalThis.__now = 1000; Date.now = () => globalThis.__now;', rt.sandbox);
+  tapPlay('D#4:50 D#4:100 _:200 [E4 D#5]:300');
+  const open = rt.take('canvas')[0];
+  rt.dispatch('canvas', {plugin: 'piano-player', cid: open.cid, size: {w: 360, h: 300}});
+  const timer = rt.pendingTimers[rt.pendingTimers.length - 1];
+  const step = (ms) => { vm.runInContext('globalThis.__now += ' + ms, rt.sandbox); rt.dispatch('__timer', String(timer.id)); };
+  const audio = () => {
+    const out = peek('audio').map((a) => a.op + (a.midi !== undefined ? ':' + a.midi : ''));
+    for (let i = rt.calls.length - 1; i >= 0; i--) if (rt.calls[i].fn === 'audio') rt.calls.splice(i, 1);
+    return out;
+  };
+  rt.reset(); step(25);
+  assert.deepStrictEqual(audio(), ['on:63']);                      // D#4 = 63 starts immediately
+  step(30);                                                         // t = 55: the first D#4 ended at 47 ms (94% of 50), the second starts at 50
+  assert.deepStrictEqual(audio(), ['off:63', 'on:63']);            // released BEFORE it is struck again
+  step(300);
+  const mid = audio();                                              // rest passed; chord E4 (64) + D#5 (75) at 350 ms
+  assert.ok(mid.includes('off:63') && mid.includes('on:64') && mid.includes('on:75') && mid.indexOf('off:63') < mid.indexOf('on:64'), mid.join());
+  const frameOps = rt.take('canvas').flatMap((c) => c.ops || []);
+  assert.ok(frameOps.some((o) => o.o === 'rect') && frameOps.some((o) => o.o === 'text'), 'draws keys / falling notes / time');
+  step(400);
+  assert.deepStrictEqual(audio(), ['off:64', 'off:75']);
+  step(400);                                                        // past the end: stops, button becomes Replay
+  assert.ok(audio().includes('stop'));
+  const ui = rt.take('canvas').flatMap((c) => c.ops || []).filter((o) => o.o === 'ui').pop();
+  assert.ok(ui && /Replay/.test(ui.buttons[0].label), 'replay button');
+  rt.dispatch('canvas', {plugin: 'piano-player', cid: open.cid, btn: 0});       // Replay
+  step(20); assert.ok(audio().includes('on:63'));
+  rt.dispatch('canvas', {plugin: 'piano-player', cid: open.cid, btn: 0});       // Pause
+  assert.ok(audio().includes('stop'));
+  rt.reset(); step(500); assert.deepStrictEqual(audio(), []);                   // silent while paused
+  assert.strictEqual(rt.meta().plugins[0].error, undefined);
+});
+
 // ---------------------------------------------------------------- camel-case
 test('camel-case: button converts selection', () => {
   const rt = makeRuntime({'camel-case': load('camel-case')});

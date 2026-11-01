@@ -11,7 +11,7 @@ plugin({
 ```
 
 Folder layout:
-* `plugins/*.js` - the plugins **shipped** with the app (Plugins -> *Library*): Auto Pair, Calculator, Case Tools, Clean Paste, Fancy Text, Quick Search, Snippets, Symbols, Text Expander, Text Tools, Word Count.
+* `plugins/*.js` - the plugins **shipped** with the app (Plugins -> *Library*): Auto Pair, Calculator, Case Tools, Clean Paste, Fancy Text, Piano Player, Quick Search, Snippets, Symbols, Text Expander, Text Tools, Word Count.
 * `plugins/templates/` - starter files shown in Plugins -> *Bootstrap* (packed into `src/pluginTemplates.ts` by `scripts/gen_plugin_templates.js`).
 * `plugins/extras/` - demos and test fixtures (Hello, Camel Case, Draw, Online Suggest). **Not shipped**; kept for the test suite and as API examples.
 Test them without a phone: `node scripts/test_plugins.js`.
@@ -104,6 +104,12 @@ const c = keys.canvas({
 **Lifecycle:** `c.title(t)` `c.buttons([...])` `c.toolbar(bool)` · `c.animate((dtMs, c) => {...}, fps=30)` → returns a stop function (stops itself on close) ·
 `c.flush()` (ops flush automatically when your callback returns; only needed inside long loops) · `c.close()` · `c.closed`.
 Only one canvas is open at a time; opening another (or a panel) calls the old one's `onClose`.
+
+## Sound — `keys.audio`
+Plays through the keyboard's own synth, with the sound settings of the piano (wave, envelope, volume).
+`keys.audio.start()` (call once before playing; reloads the sound settings) · `keys.audio.on(midi)` · `keys.audio.off(midi)` (MIDI 0-127, C4 = 60) · `keys.audio.stop()` (silences everything).
+Stop your sound in the canvas `onClose`. `piano-player` is a full example: it parses the piano code the keyboard's piano types
+(`D#4:50 _:500 [E4 D#5]:300`), refuses invalid text with a toast, and plays it with falling notes on a keyboard drawn with `keys.canvas`.
 
 ## Plugins talking to each other
 * `plugin({ api: {...} })` + `keys.use("other-id")` → that plugin's `api` (or `null`). Load order is alphabetical, so call `keys.use` at run time or in `onLoad`.

@@ -271,6 +271,13 @@
       theme: () => { try { return JSON.parse(H.call('theme', '')); } catch (e) { return {}; } },
       vibrate: (ms) => host('vibrate', {ms: ms === undefined ? 20 : ms | 0}),
       openUrl: (url) => host('openUrl', {url: String(url)}),
+      // sound through the keyboard's synth (same sound settings as the piano): start() once, then on/off per MIDI note (0-127)
+      audio: {
+        start: () => host('audio', {op: 'start'}),
+        on: (midi) => host('audio', {op: 'on', midi: midi | 0}),
+        off: (midi) => host('audio', {op: 'off', midi: midi | 0}),
+        stop: () => host('audio', {op: 'stop'}),
+      },
       moveCursor: (n) => host('move', {n: n | 0}),
       selectAll: edit('selectAll'), copy: edit('copy'), cut: edit('cut'), paste: edit('paste'),
       // --- reading text (snapshot taken when the hook/action started)

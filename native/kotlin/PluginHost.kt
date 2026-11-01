@@ -158,6 +158,9 @@ class PluginHost(private val ctx: Context, private val env: PluginEnv) {
 
     private val main = Handler(Looper.getMainLooper())
     private val store = PluginStore(ctx)
+    /** Sound for plugins (keys.audio): the same synth and settings as the piano panel. Created on first use. */
+    private val synth by lazy { Synth().also { it.params = SynthParams.from(Prefs(ctx)) } }
+    private var synthUsed = false
     private val io = Executors.newCachedThreadPool(ThreadFactory { r -> Thread(r, "openkeys-net").also { it.isDaemon = true } })
     @Volatile private var rt: Rt? = null
     @Volatile private var hooks: Set<String> = emptySet()
@@ -186,6 +189,7 @@ class PluginHost(private val ctx: Context, private val env: PluginEnv) {
     }
 
     fun shutdown() {
+        if (synthUsed) try { synth.allOff() } catch (e: Exception) { }
         val r = rt ?: return
         rt = null
         hooks = emptySet()
@@ -295,6 +299,15 @@ class PluginHost(private val ctx: Context, private val env: PluginEnv) {
                 "key" -> { val n = o.getString("name"); val m = o.optJSONObject("mods"); main.post { env.sendKey(n, m) } }
                 "vibrate" -> { val ms = o.optInt("ms", 20); main.post { env.vibrate(ms) } }
                 "openUrl" -> { val u = o.getString("url"); main.post { env.openUrl(u) } }
+                "audio" -> {
+                    synthUsed = true
+                    when (o.optString("op")) {
+                        "start" -> synth.params = SynthParams.from(Prefs(ctx))          // pick up the piano sound settings
+                        "on" -> synth.noteOn(o.getInt("midi"), o.getInt("midi"))
+                        "off" -> synth.noteOff(o.getInt("midi"))
+                        "stop" -> synth.allOff()
+                    }
+                }
                 "theme" -> return env.themeJson()
                 "storeKeys" -> {
                     val pre = "s:" + o.getString("plugin") + ":"

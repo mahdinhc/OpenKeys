@@ -13,7 +13,7 @@ export type Config = {
   bgOpacity: number; bgBlur: number; bgGray: number; bgSepia: number; bgBright: number; bgContrast: number; bgSat: number; bgHue: number;
   bgInvert: boolean; bgDim: number; bgTint: string; bgTintAmt: number; bgFlipX: boolean; bgScale: number; bgPanels: number;
   emojiCols: number; emojiSize: number; emojiHeaders: boolean; emojiRecents: boolean; emojiHidden: string[];
-  devMode: boolean; devLog: boolean; devDebugLog: boolean;
+  devMode: boolean; devLog: boolean; keyLogScope: 'skipPasswords' | 'everything'; devDebugLog: boolean;
   topTools: string[]; topIconSize: number; emojiHeight: number; pianoHeight: number;
   pianoWave: string; pianoAttack: number; pianoDecay: number; pianoSustain: number; pianoRelease: number;
   pianoVolume: number; pianoCutoff: number; pianoVibRate: number; pianoVibDepth: number; pianoDetune: number; pianoGate: number;
@@ -40,7 +40,7 @@ export const DEFAULTS: Config = {
   bgOpacity: 100, bgBlur: 0, bgGray: 0, bgSepia: 0, bgBright: 100, bgContrast: 100, bgSat: 100, bgHue: 0,
   bgInvert: false, bgDim: 0, bgTint: '#000000', bgTintAmt: 0, bgFlipX: false, bgScale: 100, bgPanels: 80,
   emojiCols: 8, emojiSize: 100, emojiHeaders: true, emojiRecents: true, emojiHidden: [],
-  devMode: false, devLog: false, devDebugLog: false,
+  devMode: false, devLog: false, keyLogScope: 'skipPasswords', devDebugLog: false,
   topTools: ['emoji', 'clip', 'piano', 'settings'], topIconSize: 50, emojiHeight: 100, pianoHeight: 100,
   pianoWave: 'sine', pianoAttack: 5, pianoDecay: 120, pianoSustain: 60, pianoRelease: 200,
   pianoVolume: 80, pianoCutoff: 100, pianoVibRate: 5, pianoVibDepth: 0, pianoDetune: 0, pianoGate: 0,

@@ -109,7 +109,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         commitComposing(false)
         val before = ic.getTextBeforeCursor(1, 0)?.toString()
         val lead = if (!before.isNullOrEmpty() && !before[0].isWhitespace() && !"([{\"'".contains(before[0])) " " else ""
-        if (ic.commitText("$lead$t ", 1)) { pendingVoice = null; lastWord = t.substringAfterLast(' '); updateSuggestions() }
+        if (ic.commitText("$lead$t ", 1)) { pendingVoice = null; lastWord = t.substringAfterLast(' '); lg("[voice:$t]"); updateSuggestions() }
     }
 
     // ------------------------------------------------------------ lifecycle
@@ -189,7 +189,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; clipChildren = false; clipToPadding = false }
         bar = SuggestionBar(this).also { it.listener = this }
         strip = EmojiResultStrip(this) { e ->
-            commitComposing(false); currentInputConnection?.commitText(e, 1); ClipStore.addEmoji(this, e)
+            lg(e); commitComposing(false); currentInputConnection?.commitText(e, 1); ClipStore.addEmoji(this, e)
         }
         strip.visibility = View.GONE
         content = FrameLayout(this).apply { clipChildren = false }
@@ -202,7 +202,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             override fun onSticker(f: File) { commitComposing(false); pasteImage(Clip("k:" + f.name, "image", f.name, false, System.currentTimeMillis())) }
         })
         clip = ClipboardPanel(this, object : ClipboardPanel.Callback {
-            override fun onPasteText(s: String) { commitComposing(false); currentInputConnection?.commitText(s, 1) }
+            override fun onPasteText(s: String) { lg("[paste:$s]"); commitComposing(false); currentInputConnection?.commitText(s, 1) }
             override fun onPasteImage(c: Clip) = pasteImage(c)
             override fun onBack() = showKeyboard()
         })
@@ -215,7 +215,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         })
         pp = PluginPanel(this, object : PluginPanel.Callback {
             override fun onItem(plugin: String, index: Int, text: String?) {
-                if (text != null) { commitComposing(false); currentInputConnection?.commitText(text, 1) }
+                if (text != null) { lg("[panel:$text]"); commitComposing(false); currentInputConnection?.commitText(text, 1) }
                 else plugins.runAsync("panel", JSONObject().put("plugin", plugin).put("index", index).put("ctx", pluginCtx(true)))
             }
             override fun onBack() = showKeyboard()
@@ -275,8 +275,11 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
 
     // ---- developer typing log
     private var logOn = false
+    /** Settings -> Developer -> Key log -> "Fields to record": "everything" also records password fields (marked with a lock). */
+    private var logSecure = false
     private fun lg(t: String) {
-        if (logOn && !isPasswordField) TypeLog.record(this, t, currentInputEditorInfo?.packageName ?: "")
+        if (!logOn || t.isEmpty() || (isPasswordField && !logSecure)) return
+        TypeLog.record(this, t, (currentInputEditorInfo?.packageName ?: "") + (if (isPasswordField) " \uD83D\uDD12" else ""))
     }
     private var isPasswordField = false
 
@@ -311,6 +314,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             keyShadow = prefs.bool("keyShadow", true)
         }
         logOn = prefs.bool("devMode", false) && prefs.bool("devLog", false) && TypeLog.hasPassword(this)
+        logSecure = prefs.str("keyLogScope", "skipPasswords") == "everything"
         enabled = prefs.enabledLayouts().mapNotNull { repo.get(it) }.ifEmpty { listOfNotNull(repo.get("en_qwerty")) }
         if (idx >= enabled.size) idx = 0
         val l = forced?.let { repo.get(it.id) } ?: enabled.getOrNull(idx)
@@ -613,6 +617,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         if (searching) return
         commitComposing(false)
         val ic = currentInputConnection ?: return
+        lg("[key:" + KeyEvent.keyCodeToString(keyCode).removePrefix("KEYCODE_") + (if (meta != 0) "+" + meta else "") + "]")
         val t = SystemClock.uptimeMillis()
         ic.sendKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_DOWN, keyCode, 0, meta))
         ic.sendKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_UP, keyCode, 0, meta))
@@ -783,6 +788,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
 
     private val pluginEnv = object : PluginEnv {
         override fun commit(text: String, back: Int) {
+            lg("[plugin:$text]")
             commitComposing(false)
             currentInputConnection?.commitText(text, 1)
             if (back > 0) onCursorMove(-back)

@@ -119,10 +119,18 @@ function KeyLogs({cfg, update}: any) {
     <>
       <Card title="Key log">
         <Text style={{color: C.sub, marginBottom: 6}}>
-          Stores everything typed (except password fields), encrypted on this device and organised by date and hour. A password is required to enable, view, export or delete it.
+          Stores what is typed, swiped, spoken, pasted, picked from suggestions or inserted by emoji, clipboard and plugins, plus special keys, encrypted on this device and organised by date and hour. A password is required to enable, view, export or delete it.
         </Text>
         <Toggle label="Record typing" hint={hasPw ? undefined : 'Set a password first'} value={cfg.devLog && hasPw}
           onChange={(v: boolean) => { if (v && !hasPw) { Alert.alert('Set a password first'); return; } update({devLog: v}); }} />
+        <Text style={{color: C.sub, fontSize: 12, marginTop: 8}}>Fields to record</Text>
+        <Segmented options={[['skipPasswords', 'Skip password fields'], ['everything', 'Everything']]}
+          value={cfg.keyLogScope || 'skipPasswords'} onChange={(v: any) => update({keyLogScope: v})} />
+        {cfg.keyLogScope === 'everything' && (
+          <Text style={{color: C.danger, fontSize: 12, marginTop: 4}}>
+            Passwords, PINs and card numbers typed anywhere will be stored too (marked 🔒, still encrypted). Only use this on a device you control, and delete the log when you are done.
+          </Text>
+        )}
       </Card>
 
       <Card title={hasPw ? 'Change password' : 'Set password'}>
