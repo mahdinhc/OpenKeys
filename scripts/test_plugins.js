@@ -59,7 +59,10 @@ let passed = 0;
 const test = (name, fn) => { fn(); passed++; console.log('  ok  ' + name); };
 
 // ---------------------------------------------------------------- every sample loads cleanly
-const ids = [pluginDir, extraDir].flatMap((d) => fs.readdirSync(d).filter((f) => f.endsWith('.js')).map((f) => f.slice(0, -3)));
+const listIds = (d) => fs.readdirSync(d).filter((f) => f.endsWith('.js')).map((f) => f.slice(0, -3));
+const dup = listIds(pluginDir).filter((id) => listIds(extraDir).includes(id));
+if (dup.length) console.log('  WARNING: ' + dup.join(', ') + ' exist in plugins/ AND plugins/extras/ - delete the plugins/ copies, they would be shipped in the app');
+const ids = [...new Set([...listIds(pluginDir), ...listIds(extraDir)])];     // one entry per plugin id
 test('all ' + ids.length + ' sample plugins load without errors', () => {
   const files = {};
   ids.forEach((id) => { files[id] = load(id); });
