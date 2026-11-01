@@ -180,9 +180,31 @@ def load_urban(folder, known, min_count, core=None, typo_below=10):
     return out
 
 
+def load_anime(folder, known, min_count=3, typo_below=10, core=None):
+    """Words from anime / manga / character / studio titles (animanga-wordlist). Frequency = number of titles containing the word.
+    Only clean words are kept: ASCII letters (one inner apostrophe), 3-12 letters, no letter 3x in a row, a vowel, no accents/mojibake."""
+    tok = collections.Counter()
+    rx = re.compile(r"[^\W\d_]+(?:['\u2019][^\W\d_]+)?", re.U)
+    for f in glob.glob(os.path.join(folder, '*', '*.txt')):
+        if os.sep + 'sites' + os.sep in f or 'pirated' in f: continue     # website lists, not titles
+        for ln in open(f, encoding='utf-8', errors='replace'):
+            for t in {x.lower().replace('\u2019', "'") for x in rx.findall(ln)}: tok[t] += 1
+    out = {}
+    for w, c in tok.items():
+        if c < min_count or w in known: continue
+        if not re.fullmatch(r"[a-z]+(?:'[a-z]+)?", w) or not (3 <= len(w) <= 12): continue
+        if re.search(r'(.)\1\1', w) or not re.search(r'[aeiouy]', w): continue
+        out[w] = min(c, 1_000_000)
+    if core is not None:
+        drop = [w for w, c in out.items() if len(w) >= 5 and c < typo_below and not edits1(w).isdisjoint(core)]
+        for w in drop: del out[w]
+        print('anime: dropped %d probable misspellings' % len(drop))
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--seed', required=True); ap.add_argument('--top'); ap.add_argument('--english'); ap.add_argument('--urban')
+    ap.add_argument('--seed', required=True); ap.add_argument('--top'); ap.add_argument('--english'); ap.add_argument('--urban'); ap.add_argument('--anime')
     ap.add_argument('--out', required=True); ap.add_argument('--urban-min', type=int, default=3)
     a = ap.parse_args()
     seed = load_seed(a.seed)
@@ -210,6 +232,13 @@ def main():
         u = load_urban(a.urban, set(main_words), a.urban_min, core)
         n, size = write_bin(os.path.join(a.out, 'en_urban.bin'), u, 0)
         print('en_urban.bin: %d words, %d KB' % (n, size // 1024))
+    else:
+        u = {}
+    if a.anime:
+        core = {w for w, f in main_words.items() if f >= COMMON_MIN}
+        an = load_anime(a.anime, set(main_words) | set(u), core=core)      # never repeats a main or Urban word
+        n, size = write_bin(os.path.join(a.out, 'en_anime.bin'), an, 0)
+        print('en_anime.bin: %d words, %d KB' % (n, size // 1024))
 
 
 if __name__ == '__main__':

@@ -28,6 +28,10 @@ def check(path):
     return set(words)
 
 dicts = {os.path.basename(p): check(p) for p in sorted(glob.glob(os.path.join(os.path.dirname(__file__), '..', 'native', 'assets', 'dict', '*.bin')))}
-if 'en.bin' in dicts and 'en_urban.bin' in dicts:
-    assert not (dicts['en.bin'] & dicts['en_urban.bin']), 'en_urban.bin repeats words of en.bin'
-    print('no word appears in both en.bin and en_urban.bin')
+import itertools, re
+for a, b in itertools.combinations(sorted(dicts), 2):
+    assert not (dicts[a] & dicts[b]), '%s and %s share words' % (a, b)
+print('no word appears in two dictionaries')
+if 'en_anime.bin' in dicts:
+    assert all(re.fullmatch(rb"[a-z]+('[a-z]+)?", w) and 3 <= len(w) <= 12 for w in dicts['en_anime.bin']), 'unclean anime word'
+    print('anime words are clean (a-z, 3-12 letters)')

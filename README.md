@@ -74,3 +74,4 @@ Tap the version number on **Setup** 10 times to show the **Developer** tab. It h
 * **Settings -> Typing -> Urban Dictionary words** (off by default): slang is completed, offered as a fix and no longer auto-corrected.
 * Autocorrect never changes a common word; a *rare* list word or an Urban word is only changed for an obvious slip (swapped letters, or a long
   word one edit from a core word). `native/assets/dict/en_next.txt` holds curated next-word suggestions.
+* `en_anime.bin` (~26k words from *animanga-wordlist*; switch **Anime & manga words**, off by default): only clean words - a-z (one inner apostrophe), 3-12 letters, no accents/mojibake, no letter 3x in a row, must contain a vowel, seen in at least 3 titles, not a probable misspelling, and never a word already in `en.bin` or `en_urban.bin`. Add `--anime <dir>` to the build command.

@@ -49,6 +49,7 @@ export default function Typing({cfg, update}: any) {
         <Toggle label="Swipe typing" hint="Glide across letters (English)" value={cfg.swipeTyping} onChange={T('swipeTyping')} />
         <Toggle label="Emoji suggestions" hint="Suggest emoji in the bar (heart → ❤️)" value={cfg.emojiSuggest} onChange={T('emojiSuggest')} />
         <Toggle label="Urban Dictionary words" hint="Slang, internet words and names (yeet, bruh, thicc). Added to suggestions and no longer auto-corrected. Off by default; may include crude words" value={!!cfg.urbanWords} onChange={T('urbanWords')} />
+        <Toggle label="Anime & manga words" hint="Titles, characters and studios from anime and manga (naruto, shinigami, kawaii). Cleaned list: letters only, 3-12 letters. Off by default" value={!!cfg.animeWords} onChange={T('animeWords')} />
         <Toggle label="Learn new words" value={cfg.learnWords} onChange={T('learnWords')} />
         <Btn kind="ghost" title="Clear learned words" onPress={() => Native.clearUserDictionary().then(() => Alert.alert('Done', 'Learned words cleared.'))} />
       </Card>

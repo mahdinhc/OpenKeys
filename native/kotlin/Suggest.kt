@@ -13,7 +13,9 @@ class SuggestEngine(ctx: Context) {
     private val dicts = HashMap<String, WordDict>()
     /** Asked on every lookup: may Urban Dictionary words be used? (Settings -> Typing -> Urban Dictionary words) */
     @Volatile var urbanOn: () -> Boolean = { false }
-    @Synchronized fun dict(code: String): WordDict = dicts.getOrPut(code) { WordDict(app, code, { urbanOn() }) }
+    /** Asked on every lookup: may anime / manga words be used? (Settings -> Typing -> Anime & manga words) */
+    @Volatile var animeOn: () -> Boolean = { false }
+    @Synchronized fun dict(code: String): WordDict = dicts.getOrPut(code) { WordDict(app, code, { urbanOn() }, { animeOn() }) }
     @Synchronized fun flush() = dicts.values.forEach { it.flush() }
     @Synchronized fun clearUser() {
         File(app.filesDir.path).listFiles { f -> f.name.startsWith("user_") }?.forEach { it.delete() }
@@ -29,7 +31,7 @@ class SwipeInput(val pts: FloatArray, val centers: Map<Char, FloatArray>, val ke
  * Autocorrect = keyboard-aware weighted edit distance x frequency x context; swipe = path-shape matching
  * against the ideal path through the key centres of every candidate word (location channel of SHARK2).
  */
-class WordDict(ctx: Context, private val code: String, private val urbanOn: () -> Boolean = { false }) {
+class WordDict(ctx: Context, private val code: String, private val urbanOn: () -> Boolean = { false }, private val animeOn: () -> Boolean = { false }) {
     private var bw: Array<String> = emptyArray()          // base words, sorted
     private var bf = IntArray(0)                          // their frequencies
     private var byLen: Array<IntArray> = emptyArray()     // indices into bw, bucketed by length
@@ -47,6 +49,14 @@ class WordDict(ctx: Context, private val code: String, private val urbanOn: () -
     // Large English lists are read through memory-mapped binary files (see BinDict); other languages use the text path.
     private val mainBin: BinDict? = if (fuzzy) null else BinDict.open(ctx, "dict/$code.bin")
     private val urbanBin: BinDict? = if (mainBin == null) null else BinDict.open(ctx, "dict/${code}_urban.bin")
+    private val animeBin: BinDict? = if (mainBin == null) null else BinDict.open(ctx, "dict/${code}_anime.bin")
+    /** Optional word lists the user switched on (each holds only words that are not in the main list). */
+    private fun extras(): List<BinDict> {
+        val l = ArrayList<BinDict>(2)
+        urbanBin?.let { if (urbanOn()) l.add(it) }
+        animeBin?.let { if (animeOn()) l.add(it) }
+        return l
+    }
     private val nextTab = HashMap<String, List<String>>()      // curated next-word table (assets/dict/<code>_next.txt)
 
     init {
@@ -110,7 +120,7 @@ class WordDict(ctx: Context, private val code: String, private val urbanOn: () -
         if (m != null) return m.indexOf(w) >= 0 || (user[w] ?: 0) >= 2 || urbanIdx(w) >= 0
         return baseIndex(w) >= 0 || (user[w] ?: 0) >= 2
     }
-    private fun urbanIdx(w: String): Int { val u = urbanBin ?: return -1; return if (urbanOn()) u.indexOf(w) else -1 }
+    private fun urbanIdx(w: String): Int { for (u in extras()) { val i = u.indexOf(w); if (i >= 0) return i }; return -1 }
 
     // ---------------------------------------------------------------- completion
     fun complete(prefix: String, n: Int, prev: String? = null): List<String> {
@@ -247,8 +257,7 @@ class WordDict(ctx: Context, private val code: String, private val urbanOn: () -
         if (bi != null) for (w in bi.keys) if (w.startsWith(p) && !hits.containsKey(w)) { val i = m.indexOf(w); hits[w] = if (i >= 0) m.freq(i) else 0 }
         val out = hits.entries.sortedByDescending { it.value + (bi?.get(it.key)?.let { c -> 3000 * c } ?: 0) }
             .map { it.key }.filter { it != p }.take(n).toMutableList()
-        val u = urbanBin
-        if (out.size < n && u != null && urbanOn()) {
+        if (out.size < n) for (u in extras()) {
             for (i in u.top(pb, n * 2 + 4)) { val w = u.word(i); if (w != p && w !in out && out.size < n) out.add(w) }
         }
         return out.map { matchCase(prefix, it) }
@@ -299,8 +308,7 @@ class WordDict(ctx: Context, private val code: String, private val urbanOn: () -
     private fun fixesBin(m: BinDict, word: String, w: String, n: Int, prev: String?): List<String> {
         val res = ArrayList<String>()
         for (c in binCands(m, w, prev, 1.4)) if (c.cost <= 1.4 && c.w != w && c.w !in res) res.add(c.w)
-        val u = urbanBin
-        if (u != null && urbanOn() && w.none { it.code > 127 } && res.size < n) {
+        if (w.none { it.code > 127 } && res.size < n) for (u in extras()) {
             val hits = ArrayList<Pair<String, Int>>()
             u.fuzzy(w.toByteArray(Charsets.UTF_8), 1.0) { i, _ -> hits.add(u.word(i) to u.freq(i)) }
             hits.sortByDescending { it.second }
@@ -398,11 +406,11 @@ class WordDict(ctx: Context, private val code: String, private val urbanOn: () -
         }
         val mb = mainBin
         val lastOk = BooleanArray(128); for (c in lasts) if (c.code < 128) lastOk[c.code] = true
-        val ub = if (mb != null && urbanOn()) urbanBin else null
+        val ubs = if (mb != null) extras() else emptyList()
         for (fc in firsts) {
             if (mb != null) {
                 scanBin(mb, fc, lastOk, true) { w, f -> eval(w, f + (user[w] ?: 0) * 50) }
-                if (ub != null) scanBin(ub, fc, lastOk, false) { w, f -> eval(w, f + (user[w] ?: 0) * 50) }
+                for (ub in ubs) scanBin(ub, fc, lastOk, false) { w, f -> eval(w, f + (user[w] ?: 0) * 50) }
             } else {
                 var i = lower(fc.toString())
                 while (i < bw.size && bw[i][0] == fc) { val w = bw[i]; if (w.all { it.isLetter() }) eval(w, bf[i] + (user[w] ?: 0) * 50); i++ }
