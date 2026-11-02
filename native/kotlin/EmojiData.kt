@@ -17,20 +17,25 @@ object EmojiData {
     @Volatile private var index: Map<String, List<EmojiItem>> = emptyMap()
     @Volatile private var toneSet: Set<String> = emptySet()
     @Volatile private var loading = false
+    @Volatile private var loadedFont = ""
+    @Volatile private var face: android.graphics.Typeface? = null
     private val waiting = ArrayList<() -> Unit>()
 
     /** Loads in the background; [done] runs on the main thread (immediately if already loaded). */
     fun load(ctx: Context, done: (() -> Unit)? = null) {
         val main = Handler(Looper.getMainLooper())
-        if (items.isNotEmpty()) { done?.invoke(); return }
+        if (items.isNotEmpty() && loadedFont == EmojiFont.mode(ctx.applicationContext)) { done?.invoke(); return }
         synchronized(waiting) { if (done != null) waiting.add(done) }
         if (loading) return
         loading = true
         val app = ctx.applicationContext
+        val mode = EmojiFont.mode(app)
+        val ft = EmojiFont.get(app)
         Thread {
             val out = ArrayList<EmojiItem>()
             try {
-                val paint = Paint()
+                // with a bundled Noto font the glyph test uses that font, so Unicode 18 emoji the phone's own font lacks still show
+                val paint = Paint().apply { typeface = ft }
                 app.assets.open("emoji/emoji.txt").bufferedReader().useLines { lines ->
                     for (ln in lines) {
                         val p = ln.split("\t")
@@ -53,6 +58,7 @@ object EmojiData {
             val idx = HashMap<String, ArrayList<EmojiItem>>()
             for (it in out) for (t in it.kw.split(' ').toSet()) if (t.length >= 2) idx.getOrPut(t) { ArrayList() }.add(it)
             index = idx
+            face = ft; loadedFont = mode
             items = out
             main.post {
                 loading = false
@@ -71,7 +77,7 @@ object EmojiData {
 
     /** Default + five skin tones, only those this device can draw. */
     fun variants(s: String): List<String> {
-        val p = Paint()
+        val p = Paint().apply { typeface = face }
         return listOf(s) + (0..4).map { withTone(s, it) }.filter { p.hasGlyph(it) }
     }
 

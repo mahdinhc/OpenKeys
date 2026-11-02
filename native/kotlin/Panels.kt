@@ -165,22 +165,47 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
     }
 
     private fun setKitchen(on: Boolean) {
-        kitchen = on; kaomoji = false
+        kitchen = on; kaomoji = false; gridFilterFor = null; if (on) { kA = null; kB = null; kSel = 0 }
         topRow.visibility = if (on) GONE else VISIBLE
         kitchenBar.visibility = if (on) VISIBLE else GONE
         restyleBottom()
         if (!on) { open(); return }
-        EmojiData.load(context) {
-            val heads = Prefs(context).bool("emojiHeaders", true)
-            val secs = ArrayList<EmojiSection>()
-            for (g in EmojiData.GROUPS.indices) {
-                if (g == 8) continue                           // flags have no mixes
-                val l = EmojiData.items.filter { it.group == g }.map { it.s }
-                if (l.isNotEmpty()) secs.add(EmojiSection(if (heads) EmojiData.GROUPS[g] else "", l))
-            }
-            grid.setData(secs, Prefs(context).int("emojiCols", 8).coerceIn(4, 12), (0.62f * Prefs(context).int("emojiSize", 100) / 100f).coerceIn(0.3f, 0.95f))
-            mixUpdate()
+        EmojiKitchen.ensureIndex(context)                      // (re)download the pair list in the background when missing/old
+        EmojiData.load(context) { kitchenGrid(null); mixUpdate() }
+    }
+
+    private var gridFilterFor: String? = null
+
+    /** Kitchen picker grid; with [only] (tokens from the pair index) just the emoji that mix with the first pick. */
+    private fun kitchenGrid(only: Set<String>?) {
+        val pr = Prefs(context)
+        val heads = pr.bool("emojiHeaders", true)
+        val secs = ArrayList<EmojiSection>()
+        for (g in EmojiData.GROUPS.indices) {
+            if (g == 8) continue                           // flags have no mixes
+            var l = EmojiData.items.filter { it.group == g }.map { it.s }
+            if (only != null) l = l.filter { EmojiKitchen.partnerToken(it) in only }
+            if (l.isNotEmpty()) secs.add(EmojiSection(if (heads) EmojiData.GROUPS[g] else "", l))
         }
+        grid.setData(secs, pr.int("emojiCols", 8).coerceIn(4, 12), (0.62f * pr.int("emojiSize", 100) / 100f).coerceIn(0.3f, 0.95f))
+    }
+
+    /** Exactly one slot filled -> narrow the grid to its partners (needs the index); otherwise show everything. */
+    private fun refreshKitchenGrid() {
+        val one = if ((kA == null) != (kB == null)) (kA ?: kB) else null
+        if (one == gridFilterFor) return
+        gridFilterFor = one
+        if (one == null) { kitchenGrid(null); return }
+        Thread {
+            val set = EmojiKitchen.partners(context, one)
+            post {
+                if (gridFilterFor != one || !kitchen) return@post
+                if (set == null || set.isEmpty()) { kitchenGrid(null); return@post }
+                kitchenGrid(set)
+                if (Prefs(context).bool("kitchenPrefetch", false))
+                    EmojiKitchen.prefetch(context, one, EmojiData.items.filter { it.group != 8 && EmojiKitchen.partnerToken(it.s) in set }.map { it.s })
+            }
+        }.start()
     }
 
     private fun kitchenPick(e: String) {
@@ -198,8 +223,10 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
     }
 
     private fun mixUpdate() {
+        val ef = EmojiFont.get(context); slotA.typeface = ef ?: android.graphics.Typeface.DEFAULT; slotB.typeface = slotA.typeface
         slotA.text = kA ?: ""; slotB.text = kB ?: ""
         styleSlots()
+        refreshKitchenGrid()
         mixSeq++; val seq = mixSeq
         mixFile = null; mixImg.setImageDrawable(null)
         val a = kA; val b = kB
@@ -215,7 +242,7 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
                     kHint.text = "Tap the mix to send it. Tap a slot to change that emoji"
                 }
                 EmojiKitchen.Result.NoMix -> { mixMsg.text = "No mix"; kHint.text = "These two don't mix. Try another" }
-                EmojiKitchen.Result.Offline -> { mixMsg.text = "Offline"; kHint.text = "Can't reach the server. Check your connection, then pick the emoji again" }
+                EmojiKitchen.Result.Offline -> { mixMsg.text = "Offline"; kHint.text = "Can't reach the server and this mix isn't saved on the phone yet. Mixes you've opened before work offline" }
             }
         }
     }

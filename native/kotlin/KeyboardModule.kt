@@ -125,6 +125,13 @@ class KeyboardModule(private val rc: ReactApplicationContext) : ReactContextBase
         (rc.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).showInputMethodPicker()
     }
 
+    // ---- Emoji Kitchen index / offline cache
+    @ReactMethod fun kitchenStatus(p: Promise) = p.resolve(EmojiKitchen.statusJson(rc))
+    @ReactMethod fun kitchenBuildIndex(p: Promise) {
+        Thread { try { p.resolve(EmojiKitchen.buildIndex(rc)) } catch (e: Exception) { p.reject("E_KITCHEN", e.message, e) } }.start()
+    }
+    @ReactMethod fun kitchenClearCache(p: Promise) = try { EmojiKitchen.clearCache(rc); p.resolve(true) } catch (e: Exception) { p.reject("E_KITCHEN", e.message, e) }
+
     @ReactMethod fun getConfig(p: Promise) = p.resolve(Prefs(rc).raw())
 
     @ReactMethod fun setConfig(json: String, p: Promise) = try { Prefs(rc).save(json); p.resolve(true) } catch (e: Exception) { p.reject("E_CONFIG", e) }

@@ -25,8 +25,18 @@ one-handed mode · themes (light/dark/AMOLED/custom) · height/font/radius/spaci
 input-type aware (Typing → *Show suggestions in*: **App decides** hides suggestions wherever an app asks, **Moderate** (default) also shows them in search bars and opted-out fields, **Everywhere** shows them in every text field except passwords and number/phone; Enter action icon).
 
 **Emoji Kitchen.** Emoji panel → the chef-hat button next to the emoticon button. Tap two emoji and the mashup sticker appears; tap it to send
-(inserted as an image where the app accepts it, otherwise copied to the clipboard). Stickers are fetched from `gstatic.com` the first time a pair is
-used and cached on the device, so this is the one feature that goes online. The release folders it probes are listed in `native/assets/emoji/kitchen_dates.txt`.
+(inserted as an image where the app accepts it, otherwise copied to the clipboard). Modelled on emojikitchen.dev: the keyboard downloads the
+community pair list (`xsalazar/emoji-kitchen-backend` `metadata.json`, every valid pair with its exact gstatic URL) once, streams it into a compact
+sorted index (`filesDir/kitchen/index.bin`, binary-searched, not held in RAM) and refreshes it every two weeks. So new mixes work as soon as
+they are listed, "does this pair mix?" is answered offline, and after the first pick the picker shows only the emoji that mix with it.
+Until the list is downloaded it falls back to probing the release folders in `native/assets/emoji/kitchen_dates.txt`.
+Sticker PNGs are cached on disk (Appearance → Emoji Kitchen: size limit, optional pre-download of an emoji's mixes, clear, manual list update)
+so mixes load instantly and open offline.
+
+**Emoji font & Unicode 18.** `native/assets/emoji/emoji.txt` is generated from Unicode 18.0 `emoji-test.txt` (`python3 scripts/build_emoji.py`,
+data in `scripts/data/`). Phones whose system font predates Unicode 18 used to hide the new emoji; Appearance → *Emoji font* can now draw the
+panel with the bundled **Noto Color Emoji** (bitmap, any Android) or **Noto COLRv1** (vector, Android 14+), both with every Unicode 18 emoji
+(`native/assets/fonts/`, ~15 MB). Other apps still render what you send with their own font.
 
 GIF search / stickers are not included (they need a third-party GIF service and API key).
 

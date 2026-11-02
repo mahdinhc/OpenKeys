@@ -22,6 +22,7 @@ class EmojiGridView(ctx: Context) : View(ctx) {
     var displayOf: ((String) -> String)? = null           // preferred (toned) form
     var onTone: ((String, String) -> Unit)? = null        // base, chosen variant
     var theme: Theme = Theme.DARK
+    private var face: android.graphics.Typeface? = null   // emoji font (settings), null = system
 
     private var sections: List<EmojiSection> = emptyList()
     private var cols = 8
@@ -47,6 +48,7 @@ class EmojiGridView(ctx: Context) : View(ctx) {
     private fun headerH() = context.dpf(34f)
 
     fun setData(s: List<EmojiSection>, columns: Int, textFraction: Float, fixedCellH: Float = 0f) {
+        face = EmojiFont.get(context)
         sections = s; cols = columns; textFrac = textFraction; cellHFixed = fixedCellH
         scrollYf = 0f; lastSection = -1; relayout(); invalidate()
     }
@@ -99,11 +101,12 @@ class EmojiGridView(ctx: Context) : View(ctx) {
             val end = y + (if (sec.title.isNotEmpty()) headerH() else 0f) + rows * ch
             if (end < top || y > bottom) continue
             if (sec.title.isNotEmpty()) {
-                paint.color = theme.hint; paint.textSize = context.dpf(14f); paint.textAlign = Paint.Align.LEFT
+                paint.typeface = null; paint.color = theme.hint; paint.textSize = context.dpf(14f); paint.textAlign = Paint.Align.LEFT
                 c.drawText(sec.title, context.dpf(12f), y - top + headerH() * 0.68f, paint)
                 y += headerH()
             }
             paint.textAlign = Paint.Align.CENTER
+            paint.typeface = if (cellHFixed > 0) null else face
             paint.textSize = if (cellHFixed > 0) context.dpf(15f) else cw * textFrac
             paint.color = theme.keyText
             val fm = paint.fontMetrics
@@ -137,7 +140,7 @@ class EmojiGridView(ctx: Context) : View(ctx) {
 
     private fun drawPopup(c: Canvas, items: List<String>) {
         fill.color = theme.popup; c.drawRoundRect(popupRect, context.dpf(12f), context.dpf(12f), fill)
-        paint.textAlign = Paint.Align.CENTER; paint.textSize = popupCw * 0.62f
+        paint.textAlign = Paint.Align.CENTER; paint.typeface = face; paint.textSize = popupCw * 0.62f
         val fm = paint.fontMetrics
         items.forEachIndexed { i, e ->
             val cr = RectF(popupRect.left + i * popupCw, popupRect.top, popupRect.left + (i + 1) * popupCw, popupRect.bottom)

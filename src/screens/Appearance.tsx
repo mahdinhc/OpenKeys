@@ -3,6 +3,7 @@ import {Image, ScrollView, Text, View} from 'react-native';
 import {Alert, TouchableOpacity} from 'react-native';
 import {BG_BLENDS, BG_FITS, EMOJI_GROUPS, FONTS, PRESETS, THEMES, TOP_TOOLS} from '../config';
 import {Native} from '../native';
+import KitchenCard from './KitchenCard';
 import {Btn, Card, Chip, Field, Segmented, Stepper, Toggle} from '../ui';
 
 const COLOR_KEYS: [string, string][] = [
@@ -137,6 +138,20 @@ export default function Appearance({cfg, update}: any) {
         </View>
         <Stepper label="Button size" value={cfg.topIconSize} min={30} max={80} step={5} unit="%" onChange={(v: number) => update({topIconSize: v})} />
       </Card>
+
+      <Card title="Emoji font">
+        <Segmented options={[['system', 'System'], ['noto', 'Noto Color'], ['colr', 'Noto COLRv1']]} value={cfg.emojiFont || 'system'} onChange={(v: any) => update({emojiFont: v})} />
+        <Text style={{color: '#9aa0a6', fontSize: 12, marginTop: 6}}>
+          {(cfg.emojiFont || 'system') === 'system'
+            ? 'Uses your phone\'s emoji font. Emoji newer than your Android version are hidden from the panel.'
+            : cfg.emojiFont === 'noto'
+            ? 'Bundled Noto Color Emoji with every Unicode 18 emoji, on any Android version.'
+            : 'Bundled Noto COLRv1: vector, sharp at any size and smaller in memory. Needs Android 14+, otherwise Noto Color is used.'}
+          {' '}This only changes how emoji look inside the keyboard. Other apps draw what you send with their own font, so brand-new emoji can look blank there until that app or Android supports them.
+        </Text>
+      </Card>
+
+      <KitchenCard cfg={cfg} update={update} />
 
       <Card title="Emoji menu">
         <Stepper label="Columns" value={cfg.emojiCols} min={4} max={12} onChange={(v: number) => update({emojiCols: v})} />

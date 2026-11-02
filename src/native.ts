@@ -32,6 +32,9 @@ export const Native = {
   debugLogRead: (maxChars: number): Promise<string> => N.debugLogRead(maxChars),
   debugLogClear: (): Promise<boolean> => N.debugLogClear(),
   debugLogWrite: (msg: string): Promise<boolean> => N.debugLogWrite(msg),
+  kitchenStatus: async (): Promise<{indexed: boolean; pairs: number; builtAt: number; building: boolean; error: string; cacheFiles: number; cacheBytes: number}> => JSON.parse(await N.kitchenStatus()),
+  kitchenBuildIndex: (): Promise<boolean> => N.kitchenBuildIndex(),
+  kitchenClearCache: (): Promise<boolean> => N.kitchenClearCache(),
   clearUserDictionary: (): Promise<boolean> => N.clearUserDictionary(),
   // plugins
   getPlugins: async (): Promise<any[]> => JSON.parse(await N.getPlugins()),

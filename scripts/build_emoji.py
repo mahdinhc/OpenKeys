@@ -1,10 +1,14 @@
 import re
-T='/mnt/user-data/uploads/emoji-test.txt'
+# Run from the repo root:  python3 scripts/build_emoji.py   (Unicode 18.0 emoji-test.txt lives in scripts/data/)
+import os
+T=os.environ.get('EMOJI_TEST','scripts/data/emoji-test.txt')
+OUT='native/assets/emoji/emoji.txt'
 GR={'Smileys & Emotion':0,'People & Body':1,'Animals & Nature':2,'Food & Drink':3,'Travel & Places':4,'Activities':5,'Objects':6,'Symbols':7,'Flags':8}
-old={}
-for ln in open('/home/claude/w/emoji_old.txt',encoding='utf8'):
-    p=ln.rstrip('\n').split('\t'); 
-    if len(p)>3: old[p[1].replace('\ufe0f','')]=p[3]
+old={}   # keywords from the previous emoji.txt are kept and merged with the new names
+if os.path.exists(OUT):
+    for ln in open(OUT,encoding='utf8'):
+        p=ln.rstrip('\n').split('\t')
+        if len(p)>3: old[p[1].replace('\ufe0f','')]=p[3]
 rows=[];fq=set();grp=None
 for ln in open(T,encoding='utf8'):
     if ln.startswith('# group:'): grp=ln.split(':',1)[1].strip()
@@ -44,5 +48,5 @@ for w,es in PRI.items():
         if not r: print('missing',w,e); continue
         r[4]+=f"{w}:{rank} "; 
         if w not in r[3].split(): r[3]+=' '+w
-open('OpenKeys-fixed/OpenKeys-main/native/assets/emoji/emoji.txt','w',encoding='utf8').write('\n'.join('\t'.join(map(str,[r[0],r[1],r[2],r[3],r[4].strip()])) for r in out)+'\n')
+open(OUT,'w',encoding='utf8').write('\n'.join('\t'.join(map(str,[r[0],r[1],r[2],r[3],r[4].strip()])) for r in out)+'\n')
 print(len(out), sum(r[2] for r in out))
