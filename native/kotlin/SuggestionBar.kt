@@ -146,8 +146,10 @@ class SuggestionBar(ctx: Context) : LinearLayout(ctx) {
         sugRow.visibility = if (showSug) VISIBLE else GONE
         toolScroll.visibility = if (!searching && !showSug) VISIBLE else GONE
         if (showSug) for (i in 0 until 3) {
-            slots[i].text = suggestions.getOrNull(i) ?: ""
-            slots[i].setTypeface(null, if (i == 1 && suggestions.size > 1) Typeface.BOLD else Typeface.NORMAL)
+            val sug = suggestions.getOrNull(i) ?: ""
+            slots[i].text = sug
+            if (EmojiFont.isEmojiText(sug)) slots[i].setTypeface(EmojiFont.get(context), Typeface.NORMAL)   // chosen emoji font (Noto) for emoji suggestions
+            else slots[i].setTypeface(null, if (i == 1 && suggestions.size > 1) Typeface.BOLD else Typeface.NORMAL)
         }
     }
 
@@ -178,7 +180,7 @@ class EmojiResultStrip(ctx: Context, private val onPick: (String) -> Unit) : and
             return
         }
         for (e in items) row.addView(TextView(context).apply {
-            text = e; textSize = 28f; gravity = Gravity.CENTER; setPadding(context.dpi(10f), 0, context.dpi(10f), 0)
+            text = e; textSize = 28f; typeface = EmojiFont.get(context) ?: android.graphics.Typeface.DEFAULT; gravity = Gravity.CENTER; setPadding(context.dpi(10f), 0, context.dpi(10f), 0)
             setOnClickListener { onPick(e) }
         }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT))
     }

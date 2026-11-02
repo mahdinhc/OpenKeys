@@ -215,6 +215,50 @@ class KeyboardModule(private val rc: ReactApplicationContext) : ReactContextBase
 
     @ReactMethod fun clearPluginLog(p: Promise) { PluginLog.clear(); p.resolve(true) }
 
+
+    // ---- developer: emoji / search testing
+    /** All emoji with Unicode version + whether the chosen font can draw them. font = system | noto | colr */
+    @ReactMethod fun devEmojiList(font: String, p: Promise) = try {
+        val ver = HashMap<String, String>()
+        rc.assets.open("emoji/emoji_ver.txt").bufferedReader().useLines { ls -> ls.forEach { l -> val a = l.split("\t"); if (a.size > 1) ver[a[0]] = a[1] } }
+        val face = when (font) {
+            "colr" -> if (android.os.Build.VERSION.SDK_INT >= 34) try { android.graphics.Typeface.createFromAsset(rc.assets, "fonts/Noto-COLRv1.ttf") } catch (e: Throwable) { null } else null
+            "noto" -> null
+            else -> null
+        } ?: if (font == "noto" || font == "colr") try { android.graphics.Typeface.createFromAsset(rc.assets, "fonts/NotoColorEmoji.ttf") } catch (e: Throwable) { null } else null
+        val paint = android.graphics.Paint().apply { typeface = face }
+        val arr = JSONArray()
+        rc.assets.open("emoji/emoji.txt").bufferedReader().useLines { ls -> ls.forEach { l ->
+            val a = l.split("\t"); if (a.size >= 3) arr.put(JSONArray().put(a[0].toInt()).put(a[1]).put(a.getOrElse(3) { "" }).put(ver[a[1]] ?: "").put(paint.hasGlyph(a[1]))) } }
+        p.resolve(arr.toString())
+    } catch (e: Exception) { p.reject("E_DEV", e.message, e) }
+
+    /** Runs the keyboard's real emoji search (and the word->emoji suggestion) so results match what the panel shows. */
+    @ReactMethod fun devSearchEmoji(q: String, p: Promise) = try {
+        EmojiData.load(rc) {
+            val o = JSONObject()
+            o.put("search", JSONArray(EmojiData.search(q, 60)))
+            o.put("forWord", JSONArray(EmojiData.forWord(q, 5)))
+            p.resolve(o.toString())
+        }
+    } catch (e: Exception) { p.reject("E_DEV", e.message, e) }
+
+    /** Dictionary tests: completions, corrections, next-word for a language dictionary (en, bn ...). */
+    @ReactMethod fun devSearchWord(code: String, word: String, prev: String, p: Promise) = try {
+        val pr = Prefs(rc)
+        val eng = SuggestEngine(rc); eng.urbanOn = { pr.bool("urbanWords", false) }; eng.animeOn = { pr.bool("animeWords", false) }
+        val d = eng.dict(code)
+        val pv = if (prev.isBlank()) null else prev
+        val o = JSONObject()
+        o.put("known", d.known(word.lowercase()))
+        o.put("complete", JSONArray(d.complete(word, 8, pv)))
+        o.put("correct", d.correct(word, pv) ?: JSONObject.NULL)
+        o.put("fixes", JSONArray(d.fixes(word, 6, pv)))
+        o.put("next", JSONArray(d.next(word, 6)))
+        o.put("auto", d.autoCorrect(word) ?: JSONObject.NULL)
+        p.resolve(o.toString())
+    } catch (e: Exception) { p.reject("E_DEV", e.message, e) }
+
     @ReactMethod fun addListener(name: String) {}
     @ReactMethod fun removeListeners(count: Int) {}
 }

@@ -23,6 +23,19 @@ object EmojiFont {
         }
     }
 
+    /** True for text made only of emoji/symbols (no letters or digits), so words in the suggestion bar keep the normal font. */
+    fun isEmojiText(s: String): Boolean {
+        if (s.isEmpty()) return false
+        var emoji = false
+        var i = 0
+        while (i < s.length) {
+            val cp = s.codePointAt(i); i += Character.charCount(cp)
+            if (Character.isLetterOrDigit(cp)) return false
+            if (cp >= 0x203C) emoji = true
+        }
+        return emoji
+    }
+
     @Synchronized fun get(ctx: Context): Typeface? {
         val m = mode(ctx)
         if (m == "system") return null

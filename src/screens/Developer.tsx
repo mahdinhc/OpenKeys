@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Alert, ScrollView, Share, Text, TouchableOpacity, View} from 'react-native';
 import {Native} from '../native';
 import {Btn, C, Card, Field, Segmented, Toggle} from '../ui';
@@ -7,17 +7,162 @@ type Index = Record<string, Record<string, number>>;
 const fmt = (t: number) => { const d = new Date(t); const p = (n: number) => String(n).padStart(2, '0'); return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; };
 const err = (e: any) => Alert.alert('Error', String(e?.message || e));
 
-/** Developer options are split into two separate sections: the debug/crash log and the (encrypted) key log. */
+const SECTIONS: [string, string][] = [['debug', 'Debug'], ['keys', 'Key log'], ['emoji', 'Emoji'], ['search', 'Search']];
+
+/** Developer options, one section at a time: Debug log · Key log (encrypted) · Emoji browser · Search tester. */
 export default function Developer({cfg, update}: any) {
   const [section, setSection] = useState<string>('debug');
   return (
     <ScrollView keyboardShouldPersistTaps="handled">
       <View style={{marginHorizontal: 12, marginTop: 12}}>
-        <Segmented options={[['debug', 'Debug log'], ['keys', 'Key logs']]} value={section} onChange={setSection} />
+        <Segmented options={SECTIONS} value={section} onChange={setSection} />
       </View>
-      {section === 'debug' ? <DebugLog cfg={cfg} update={update} /> : <KeyLogs cfg={cfg} update={update} />}
+      {section === 'debug' && <DebugLog cfg={cfg} update={update} />}
+      {section === 'keys' && <KeyLogs cfg={cfg} update={update} />}
+      {section === 'emoji' && <EmojiBrowser cfg={cfg} />}
+      {section === 'search' && <SearchTester cfg={cfg} />}
       <View style={{height: 24}} />
     </ScrollView>
+  );
+}
+
+const Chip2 = ({label, on, onPress}: any) => (
+  <TouchableOpacity onPress={onPress} style={{paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, marginRight: 6, marginBottom: 6, backgroundColor: on ? C.accent : C.line}}>
+    <Text style={{color: on ? '#0f1115' : C.text, fontWeight: '600', fontSize: 13}}>{label}</Text>
+  </TouchableOpacity>
+);
+const Hint = ({children}: any) => <Text style={{color: C.sub, fontSize: 12, marginTop: 4, marginBottom: 4}}>{children}</Text>;
+const Row = ({children}: any) => <View style={{flexDirection: 'row', flexWrap: 'wrap', marginTop: 4}}>{children}</View>;
+const FACE: Record<string, string | undefined> = {system: undefined, noto: 'NotoColorEmoji', colr: 'Noto-COLRv1'};
+
+/* ------------------------------------------------------------------ emoji browser */
+
+type Em = [number, string, string, string, boolean]; // group, emoji, keywords, unicode version, drawable
+const vnum = (v: string) => parseFloat(v) || 0;
+const GROUPS = ['Smileys', 'People', 'Animals', 'Food', 'Travel', 'Activities', 'Objects', 'Symbols', 'Flags'];
+
+function EmojiBrowser({cfg}: any) {
+  const [font, setFont] = useState<string>(cfg.emojiFont || 'system'); // starts from Settings → Appearance → Emoji font
+  const [all, setAll] = useState<Em[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [mode, setMode] = useState('newer');      // newer | all | missing
+  const [ver, setVer] = useState<string>('');     // "newer" = this version and up
+  const [group, setGroup] = useState(-1);
+  const [q, setQ] = useState('');
+  const [limit, setLimit] = useState(300);
+
+  useEffect(() => {
+    setLoading(true);
+    Native.devEmojiList(font).then(setAll).catch(err).then(() => setLoading(false));
+  }, [font]);
+
+  const versions = useMemo(() => {
+    const m: Record<string, number> = {};
+    all.forEach(e => { if (e[3]) m[e[3]] = (m[e[3]] || 0) + 1; });
+    return Object.keys(m).sort((a, b) => vnum(b) - vnum(a)).map(v => [v, m[v]] as [string, number]);
+  }, [all]);
+  useEffect(() => { if (!ver && versions.length) setVer(versions[0][0]); }, [versions, ver]);
+
+  const shown = useMemo(() => {
+    const t = q.toLowerCase().trim();
+    return all.filter(e =>
+      (mode === 'all' || (mode === 'missing' ? !e[4] : vnum(e[3]) >= vnum(ver))) &&
+      (group < 0 || e[0] === group) &&
+      (!t || e[1] === t || e[2].toLowerCase().includes(t)));
+  }, [all, mode, ver, group, q]);
+  useEffect(() => setLimit(300), [mode, ver, group, q, font]);
+
+  const missing = all.filter(e => !e[4]).length;
+  return (
+    <>
+      <Card title="Emoji font">
+        <Segmented options={[['system', 'System'], ['noto', 'Noto Color'], ['colr', 'Noto COLRv1']]} value={font} onChange={setFont} />
+        <Hint>Starts from your Appearance setting ({cfg.emojiFont || 'system'}). Changing it here only affects this test view. Dimmed emoji can’t be drawn by the selected font.</Hint>
+      </Card>
+
+      <Card title="Show">
+        <Segmented options={[['newer', 'Newer'], ['all', 'All'], ['missing', 'Missing']]} value={mode} onChange={setMode} />
+        {mode === 'newer' && (
+          <>
+            <Hint>Emoji added in Unicode version … or later:</Hint>
+            <Row>{versions.slice(0, 8).map(([v, n]) => <Chip2 key={v} label={`${v} (${n})`} on={ver === v} onPress={() => setVer(v)} />)}</Row>
+          </>
+        )}
+        {mode === 'missing' && <Hint>{missing} emoji can’t be drawn with this font.</Hint>}
+        <Hint>Group</Hint>
+        <Row>
+          <Chip2 label="All" on={group < 0} onPress={() => setGroup(-1)} />
+          {GROUPS.map((g, i) => <Chip2 key={g} label={g} on={group === i} onPress={() => setGroup(i)} />)}
+        </Row>
+        <Field label="Filter by name / keyword" value={q} onChangeText={setQ} />
+      </Card>
+
+      <Card title={loading ? 'Loading…' : `${shown.length} emoji`}>
+        <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
+          {shown.slice(0, limit).map((e, i) => (
+            <TouchableOpacity key={i} style={{width: '12.5%', alignItems: 'center', paddingVertical: 4, opacity: e[4] ? 1 : 0.25}}
+              onPress={() => Alert.alert(e[1], `${e[2] || '(no keywords)'}\nUnicode ${e[3] || '?'} · ${GROUPS[e[0]]}\nU+${Array.from(e[1]).map(c => c.codePointAt(0)!.toString(16).toUpperCase()).join(' U+')}\n${e[4] ? 'Drawable' : 'Not drawable with this font'}`)}>
+              <Text style={{fontSize: 26, color: C.text, fontFamily: FACE[font]}}>{e[1]}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        {shown.length > limit && <Btn kind="ghost" title={`Show more (${shown.length - limit} left)`} onPress={() => setLimit(l => l + 400)} />}
+        <Hint>Tap an emoji for its keywords, code points and version.</Hint>
+      </Card>
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ search tester */
+
+const Chips = ({items}: {items?: string[]}) => !items || items.length === 0
+  ? <Text style={{color: C.sub}}>—</Text>
+  : <Row>{items.map((x, i) => <View key={i} style={{backgroundColor: C.line, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 4, marginRight: 6, marginBottom: 6}}><Text style={{color: C.text, fontSize: 16}}>{x}</Text></View>)}</Row>;
+const Lbl = ({children}: any) => <Text style={{color: C.sub, fontSize: 12, marginTop: 8}}>{children}</Text>;
+
+function SearchTester({cfg}: any) {
+  const [q, setQ] = useState(''); const [prev, setPrev] = useState(''); const [lang, setLang] = useState('en');
+  const [emo, setEmo] = useState<{search: string[]; forWord: string[]} | null>(null);
+  const [wd, setWd] = useState<any>(null);
+  const [busy, setBusy] = useState(false);
+
+  const run = () => {
+    const t = q.trim(); if (!t) return;
+    setBusy(true);
+    Promise.all([Native.devSearchEmoji(t).then(setEmo), Native.devSearchWord(lang, t.split(/\s+/)[0], prev.trim()).then(setWd)])
+      .catch(err).then(() => setBusy(false));
+  };
+  const face = FACE[cfg.emojiFont || 'system'];
+  const emj = (a?: string[]) => !a || !a.length ? <Text style={{color: C.sub}}>—</Text>
+    : <Row>{a.map((x, i) => <View key={i} style={{backgroundColor: C.line, borderRadius: 14, paddingHorizontal: 8, paddingVertical: 2, marginRight: 6, marginBottom: 6}}><Text style={{fontSize: 24, fontFamily: face, color: C.text}}>{x}</Text></View>)}</Row>;
+
+  return (
+    <>
+      <Card title="Search tester">
+        <Hint>Runs the keyboard’s real engines on a word, so you can see exactly what it would suggest. Emoji use the font chosen in Appearance.</Hint>
+        <Field label="Search / word" value={q} onChangeText={setQ} onSubmitEditing={run} />
+        <Field label="Previous word (optional, for next-word & context)" value={prev} onChangeText={setPrev} />
+        <Segmented options={[['en', 'English'], ['bn', 'Bangla']]} value={lang} onChange={setLang} />
+        <Btn title={busy ? 'Searching…' : 'Search all'} onPress={run} />
+      </Card>
+
+      {emo && (
+        <Card title="Emoji">
+          <Lbl>Emoji panel search</Lbl>{emj(emo.search)}
+          <Lbl>Suggestion-bar emoji for this word</Lbl>{emj(emo.forWord)}
+        </Card>
+      )}
+      {wd && (
+        <Card title={`Dictionary (${lang})`}>
+          <Lbl>Known word</Lbl><Text style={{color: wd.known ? C.accent : C.danger}}>{wd.known ? 'yes' : 'no'}</Text>
+          <Lbl>Completions</Lbl><Chips items={wd.complete} />
+          <Lbl>Auto-correct</Lbl><Chips items={wd.correct ? [wd.correct] : []} />
+          <Lbl>Spelling fixes</Lbl><Chips items={wd.fixes} />
+          <Lbl>Next-word predictions (after this word)</Lbl><Chips items={wd.next} />
+          {lang === 'bn' && <><Lbl>Bangla roman auto-map</Lbl><Chips items={wd.auto ? [wd.auto] : []} /></>}
+        </Card>
+      )}
+    </>
   );
 }
 
@@ -49,7 +194,7 @@ function DebugLog({cfg, update}: any) {
   const lines = text.split('\n');
   return (
     <>
-      <Card title="Debug log">
+      <Card title="Debug log settings">
         <Text style={{color: C.sub, marginBottom: 6}}>
           Records keyboard start-up steps, errors and crash stack traces so a crash can be tracked down. It never records what you type — that is the separate “Key logs” section.
         </Text>
@@ -58,7 +203,7 @@ function DebugLog({cfg, update}: any) {
           onChange={(v: boolean) => update({devDebugLog: v})} />
       </Card>
 
-      <Card title="Log">
+      <Card title="Log output">
         {!on && <Text style={{color: C.sub, marginBottom: 6}}>Debug log is off. Existing entries are shown below; turn it on to record new ones.</Text>}
         <View style={{height: 380, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: '#0f1115'}}>
           <ScrollView ref={box} nestedScrollEnabled style={{padding: 8}}
@@ -117,7 +262,7 @@ function KeyLogs({cfg, update}: any) {
 
   return (
     <>
-      <Card title="Key log">
+      <Card title="Key log settings">
         <Text style={{color: C.sub, marginBottom: 6}}>
           Stores what is typed, swiped, spoken, pasted, picked from suggestions or inserted by emoji, clipboard and plugins, plus special keys, encrypted on this device and organised by date and hour. A password is required to enable, view, export or delete it.
         </Text>

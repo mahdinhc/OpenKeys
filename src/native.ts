@@ -45,5 +45,8 @@ export const Native = {
   setPluginSettings: (id: string, values: any): Promise<boolean> => N.setPluginSettings(id, JSON.stringify(values)),
   getBundledPlugins: async (): Promise<{id: string; code: string}[]> => JSON.parse(await N.getBundledPlugins()),
   getPluginLog: (): Promise<string> => N.getPluginLog(),
+  devEmojiList: async (font: string): Promise<[number, string, string, string, boolean][]> => JSON.parse(await N.devEmojiList(font)),
+  devSearchEmoji: async (q: string): Promise<{search: string[]; forWord: string[]}> => JSON.parse(await N.devSearchEmoji(q)),
+  devSearchWord: async (code: string, word: string, prev: string): Promise<{known: boolean; complete: string[]; correct: string | null; fixes: string[]; next: string[]; auto: string | null}> => JSON.parse(await N.devSearchWord(code, word, prev)),
   clearPluginLog: (): Promise<boolean> => N.clearPluginLog(),
 };
