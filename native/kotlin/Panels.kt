@@ -182,7 +182,7 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
         val heads = pr.bool("emojiHeaders", true)
         val secs = ArrayList<EmojiSection>()
         for (g in EmojiData.GROUPS.indices) {
-            if (g == 8) continue                           // flags have no mixes
+            if (g >= 8) continue                           // flags and the OpenEmoji section have no mixes
             var l = EmojiData.items.filter { it.group == g }.map { it.s }
             if (only != null) l = l.filter { EmojiKitchen.partnerToken(it) in only }
             if (l.isNotEmpty()) secs.add(EmojiSection(if (heads) EmojiData.GROUPS[g] else "", l))
@@ -203,7 +203,7 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
                 if (set == null || set.isEmpty()) { kitchenGrid(null); return@post }
                 kitchenGrid(set)
                 if (Prefs(context).bool("kitchenPrefetch", false))
-                    EmojiKitchen.prefetch(context, one, EmojiData.items.filter { it.group != 8 && EmojiKitchen.partnerToken(it.s) in set }.map { it.s })
+                    EmojiKitchen.prefetch(context, one, EmojiData.items.filter { it.group < 8 && EmojiKitchen.partnerToken(it.s) in set }.map { it.s })
             }
         }.start()
     }
@@ -255,7 +255,7 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
         BitmapFactory.decodeFile(f.path, BitmapFactory.Options().apply { inSampleSize = s })
     } catch (e: Throwable) { null }
 
-    /** (Re)builds the section list: recents + the nine Unicode groups. */
+    /** (Re)builds the section list: recents + the nine Unicode groups (+ OpenEmoji when that font is selected). */
     fun open() {
         kaomoji = false; kitchen = false; topRow.visibility = VISIBLE; kitchenBar.visibility = GONE; restyleBottom()
         EmojiData.load(context) { build() }

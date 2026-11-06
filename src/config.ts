@@ -12,7 +12,7 @@ export type Config = {
   bgName: string; bgPath: string; bgRev: number; bgFit: string; bgBlend: string;
   bgOpacity: number; bgBlur: number; bgGray: number; bgSepia: number; bgBright: number; bgContrast: number; bgSat: number; bgHue: number;
   bgInvert: boolean; bgDim: number; bgTint: string; bgTintAmt: number; bgFlipX: boolean; bgScale: number; bgPanels: number;
-  emojiFont: 'system' | 'noto' | 'colr'; kitchenCacheMb: number; kitchenPrefetch: boolean; kitchenMetaUrl: string;
+  emojiFont: 'system' | 'noto' | 'colr' | 'openemoji'; kitchenCacheMb: number; kitchenPrefetch: boolean; kitchenMetaUrl: string;
   emojiCols: number; emojiSize: number; emojiHeaders: boolean; emojiRecents: boolean; emojiHidden: string[];
   devMode: boolean; devLog: boolean; keyLogScope: 'skipPasswords' | 'everything'; devDebugLog: boolean;
   topTools: string[]; topIconSize: number; emojiHeight: number; pianoHeight: number;
@@ -94,5 +94,5 @@ export const APP_VERSION = '1.0.0';
 export const FONTS: [string, string][] = [['default', 'Default'], ['light', 'Light'], ['medium', 'Medium'], ['black', 'Black'], ['condensed', 'Condensed'], ['serif', 'Serif'], ['mono', 'Mono'], ['custom', 'Custom file']];
 export const BG_BLENDS: [string, string][] = [['normal', 'Normal'], ['multiply', 'Multiply'], ['screen', 'Screen'], ['overlay', 'Overlay'], ['darken', 'Darken'], ['lighten', 'Lighten'], ['add', 'Add']];
 export const BG_FITS: [string, string][] = [['cover', 'Fill'], ['fit', 'Fit'], ['stretch', 'Stretch'], ['tile', 'Tile']];
-export const EMOJI_GROUPS = ['Smileys & Emotions', 'People & Body', 'Animals & Nature', 'Food & Drink', 'Travel & Places', 'Activities', 'Objects', 'Symbols', 'Flags'];
+export const EMOJI_GROUPS = ['Smileys & Emotions', 'People & Body', 'Animals & Nature', 'Food & Drink', 'Travel & Places', 'Activities', 'Objects', 'Symbols', 'Flags', 'OpenEmoji'];
 export const TOP_TOOLS: [string, string][] = [['emoji', 'Emoji'], ['clip', 'Clipboard'], ['piano', 'Piano'], ['hand', 'One-handed mode'], ['settings', 'Settings']];

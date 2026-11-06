@@ -35,8 +35,14 @@ so mixes load instantly and open offline.
 
 **Emoji font & Unicode 18.** `native/assets/emoji/emoji.txt` is generated from Unicode 18.0 `emoji-test.txt` (`python3 scripts/build_emoji.py`,
 data in `scripts/data/`). Phones whose system font predates Unicode 18 used to hide the new emoji; Appearance → *Emoji font* can now draw the
-panel with the bundled **Noto Color Emoji** (bitmap, any Android) or **Noto COLRv1** (vector, Android 14+), both with every Unicode 18 emoji
-(`native/assets/fonts/`, ~15 MB). Other apps still render what you send with their own font.
+panel with the bundled **Noto Color Emoji** (bitmap, any Android), **Noto COLRv1** (vector, Android 14+) or **OpenEmoji** (bitmap, any Android), all with every Unicode 18 emoji
+(`native/assets/fonts/`, ~27 MB). Other apps still render what you send with their own font.
+
+**OpenEmoji.** Pick Appearance → Emoji font → *OpenEmoji* to draw the panel with the bundled `OpenEmoji.ttf` (Noto art + OpenEmoji's own emoji, built from the
+[OpenEmoji](../OpenEmoji) project). While it is selected the panel gets an extra **OpenEmoji** section (sparkle tab) with the custom emoji (cannabis, tumbleweed, dandelion, uwu face,
+asparagus, black hole, white hole, guava), and they are found by emoji search too. They are Private Use Area characters (U+F0000…): they are never offered as word suggestions or
+Emoji Kitchen mixes, and other apps only draw them if they use the OpenEmoji font (otherwise an empty box). Switching to another font hides the section again.
+To update: build the font in the OpenEmoji repo, then `python3 scripts/build_openemoji.py ../OpenEmoji` copies `OpenEmoji.ttf` and regenerates `native/assets/emoji/openemoji.txt` from its registry.
 
 GIF search / stickers are not included (they need a third-party GIF service and API key).
 

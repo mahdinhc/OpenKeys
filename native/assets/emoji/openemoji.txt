@@ -1,0 +1,8 @@
+󰀀	cannabis	cannabis leaf marijuana weed hemp animals nature openemoji custom	U+F0000	animals-nature
+󰀁	tumbleweed	tumbleweed desert rolling bush animals nature openemoji custom	U+F0001	animals-nature
+󰀂	dandelion	dandelion seed head puffball make wish animals nature openemoji custom	U+F0002	animals-nature
+󰀃	uwu face	uwu face cute happy blushing smileys emotion openemoji custom	U+F0003	smileys-emotion
+󰀄	asparagus	asparagus spears spear food drink openemoji custom	U+F0004	food-drink
+󰀅	black hole	black hole blackhole singularity event horizon travel places openemoji custom	U+F0005	travel-places
+󰀆	white hole	white hole whitehole anti black travel places openemoji custom	U+F0006	travel-places
+󰀇	guava	guava fruit pink food drink openemoji custom	U+F0007	food-drink

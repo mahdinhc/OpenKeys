@@ -217,19 +217,24 @@ class KeyboardModule(private val rc: ReactApplicationContext) : ReactContextBase
 
 
     // ---- developer: emoji / search testing
-    /** All emoji with Unicode version + whether the chosen font can draw them. font = system | noto | colr */
+    /** All emoji with Unicode version + whether the chosen font can draw them. font = system | noto | colr | openemoji */
     @ReactMethod fun devEmojiList(font: String, p: Promise) = try {
         val ver = HashMap<String, String>()
         rc.assets.open("emoji/emoji_ver.txt").bufferedReader().useLines { ls -> ls.forEach { l -> val a = l.split("\t"); if (a.size > 1) ver[a[0]] = a[1] } }
+        fun asset(f: String) = try { android.graphics.Typeface.createFromAsset(rc.assets, f) } catch (e: Throwable) { null }
         val face = when (font) {
-            "colr" -> if (android.os.Build.VERSION.SDK_INT >= 34) try { android.graphics.Typeface.createFromAsset(rc.assets, "fonts/Noto-COLRv1.ttf") } catch (e: Throwable) { null } else null
-            "noto" -> null
+            "colr" -> (if (android.os.Build.VERSION.SDK_INT >= 34) asset("fonts/Noto-COLRv1.ttf") else null) ?: asset("fonts/NotoColorEmoji.ttf")
+            "noto" -> asset("fonts/NotoColorEmoji.ttf")
+            "openemoji" -> asset("fonts/OpenEmoji.ttf")
             else -> null
-        } ?: if (font == "noto" || font == "colr") try { android.graphics.Typeface.createFromAsset(rc.assets, "fonts/NotoColorEmoji.ttf") } catch (e: Throwable) { null } else null
+        }
         val paint = android.graphics.Paint().apply { typeface = face }
         val arr = JSONArray()
         rc.assets.open("emoji/emoji.txt").bufferedReader().useLines { ls -> ls.forEach { l ->
             val a = l.split("\t"); if (a.size >= 3) arr.put(JSONArray().put(a[0].toInt()).put(a[1]).put(a.getOrElse(3) { "" }).put(ver[a[1]] ?: "").put(paint.hasGlyph(a[1]))) } }
+        // OpenEmoji's custom (Private Use Area) emoji, group 9 -- only the OpenEmoji font can draw them
+        if (font == "openemoji") rc.assets.open("emoji/openemoji.txt").bufferedReader().useLines { ls -> ls.forEach { l ->
+            val a = l.split("\t"); if (a.size >= 3) arr.put(JSONArray().put(EmojiData.OPENEMOJI).put(a[0]).put(a[1] + " " + a[2]).put("PUA").put(paint.hasGlyph(a[0]))) } }
         p.resolve(arr.toString())
     } catch (e: Exception) { p.reject("E_DEV", e.message, e) }
 

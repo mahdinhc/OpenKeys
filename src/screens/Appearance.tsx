@@ -140,12 +140,14 @@ export default function Appearance({cfg, update}: any) {
       </Card>
 
       <Card title="Emoji font">
-        <Segmented options={[['system', 'System'], ['noto', 'Noto Color'], ['colr', 'Noto COLRv1']]} value={cfg.emojiFont || 'system'} onChange={(v: any) => update({emojiFont: v})} />
+        <Segmented options={[['system', 'System'], ['noto', 'Noto'], ['colr', 'COLRv1'], ['openemoji', 'OpenEmoji']]} value={cfg.emojiFont || 'system'} onChange={(v: any) => update({emojiFont: v})} />
         <Text style={{color: '#9aa0a6', fontSize: 12, marginTop: 6}}>
           {(cfg.emojiFont || 'system') === 'system'
             ? 'Uses your phone\'s emoji font. Emoji newer than your Android version are hidden from the panel.'
             : cfg.emojiFont === 'noto'
             ? 'Bundled Noto Color Emoji with every Unicode 18 emoji, on any Android version.'
+            : cfg.emojiFont === 'openemoji'
+            ? 'Bundled OpenEmoji: Noto Color Emoji art plus OpenEmoji\'s own emoji (cannabis, tumbleweed, dandelion, uwu face, asparagus, black hole, white hole, guava), on any Android version. The emoji panel gets an extra OpenEmoji section. Those custom emoji are private-use characters: apps only draw them if they use the OpenEmoji font, otherwise they show as an empty box.'
             : 'Bundled Noto COLRv1: vector, sharp at any size and smaller in memory. Needs Android 14+, otherwise Noto Color is used.'}
           {' '}This only changes how emoji look inside the keyboard. Other apps draw what you send with their own font, so brand-new emoji can look blank there until that app or Android supports them.
         </Text>
@@ -162,6 +164,7 @@ export default function Appearance({cfg, update}: any) {
         <Text style={{color: '#9aa0a6', marginTop: 6}}>Categories shown</Text>
         <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
           {EMOJI_GROUPS.map((g, i) => {
+            if (i === 9 && cfg.emojiFont !== 'openemoji') return null;   // OpenEmoji section only exists with the OpenEmoji font
             const hidden = (cfg.emojiHidden || []).includes(String(i));
             return <Chip key={g} label={g} on={!hidden} onPress={() => update({emojiHidden: hidden ? cfg.emojiHidden.filter((x: string) => x !== String(i)) : [...(cfg.emojiHidden || []), String(i)]})} />;
           })}

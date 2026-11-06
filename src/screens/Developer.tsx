@@ -33,13 +33,13 @@ const Chip2 = ({label, on, onPress}: any) => (
 );
 const Hint = ({children}: any) => <Text style={{color: C.sub, fontSize: 12, marginTop: 4, marginBottom: 4}}>{children}</Text>;
 const Row = ({children}: any) => <View style={{flexDirection: 'row', flexWrap: 'wrap', marginTop: 4}}>{children}</View>;
-const FACE: Record<string, string | undefined> = {system: undefined, noto: 'NotoColorEmoji', colr: 'Noto-COLRv1'};
+const FACE: Record<string, string | undefined> = {system: undefined, noto: 'NotoColorEmoji', colr: 'Noto-COLRv1', openemoji: 'OpenEmoji'};
 
 /* ------------------------------------------------------------------ emoji browser */
 
 type Em = [number, string, string, string, boolean]; // group, emoji, keywords, unicode version, drawable
 const vnum = (v: string) => parseFloat(v) || 0;
-const GROUPS = ['Smileys', 'People', 'Animals', 'Food', 'Travel', 'Activities', 'Objects', 'Symbols', 'Flags'];
+const GROUPS = ['Smileys', 'People', 'Animals', 'Food', 'Travel', 'Activities', 'Objects', 'Symbols', 'Flags', 'OpenEmoji'];
 
 function EmojiBrowser({cfg}: any) {
   const [font, setFont] = useState<string>(cfg.emojiFont || 'system'); // starts from Settings → Appearance → Emoji font
@@ -76,7 +76,7 @@ function EmojiBrowser({cfg}: any) {
   return (
     <>
       <Card title="Emoji font">
-        <Segmented options={[['system', 'System'], ['noto', 'Noto Color'], ['colr', 'Noto COLRv1']]} value={font} onChange={setFont} />
+        <Segmented options={[['system', 'System'], ['noto', 'Noto'], ['colr', 'COLRv1'], ['openemoji', 'OpenEmoji']]} value={font} onChange={setFont} />
         <Hint>Starts from your Appearance setting ({cfg.emojiFont || 'system'}). Changing it here only affects this test view. Dimmed emoji can’t be drawn by the selected font.</Hint>
       </Card>
 

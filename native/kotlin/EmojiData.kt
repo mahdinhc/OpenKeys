@@ -10,8 +10,10 @@ class EmojiItem(val s: String, val group: Int, val mod: Boolean, val kw: String,
 
 /** Full RGI emoji set (assets/emoji/emoji.txt) filtered to what this device can actually draw. */
 object EmojiData {
-    val GROUPS = listOf("Smileys & Emotions", "People & Body", "Animals & Nature", "Food & Drink", "Travel & Places", "Activities", "Objects", "Symbols", "Flags")
-    val GROUP_ICONS = listOf("emoji", "person", "paw", "restaurant", "car", "trophy", "bulb", "tag", "flag")
+    val GROUPS = listOf("Smileys & Emotions", "People & Body", "Animals & Nature", "Food & Drink", "Travel & Places", "Activities", "Objects", "Symbols", "Flags", "OpenEmoji")
+    val GROUP_ICONS = listOf("emoji", "person", "paw", "restaurant", "car", "trophy", "bulb", "tag", "flag", "sparkle")
+    /** Index of the OpenEmoji section: only filled while the OpenEmoji emoji font is selected, and never offered as a word suggestion or Emoji Kitchen mix. */
+    const val OPENEMOJI = 9
 
     @Volatile var items: List<EmojiItem> = emptyList()
     @Volatile private var index: Map<String, List<EmojiItem>> = emptyMap()
@@ -51,6 +53,14 @@ object EmojiData {
                         val pri = HashMap<String, Int>()
                         p.getOrNull(4)?.split(' ')?.forEach { t -> val i = t.lastIndexOf(':'); if (i > 0) pri[t.substring(0, i)] = t.substring(i + 1).toIntOrNull() ?: 9 }
                         out.add(EmojiItem(s, p[0].toInt(), p[2] == "1", kw, pri))
+                    }
+                }
+                // OpenEmoji's own (Private Use Area) emoji exist only in the OpenEmoji font, so they are listed only while it is selected
+                if (mode == "openemoji") app.assets.open("emoji/openemoji.txt").bufferedReader().useLines { lines ->
+                    for (ln in lines) {
+                        val p = ln.split("\t")
+                        if (p.size < 3 || !paint.hasGlyph(p[0])) continue
+                        out.add(EmojiItem(p[0], OPENEMOJI, false, p[1].lowercase() + " " + p[2]))
                     }
                 }
             } catch (e: Exception) { DevLog.e(app, "Emoji", "emoji.txt failed to load", e) }
@@ -110,7 +120,7 @@ object EmojiData {
         val hits = index[w] ?: return emptyList()
         val out = LinkedHashSet<String>()
         hits.filter { it.pri.containsKey(w) }.sortedBy { it.pri[w] }.forEach { out.add(it.s) }
-        if (out.size < n) hits.filter { it.group != 8 && !it.pri.containsKey(w) }
+        if (out.size < n) hits.filter { it.group < 8 && !it.pri.containsKey(w) }
             .sortedBy { it.kw.count { c -> c == ' ' } }.forEach { out.add(it.s) }
         return out.take(n)
     }
