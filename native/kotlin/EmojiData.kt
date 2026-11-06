@@ -12,8 +12,10 @@ class EmojiItem(val s: String, val group: Int, val mod: Boolean, val kw: String,
 object EmojiData {
     val GROUPS = listOf("Smileys & Emotions", "People & Body", "Animals & Nature", "Food & Drink", "Travel & Places", "Activities", "Objects", "Symbols", "Flags", "OpenEmoji")
     val GROUP_ICONS = listOf("emoji", "person", "paw", "restaurant", "car", "trophy", "bulb", "tag", "flag", "sparkle")
-    /** Index of the OpenEmoji section: only filled while the OpenEmoji emoji font is selected, and never offered as a word suggestion or Emoji Kitchen mix. */
+    /** Index of the OpenEmoji section: only filled while the OpenEmoji emoji font is selected. Never an Emoji Kitchen mix; offered as a word suggestion only while that font is selected (see [forWord]). */
     const val OPENEMOJI = 9
+    /** Order of the OpenEmoji section: by Unicode category (ids of OpenEmoji's registry/categories.json), then by code point. */
+    private val OE_CATS = listOf("smileys-emotion", "people-body", "animals-nature", "food-drink", "travel-places", "activities", "objects", "symbols", "flags")
 
     @Volatile var items: List<EmojiItem> = emptyList()
     @Volatile private var index: Map<String, List<EmojiItem>> = emptyMap()
@@ -55,18 +57,28 @@ object EmojiData {
                         out.add(EmojiItem(s, p[0].toInt(), p[2] == "1", kw, pri))
                     }
                 }
-                // OpenEmoji's own (Private Use Area) emoji exist only in the OpenEmoji font, so they are listed only while it is selected
-                if (mode == "openemoji") app.assets.open("emoji/openemoji.txt").bufferedReader().useLines { lines ->
-                    for (ln in lines) {
-                        val p = ln.split("\t")
-                        if (p.size < 3 || !paint.hasGlyph(p[0])) continue
-                        out.add(EmojiItem(p[0], OPENEMOJI, false, p[1].lowercase() + " " + p[2]))
+                // OpenEmoji's own (Private Use Area) emoji exist only in the OpenEmoji font, so they are listed only while it is selected.
+                // They are sorted by category (smileys, animals, food, travel ...) and then by code point, whatever order the file has.
+                if (mode == "openemoji") {
+                    val oe = ArrayList<Triple<Int, Int, EmojiItem>>()
+                    app.assets.open("emoji/openemoji.txt").bufferedReader().useLines { lines ->
+                        for (ln in lines) {
+                            val p = ln.split("\t")
+                            if (p.size < 3 || !paint.hasGlyph(p[0])) continue
+                            // column 5: "word:rank ..." (rank 1 = whole name/alias, 2 = a word of a longer one) -> used by forWord
+                            val pri = HashMap<String, Int>()
+                            p.getOrNull(5)?.split(' ')?.forEach { t -> val i = t.lastIndexOf(':'); if (i > 0) pri[t.substring(0, i)] = t.substring(i + 1).toIntOrNull() ?: 2 }
+                            val cat = OE_CATS.indexOf(p.getOrElse(4) { "" }).let { if (it < 0) OE_CATS.size else it }
+                            oe.add(Triple(cat, p[0].codePointAt(0), EmojiItem(p[0], OPENEMOJI, false, p[1].lowercase() + " " + p[2], pri)))
+                        }
                     }
+                    oe.sortedWith(compareBy({ it.first }, { it.second })).forEach { out.add(it.third) }
                 }
             } catch (e: Exception) { DevLog.e(app, "Emoji", "emoji.txt failed to load", e) }
             toneSet = out.filter { it.mod }.map { it.s }.toHashSet()
             val idx = HashMap<String, ArrayList<EmojiItem>>()
-            for (it in out) for (t in it.kw.split(' ').toSet()) if (t.length >= 2) idx.getOrPut(t) { ArrayList() }.add(it)
+            // OpenEmoji items are indexed by their name/alias words only, so "food", "nature" or "custom" never suggest them
+            for (it in out) for (t in (if (it.group == OPENEMOJI) it.pri.keys else it.kw.split(' ').toSet())) if (t.length >= 2) idx.getOrPut(t) { ArrayList() }.add(it)
             index = idx
             face = ft; loadedFont = mode
             items = out
@@ -112,16 +124,23 @@ object EmojiData {
         return scored.sortedByDescending { it.second }.take(limit).map { it.first.s }
     }
 
-    /** Emoji to offer next to a typed/finished word ("heart" -> ❤️, "demon" -> 😈 👿). Curated picks first, then keyword hits. */
+    /**
+     * Emoji to offer next to a typed/finished word ("heart" -> ❤️, "demon" -> 😈 👿). Curated picks first, then keyword hits.
+     * While the OpenEmoji font is selected its custom emoji take part too: a word that is a whole OpenEmoji name or alias
+     * ("guava", "capybara", "earth") puts that emoji first; a word from a longer name ("sulking", "pitaya") is used only
+     * when no standard emoji has that word.
+     */
     fun forWord(word: String, n: Int = 2): List<String> {
         var w = word.lowercase().trim()
         if (w.length < 2 || index.isEmpty()) return emptyList()
         if (index[w] == null && w.endsWith("s")) w = w.dropLast(1)
         val hits = index[w] ?: return emptyList()
         val out = LinkedHashSet<String>()
-        hits.filter { it.pri.containsKey(w) }.sortedBy { it.pri[w] }.forEach { out.add(it.s) }
+        hits.filter { it.group == OPENEMOJI && it.pri[w] == 1 }.forEach { out.add(it.s) }
+        hits.filter { it.group != OPENEMOJI && it.pri.containsKey(w) }.sortedBy { it.pri[w] }.forEach { out.add(it.s) }
         if (out.size < n) hits.filter { it.group < 8 && !it.pri.containsKey(w) }
             .sortedBy { it.kw.count { c -> c == ' ' } }.forEach { out.add(it.s) }
+        if (out.size < n && hits.none { it.group != OPENEMOJI }) hits.filter { it.group == OPENEMOJI }.forEach { out.add(it.s) }
         return out.take(n)
     }
 }

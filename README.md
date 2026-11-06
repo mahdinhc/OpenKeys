@@ -38,11 +38,14 @@ data in `scripts/data/`). Phones whose system font predates Unicode 18 used to h
 panel with the bundled **Noto Color Emoji** (bitmap, any Android), **Noto COLRv1** (vector, Android 14+) or **OpenEmoji** (bitmap, any Android), all with every Unicode 18 emoji
 (`native/assets/fonts/`, ~27 MB). Other apps still render what you send with their own font.
 
-**OpenEmoji.** Pick Appearance → Emoji font → *OpenEmoji* to draw the panel with the bundled `OpenEmoji.ttf` (Noto art + OpenEmoji's own emoji, built from the
-[OpenEmoji](../OpenEmoji) project). While it is selected the panel gets an extra **OpenEmoji** section (sparkle tab) with the custom emoji (cannabis, tumbleweed, dandelion, uwu face,
-asparagus, black hole, white hole, guava), and they are found by emoji search too. They are Private Use Area characters (U+F0000…): they are never offered as word suggestions or
-Emoji Kitchen mixes, and other apps only draw them if they use the OpenEmoji font (otherwise an empty box). Switching to another font hides the section again.
-To update: build the font in the OpenEmoji repo, then `python3 scripts/build_openemoji.py ../OpenEmoji` copies `OpenEmoji.ttf` and regenerates `native/assets/emoji/openemoji.txt` from its registry.
+**OpenEmoji.** Pick Appearance → Emoji font → *OpenEmoji* to draw the panel with the bundled `OpenEmoji.ttf` (Noto Color Emoji 2.057 art + OpenEmoji's own emoji, built from the
+[OpenEmoji](../OpenEmoji) project). While it is selected the panel gets an extra **OpenEmoji** section (sparkle tab) with the 68 custom emoji (fruit and vegetables, plants, animals,
+planets, extra faces, cannabis, tumbleweed, black hole, uwu face …), **sorted by category** (smileys, animals & nature, food & drink, travel & places) and then by code point, and they are found by emoji search too.
+They are also **offered in the suggestion bar** (Typing → Emoji suggestions): a word that is a whole OpenEmoji name or alias (`guava`, `capybara`, `earth`, `weed`) puts that emoji first,
+a word from a longer name (`sulking`, `pitaya`) is used when no standard emoji has it. They are Private Use Area characters (U+F0000…): they are never Emoji Kitchen mixes, and other apps only draw them if they use the OpenEmoji font
+(otherwise an empty box). Switching to another font hides the section and the suggestions again.
+To update: `python3 scripts/build_openemoji.py ../OpenEmoji` builds `OpenEmoji.ttf` (bundled Noto Color Emoji + every emoji in the OpenEmoji registry; needs only fontTools; a prebuilt `fonts/OpenEmoji.ttf` in the
+OpenEmoji repo is used instead if present) and regenerates `native/assets/emoji/openemoji.txt` (sorted by category, with the suggestion words).
 
 GIF search / stickers are not included (they need a third-party GIF service and API key).
 

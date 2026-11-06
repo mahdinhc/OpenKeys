@@ -147,7 +147,7 @@ export default function Appearance({cfg, update}: any) {
             : cfg.emojiFont === 'noto'
             ? 'Bundled Noto Color Emoji with every Unicode 18 emoji, on any Android version.'
             : cfg.emojiFont === 'openemoji'
-            ? 'Bundled OpenEmoji: Noto Color Emoji art plus OpenEmoji\'s own emoji (cannabis, tumbleweed, dandelion, uwu face, asparagus, black hole, white hole, guava), on any Android version. The emoji panel gets an extra OpenEmoji section. Those custom emoji are private-use characters: apps only draw them if they use the OpenEmoji font, otherwise they show as an empty box.'
+            ? 'Bundled OpenEmoji: Noto Color Emoji art plus OpenEmoji\'s own 68 emoji (fruit and vegetables, plants, animals, planets, extra faces and more), on any Android version. The emoji panel gets an extra OpenEmoji section, sorted by category, and they are also offered in the suggestion bar and emoji search (Typing → Emoji suggestions). Those custom emoji are private-use characters: apps only draw them if they use the OpenEmoji font, otherwise they show as an empty box.'
             : 'Bundled Noto COLRv1: vector, sharp at any size and smaller in memory. Needs Android 14+, otherwise Noto Color is used.'}
           {' '}This only changes how emoji look inside the keyboard. Other apps draw what you send with their own font, so brand-new emoji can look blank there until that app or Android supports them.
         </Text>

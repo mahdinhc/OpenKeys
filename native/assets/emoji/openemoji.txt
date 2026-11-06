@@ -1,8 +1,68 @@
-󰀀	cannabis	cannabis leaf marijuana weed hemp animals nature openemoji custom	U+F0000	animals-nature
-󰀁	tumbleweed	tumbleweed desert rolling bush animals nature openemoji custom	U+F0001	animals-nature
-󰀂	dandelion	dandelion seed head puffball make wish animals nature openemoji custom	U+F0002	animals-nature
-󰀃	uwu face	uwu face cute happy blushing smileys emotion openemoji custom	U+F0003	smileys-emotion
-󰀄	asparagus	asparagus spears spear food drink openemoji custom	U+F0004	food-drink
-󰀅	black hole	black hole blackhole singularity event horizon travel places openemoji custom	U+F0005	travel-places
-󰀆	white hole	white hole whitehole anti black travel places openemoji custom	U+F0006	travel-places
-󰀇	guava	guava fruit pink food drink openemoji custom	U+F0007	food-drink
+󰀃	uwu face	uwu face cute happy blushing smileys emotion openemoji custom	U+F0003	smileys-emotion	uwu:1 cute:2 happy:2 blushing:2
+󰀴	cat mouth face	cat mouth face colon three smile cute smileys emotion openemoji custom	U+F0034	smileys-emotion	cat:2 mouth:2 colon:2 three:2 smile:2 cute:2
+󰀵	cheeky wink	cheeky wink with chevron playful teasing face smileys emotion openemoji custom	U+F0035	smileys-emotion	cheeky:2 wink:2 chevron:2 playful:2 teasing:2
+󰀶	gloomy face	gloomy face gloom lines depressed feeling down dejected smileys emotion openemoji custom	U+F0036	smileys-emotion	gloomy:2 gloom:2 lines:2 depressed:2 feeling:2 down:2 dejected:2
+󰀷	snarling face	snarling face bared teeth fangs furious growling smileys emotion openemoji custom	U+F0037	smileys-emotion	snarling:2 bared:2 teeth:2 fangs:1 furious:2 growling:2
+󰀸	side-eye face	side eye face sideways glance suspicious look unimpressed smileys emotion openemoji custom	U+F0038	smileys-emotion	side:2 eye:2 sideways:2 glance:2 suspicious:2 look:2 unimpressed:2
+󰀹	stunned face	stunned face shocked tiny pupils speechless shook smileys emotion openemoji custom	U+F0039	smileys-emotion	stunned:2 shocked:2 tiny:2 pupils:2 speechless:1 shook:1
+󰀺	huffy face	huffy face pouty blushing pout sulking tsundere smileys emotion openemoji custom	U+F003A	smileys-emotion	huffy:2 pouty:2 blushing:2 pout:2 sulking:2 tsundere:2
+󰀻	bashful face	bashful face blush lines shy smile embarrassed happy flustered smileys emotion openemoji custom	U+F003B	smileys-emotion	bashful:2 blush:2 lines:2 shy:2 smile:2 embarrassed:2 happy:2 flustered:2
+󰀼	scheming face	scheming face sly grin plotting mischievous raised brow smileys emotion openemoji custom	U+F003C	smileys-emotion	scheming:2 sly:2 grin:2 plotting:2 mischievous:2 raised:2 brow:2
+󰀽	dot-eyed face	dot eyed face eyes tiny mouth minimal kawaii smileys emotion openemoji custom	U+F003D	smileys-emotion	dot:2 eyed:2 eyes:2 tiny:2 mouth:2 minimal:2 kawaii:2
+󰀾	sparkling-eyed face	sparkling eyed face shiny eyes starry excited kirakira smileys emotion openemoji custom	U+F003E	smileys-emotion	sparkling:2 eyed:2 shiny:2 eyes:2 starry:2 excited:2 kirakira:1
+󰀿	nosebleed face	nosebleed face anime naughty thoughts ecchi smileys emotion openemoji custom	U+F003F	smileys-emotion	nosebleed:1 anime:2 naughty:2 thoughts:2 ecchi:2
+󰁀	lecherous grin	lecherous grin perv face dirty drooling leer ecchi smileys emotion openemoji custom	U+F0040	smileys-emotion	lecherous:2 grin:2 perv:2 dirty:2 drooling:2 leer:1 ecchi:2
+󰁁	flustered face	flustered face embarrassed chevron blush anime smileys emotion openemoji custom	U+F0041	smileys-emotion	flustered:1 embarrassed:1 chevron:2 blush:2 anime:2
+󰁂	shy glance face	shy glance face averting eyes looking away embarrassed nervous blush smileys emotion openemoji custom	U+F0042	smileys-emotion	shy:2 glance:2 averting:2 eyes:2 looking:2 away:2 embarrassed:2 nervous:2 blush:2
+󰁃	nosebleed daze face	nosebleed daze face overheated spiral blushing dizzy anime smileys emotion openemoji custom	U+F0043	smileys-emotion	nosebleed:2 daze:2 overheated:1 spiral:2 blushing:2 dizzy:2 anime:2
+󰀀	cannabis	cannabis leaf marijuana weed hemp animals nature openemoji custom	U+F0000	animals-nature	cannabis:1 marijuana:1 weed:1 hemp:1
+󰀁	tumbleweed	tumbleweed desert rolling bush animals nature openemoji custom	U+F0001	animals-nature	tumbleweed:1 desert:2 rolling:2 bush:2
+󰀂	dandelion	dandelion seed head puffball make wish animals nature openemoji custom	U+F0002	animals-nature	dandelion:1 seed:2 puffball:1 make:2 wish:2
+󰀏	ginkgo leaf	ginkgo leaf maidenhair animals nature openemoji custom	U+F000F	animals-nature	ginkgo:1 maidenhair:2
+󰀐	lavender	lavender sprig lavandula animals nature openemoji custom	U+F0010	animals-nature	lavender:1 sprig:2 lavandula:1
+󰀑	daisy	daisy white oxeye animals nature openemoji custom	U+F0011	animals-nature	daisy:1 oxeye:2
+󰀒	poppy	poppy red remembrance animals nature openemoji custom	U+F0012	animals-nature	poppy:1 remembrance:2
+󰀓	moss	moss mossy rock clump animals nature openemoji custom	U+F0013	animals-nature	moss:1 mossy:2 rock:2 clump:2
+󰀔	kelp	kelp seaweed sea animals nature openemoji custom	U+F0014	animals-nature	kelp:1 seaweed:1
+󰀕	bonsai	bonsai tree miniature animals nature openemoji custom	U+F0015	animals-nature	bonsai:1 miniature:2
+󰀤	red panda	red panda firefox lesser animals nature openemoji custom	U+F0024	animals-nature	panda:2 firefox:1 lesser:2
+󰀥	capybara	capybara water hog chill rodent animals nature openemoji custom	U+F0025	animals-nature	capybara:1 water:2 hog:2 chill:2 rodent:2
+󰀦	axolotl	axolotl mexican salamander walking fish animals nature openemoji custom	U+F0026	animals-nature	axolotl:1 mexican:2 salamander:2 walking:2 fish:2
+󰀧	opossum	opossum possum virginia animals nature openemoji custom	U+F0027	animals-nature	opossum:1 possum:1 virginia:2
+󰀨	pangolin	pangolin scaly anteater animals nature openemoji custom	U+F0028	animals-nature	pangolin:1 scaly:2 anteater:2
+󰀩	seahorse	seahorse sea horse hippocampus animals nature openemoji custom	U+F0029	animals-nature	seahorse:1 horse:2 hippocampus:1
+󰀪	narwhal	narwhal unicorn of the sea tusked whale animals nature openemoji custom	U+F002A	animals-nature	narwhal:1 unicorn:2 tusked:2 whale:2
+󰀫	puffin	puffin atlantic sea parrot animals nature openemoji custom	U+F002B	animals-nature	puffin:1 atlantic:2 parrot:2
+󰀄	asparagus	asparagus spears spear food drink openemoji custom	U+F0004	food-drink	asparagus:1 spears:2 spear:1
+󰀇	guava	guava fruit pink food drink openemoji custom	U+F0007	food-drink	guava:1 pink:2
+󰀈	papaya	papaya papaw pawpaw fruit food drink openemoji custom	U+F0008	food-drink	papaya:1 papaw:1 pawpaw:2
+󰀉	pomegranate	pomegranate fruit granada food drink openemoji custom	U+F0009	food-drink	pomegranate:1 granada:1
+󰀊	lychee	lychee litchi lichee food drink openemoji custom	U+F000A	food-drink	lychee:1 litchi:1 lichee:1
+󰀋	dragon fruit	dragon fruit pitaya pitahaya food drink openemoji custom	U+F000B	food-drink	dragon:2 pitaya:1 pitahaya:1
+󰀌	durian	durian king of fruits food drink openemoji custom	U+F000C	food-drink	durian:1 king:2
+󰀍	jackfruit	jackfruit jack fruit kathal food drink openemoji custom	U+F000D	food-drink	jackfruit:1 jack:2 kathal:1
+󰀎	persimmon	persimmon kaki sharon fruit food drink openemoji custom	U+F000E	food-drink	persimmon:1 kaki:1 sharon:2
+󰀖	okra	okra lady finger bhindi gumbo food drink openemoji custom	U+F0016	food-drink	okra:1 lady:2 finger:2 bhindi:1 gumbo:1
+󰀗	cauliflower	cauliflower head gobi food drink openemoji custom	U+F0017	food-drink	cauliflower:1 gobi:1
+󰀘	radish	radish red mooli food drink openemoji custom	U+F0018	food-drink	radish:1 mooli:1
+󰀙	artichoke	artichoke globe food drink openemoji custom	U+F0019	food-drink	artichoke:1 globe:2
+󰀚	brussels sprouts	brussels sprouts sprout mini cabbage food drink openemoji custom	U+F001A	food-drink	brussels:2 sprouts:2 sprout:2 mini:2 cabbage:2
+󰀛	matcha	matcha tea green powder latte food drink openemoji custom	U+F001B	food-drink	matcha:1 powder:2 latte:2
+󰀜	chai	chai masala tea kulhad food drink openemoji custom	U+F001C	food-drink	chai:1 masala:2 kulhad:1
+󰀝	iced coffee	iced coffee cold latte brew food drink openemoji custom	U+F001D	food-drink	iced:2 cold:2 latte:2 brew:2
+󰀞	fig	fig fruit common food drink openemoji custom	U+F001E	food-drink	fig:1 common:2
+󰀟	apricot	apricot fruit food drink openemoji custom	U+F001F	food-drink	apricot:1
+󰀠	plum	plum fruit prune food drink openemoji custom	U+F0020	food-drink	plum:1 prune:1
+󰀡	passion fruit	passion fruit passionfruit maracuja granadilla food drink openemoji custom	U+F0021	food-drink	passion:2 passionfruit:1 maracuja:1 granadilla:1
+󰀢	starfruit	starfruit star fruit carambola food drink openemoji custom	U+F0022	food-drink	starfruit:1 star:2 carambola:1
+󰀣	cranberries	cranberries cranberry sauce food drink openemoji custom	U+F0023	food-drink	cranberries:1 cranberry:1 sauce:2
+󰀅	black hole	black hole blackhole singularity event horizon travel places openemoji custom	U+F0005	travel-places	black:2 blackhole:1 singularity:1 event:2 horizon:2
+󰀆	white hole	white hole whitehole anti black travel places openemoji custom	U+F0006	travel-places	whitehole:1 anti:2 black:2
+󰀬	mercury	mercury planet innermost travel places openemoji custom	U+F002C	travel-places	mercury:1 innermost:2
+󰀭	venus	venus planet morning star travel places openemoji custom	U+F002D	travel-places	venus:1 morning:2 star:2
+󰀮	earth	earth planet blue marble terra travel places openemoji custom	U+F002E	travel-places	earth:1 marble:2 terra:1
+󰀯	mars	mars planet red travel places openemoji custom	U+F002F	travel-places	mars:1
+󰀰	jupiter	jupiter planet gas giant travel places openemoji custom	U+F0030	travel-places	jupiter:1 gas:2
+󰀱	saturn	saturn planet ringed gas giant travel places openemoji custom	U+F0031	travel-places	saturn:1 ringed:2 gas:2
+󰀲	uranus	uranus planet ice giant travel places openemoji custom	U+F0032	travel-places	uranus:1 ice:2
+󰀳	neptune	neptune planet blue ice giant travel places openemoji custom	U+F0033	travel-places	neptune:1 ice:2
