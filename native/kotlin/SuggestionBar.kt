@@ -168,6 +168,7 @@ class SuggestionBar(ctx: Context) : LinearLayout(ctx) {
 
 /** Horizontal strip of emoji search results shown above the keyboard while searching. */
 class EmojiResultStrip(ctx: Context, private val onPick: (String) -> Unit) : android.widget.HorizontalScrollView(ctx) {
+    var onHold: ((String) -> Unit)? = null          // hold a result -> send it as a sticker
     private val row = LinearLayout(ctx)
     private var color = Theme.DARK.keyText
     init { isHorizontalScrollBarEnabled = false; addView(row, ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT)) }
@@ -182,6 +183,7 @@ class EmojiResultStrip(ctx: Context, private val onPick: (String) -> Unit) : and
         for (e in items) row.addView(TextView(context).apply {
             text = e; textSize = 28f; typeface = EmojiFont.get(context) ?: android.graphics.Typeface.DEFAULT; gravity = Gravity.CENTER; setPadding(context.dpi(10f), 0, context.dpi(10f), 0)
             setOnClickListener { onPick(e) }
+            setOnLongClickListener { if (onHold == null) false else { performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS); onHold?.invoke(e); true } }
         }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT))
     }
     fun applyTheme(t: Theme) { color = t.keyText; setBackgroundColor(t.bg) }

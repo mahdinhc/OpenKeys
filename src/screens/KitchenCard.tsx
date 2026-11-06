@@ -32,6 +32,7 @@ export default function KitchenCard({cfg, update}: any) {
       </Text>
       <Btn title={busy || st?.building ? 'Downloading…' : st?.indexed ? 'Update mix list now' : 'Download mix list now'} onPress={build} />
       <Text style={{color: '#9aa0a6', marginVertical: 6}}>Saved mixes: {st ? `${st.cacheFiles} (${mb(st.cacheBytes)})` : '…'} - they open instantly and work offline.</Text>
+      <Toggle label="Kitchen row in the emoji panel" hint="Shows mixes of your last emoji above Recent Emoji. Tap one to send it, hold it to save it as a favourite, tap > to browse every mix" value={cfg.kitchenSuggest !== false} onChange={(v: boolean) => update({kitchenSuggest: v})} />
       <Stepper label="Saved mixes limit" value={cfg.kitchenCacheMb ?? 150} min={0} max={2000} step={50} unit=" MB (0 = no limit)" onChange={(v: number) => update({kitchenCacheMb: v})} />
       <Toggle label="Pre-download mixes" hint="After you pick the first emoji, also download its mixes (up to 150) so they are ready offline. Uses data" value={!!cfg.kitchenPrefetch} onChange={(v: boolean) => update({kitchenPrefetch: v})} />
       <Btn kind="ghost" title="Clear saved mixes" onPress={() => Native.kitchenClearCache().then(() => { refresh(); })} />

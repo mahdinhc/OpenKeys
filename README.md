@@ -31,6 +31,14 @@ sorted index (`filesDir/kitchen/index.bin`, binary-searched, not held in RAM) an
 they are listed, "does this pair mix?" is answered offline, and after the first pick the picker shows only the emoji that mix with it.
 Until the list is downloaded it falls back to probing the release folders in `native/assets/emoji/kitchen_dates.txt`.
 Sticker PNGs are cached on disk (Appearance → Emoji Kitchen: size limit, optional pre-download of an emoji's mixes, clear, manual list update)
+
+**Hold an emoji = sticker.** Touch and hold any emoji in the emoji panel (or in the emoji search results) and it is sent as a 512 px transparent PNG, drawn with the
+emoji font you picked in Settings, so OpenEmoji's custom emoji work too (`EmojiSticker.kt`; cached per font, newest 200 kept). Emoji with skin tones keep their
+tone picker: slide to the picture cell at the end of the popup to send the sticker instead. Toggle: Appearance → Emoji → "Hold emoji to send as sticker".
+
+**Kitchen row and Browse.** The emoji panel shows an "Emoji Kitchen" row above Recent Emoji: the double mix of your latest emoji, a divider, a few more mixes and a `>`
+button. Tap a mix to send it, hold it to save it as a favourite. `>` opens Browse: top mixes, a divider, then every other mix of that emoji, with tabs for
+Home / Recent mixes / Favourites (`KitchenBrowse.kt`). Needs the mix list (downloads by itself); toggle: Appearance → Emoji Kitchen.
 so mixes load instantly and open offline.
 
 **Emoji font & Unicode 18.** `native/assets/emoji/emoji.txt` is generated from Unicode 18.0 `emoji-test.txt` (`python3 scripts/build_emoji.py`,

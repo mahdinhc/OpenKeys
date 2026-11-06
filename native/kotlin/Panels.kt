@@ -12,6 +12,7 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.ImageView
@@ -70,6 +71,24 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
     private var mixFile: java.io.File? = null
     private val back = FrameLayout(ctx)
     private val backIcon = IconView(ctx, "back", Theme.DARK.keyText, 0.5f)
+    // Emoji Kitchen "Browse" (opened from the > button of the Kitchen row): [<] Browse [search-pill: emoji x] [home][recent][favourites]
+    private val browseBar = LinearLayout(ctx)
+    private val browseBack = FrameLayout(ctx)
+    private val browseBackIcon = IconView(ctx, "back", Theme.DARK.keyText, 0.5f)
+    private val browseTitle = TextView(ctx)
+    private val browsePill = LinearLayout(ctx)
+    private val pillSearchIcon = IconView(ctx, "search", Theme.DARK.hint, 0.6f)
+    private val pillEmoji = TextView(ctx)
+    private val pillClose = IconView(ctx, "close", Theme.DARK.keyText, 0.5f)
+    private val browseTabs = ArrayList<IconView>()
+    private val stickers = StickerGridView(ctx)
+    private var browsing = false
+    private var bFocus = ""
+    private var bTab = 0
+    private var bSeq = 0
+    private var bRetry = 0
+    private var bannerGen = 0
+    private val banner = KitchenBanner(ctx, { grid.postInvalidateOnAnimation() }, { a, b -> sendMix(a, b) }, { a, b -> toggleFav(a, b) }, { e -> openBrowse(e) })
     private var sectionIndexForTab = ArrayList<Int>()
     private var kaomoji = false
     private var kitchen = false
@@ -102,6 +121,9 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
         grid.displayOf = { e -> if (!kitchen && EmojiData.isToneBase(e)) (ClipStore.tone(context, e) ?: e) else e }
         grid.onTone = { base, v -> ClipStore.setTone(context, base, v) }
         grid.onSection = { sec -> highlight(sec) }
+        grid.stickerHold = { !kaomoji && !kitchen && !browsing && Prefs(context).bool("stickerOnHold", true) }
+        grid.onHold = { e -> ClipStore.addEmoji(context, e); sendEmojiSticker(e) }
+        buildBrowseBar(ctx)
 
         emojiBtn.addView(IconView(ctx, "emoji", Theme.DARK.keyText, 0.55f), FrameLayout.LayoutParams(MATCH, MATCH))
         emojiBtn.setOnClickListener { setKaomoji(false) }
@@ -120,13 +142,154 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
         bottom.addView(del, LayoutParams(0, MATCH, 1f))
 
         addView(topRow, LayoutParams(MATCH, ctx.dpi(48f)))
+        addView(browseBar, LayoutParams(MATCH, ctx.dpi(48f)))
         addView(kitchenBar, LayoutParams(MATCH, ctx.dpi(72f)))
         addView(grid, LayoutParams(MATCH, 0, 1f))
+        addView(stickers, LayoutParams(MATCH, 0, 1f))
         addView(bottom, LayoutParams(MATCH, ctx.dpi(48f)))
+        stickers.visibility = GONE
+        stickers.onPick = { it -> sendMix(it.a, it.b) }
+        stickers.onHold = { it -> toggleFav(it.a, it.b) }
+    }
+
+    // ---------------------------------------------------------------- hold an emoji -> sticker
+    private fun sendEmojiSticker(e: String) {
+        EmojiSticker.make(context, e) { f ->
+            if (f != null) cb.onSticker(f)
+            else Toast.makeText(context, "This emoji can't be drawn as a sticker", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // ---------------------------------------------------------------- Emoji Kitchen: send / favourite a mix
+    private fun sendMix(a: String, b: String) {
+        Thread {
+            val f = EmojiKitchen.fetch(context, a, b)
+            post {
+                if (f != null) { ClipStore.addMix(context, a, b); cb.onSticker(f) }
+                else Toast.makeText(context, "Couldn't load this mix. Check your connection", Toast.LENGTH_SHORT).show()
+            }
+        }.start()
+    }
+
+    private fun toggleFav(a: String, b: String) {
+        val on = ClipStore.toggleFavMix(context, a, b)
+        stickers.favKeys = ClipStore.favMixKeys(context); stickers.invalidate()
+        if (browsing && bTab == 2 && !on) loadBrowse()           // removed from the favourites tab: refresh the list
+        Toast.makeText(context, if (on) "Added to favourites" else "Removed from favourites", Toast.LENGTH_SHORT).show()
+    }
+
+    // ---------------------------------------------------------------- Emoji Kitchen: the row above Recent Emoji
+    private fun refreshBanner() {
+        val gen = ++bannerGen
+        val pr = Prefs(context)
+        if (!pr.bool("kitchenSuggest", true) || kaomoji || kitchen || browsing) { grid.setBanner(null); return }
+        if (!EmojiKitchen.hasIndex(context)) { EmojiKitchen.ensureIndex(context); grid.setBanner(null); return }
+        val recents = ClipStore.recentEmoji(context).map { EmojiKitchen.base(it) }.distinct().take(6)
+        if (recents.isEmpty()) { grid.setBanner(null); return }
+        Thread {
+            var pick: String? = null; var res: KitchenRank.Result? = null
+            for (e in recents) {                                   // the newest emoji that has mixes
+                val r = KitchenRank.rank(context, e, recents, 6) ?: continue
+                if (r.self || r.top.isNotEmpty()) { pick = e; res = r; break }
+            }
+            post {
+                if (gen != bannerGen || browsing || kaomoji || kitchen) return@post
+                val e = pick; val r = res
+                if (e == null || r == null) { grid.setBanner(null); return@post }
+                banner.theme = theme
+                banner.set(e, r.self, r.top.filter { EmojiKitchen.partnerToken(it) != EmojiKitchen.partnerToken(e) })
+                grid.setBanner(banner)
+            }
+        }.start()
+    }
+
+    // ---------------------------------------------------------------- Emoji Kitchen: Browse
+    private fun buildBrowseBar(ctx: Context) {
+        browseBar.orientation = HORIZONTAL; browseBar.gravity = Gravity.CENTER_VERTICAL; browseBar.visibility = GONE
+        browseBack.addView(browseBackIcon, FrameLayout.LayoutParams(MATCH, MATCH))
+        browseBack.setOnClickListener { open() }
+        browseBar.addView(browseBack, LayoutParams(ctx.dpi(46f), ctx.dpi(40f)).also { it.setMargins(ctx.dpi(6f), 0, ctx.dpi(2f), 0) })
+        browseTitle.text = "Browse"; browseTitle.textSize = 19f; browseTitle.gravity = Gravity.CENTER_VERTICAL
+        browseTitle.setPadding(ctx.dpi(6f), 0, ctx.dpi(8f), 0)
+        browseBar.addView(browseTitle, LayoutParams(WRAP, MATCH))
+        browsePill.orientation = HORIZONTAL; browsePill.gravity = Gravity.CENTER_VERTICAL
+        pillEmoji.textSize = 20f; pillEmoji.gravity = Gravity.CENTER_VERTICAL; pillEmoji.maxLines = 1
+        browsePill.addView(pillSearchIcon, LayoutParams(ctx.dpi(34f), MATCH))
+        browsePill.addView(pillEmoji, LayoutParams(0, MATCH, 1f))
+        pillClose.setOnClickListener { open() }
+        browsePill.addView(pillClose, LayoutParams(ctx.dpi(38f), MATCH))
+        browseBar.addView(browsePill, LayoutParams(0, ctx.dpi(40f), 1f).also { it.setMargins(0, 0, ctx.dpi(6f), 0) })
+        for ((i, ic) in listOf("home", "history", "heart").withIndex()) {
+            val v = IconView(ctx, ic, Theme.DARK.hint, 0.55f)
+            v.setOnClickListener { bTab = i; bSeq++; bRetry = 0; loadBrowse() }
+            browseTabs.add(v)
+            browseBar.addView(v, LayoutParams(ctx.dpi(40f), ctx.dpi(40f)).also { it.setMargins(ctx.dpi(1f), 0, ctx.dpi(1f), 0) })
+        }
+    }
+
+    private fun openBrowse(e: String) {
+        browsing = true; kaomoji = false; kitchen = false
+        bannerGen++
+        topRow.visibility = GONE; kitchenBar.visibility = GONE; grid.visibility = GONE; bottom.visibility = GONE
+        browseBar.visibility = VISIBLE; stickers.visibility = VISIBLE
+        bFocus = EmojiKitchen.base(e); bTab = 0; bSeq++; bRetry = 0
+        pillEmoji.typeface = EmojiFont.get(context) ?: android.graphics.Typeface.DEFAULT
+        pillEmoji.text = bFocus
+        loadBrowse()
+    }
+
+    private fun styleBrowseTabs() {
+        browseTabs.forEachIndexed { i, v ->
+            v.background = if (i == bTab) round(theme.accent and 0x00FFFFFF or 0x40000000, context.dpf(20f)) else null
+            v.tint = if (i == bTab) theme.accent else theme.keyText; v.invalidate()
+        }
+    }
+
+    private fun loadBrowse() {
+        styleBrowseTabs()
+        stickers.favKeys = ClipStore.favMixKeys(context)
+        when (bTab) {
+            1 -> showPairs(ClipStore.recentMixes(context), "No recent mixes yet.\nStickers you send show up here.")
+            2 -> showPairs(ClipStore.favMixes(context), "No favourites yet.\nTouch and hold a sticker to save it.")
+            else -> loadHome(bSeq)
+        }
+    }
+
+    private fun showPairs(l: List<Pair<String, String>>, empty: String) {
+        if (l.isEmpty()) stickers.setData(emptyList(), empty)
+        else stickers.setData(listOf(StickerSection(l.map { StickerItem(it.first, it.second) })), "")
+    }
+
+    /** Home tab: top mixes of the emoji, a divider, then every other mix of it. */
+    private fun loadHome(seq: Int) {
+        if (!EmojiKitchen.hasIndex(context)) {
+            EmojiKitchen.ensureIndex(context)
+            if (bRetry++ < 10) {
+                stickers.setData(emptyList(), "Downloading the mix list…")
+                postDelayed({ if (browsing && bTab == 0 && seq == bSeq) loadHome(seq) }, 1500)
+            } else stickers.setData(emptyList(), "The mix list isn't downloaded yet.\nConnect to the internet and try again.")
+            return
+        }
+        stickers.setData(emptyList(), "Loading mixes…")
+        val e = bFocus
+        EmojiData.load(context) {
+            Thread {
+                val r = KitchenRank.rank(context, e, ClipStore.recentEmoji(context))
+                post {
+                    if (!browsing || bTab != 0 || seq != bSeq) return@post
+                    if (r == null || (r.top.isEmpty() && r.rest.isEmpty())) { stickers.setData(emptyList(), "This emoji has no mixes.\nTap the cross and pick another one."); return@post }
+                    val secs = ArrayList<StickerSection>()
+                    secs.add(StickerSection(r.top.map { StickerItem(e, it) }))
+                    if (r.rest.isNotEmpty()) secs.add(StickerSection(r.rest.map { StickerItem(e, it) }))
+                    stickers.setData(secs, "")
+                }
+            }.start()
+        }
     }
 
     private fun setKaomoji(on: Boolean) {
         kaomoji = on; kitchen = false
+        if (on) { bannerGen++; grid.setBanner(null) }
         topRow.visibility = if (on) GONE else VISIBLE
         kitchenBar.visibility = GONE
         restyleBottom()
@@ -152,7 +315,10 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
         mixMsg.gravity = Gravity.CENTER; mixMsg.textSize = 13f
         mixBox.addView(mixImg, FrameLayout.LayoutParams(MATCH, MATCH).also { it.setMargins(6, 6, 6, 6) })
         mixBox.addView(mixMsg, FrameLayout.LayoutParams(MATCH, MATCH))
-        mixBox.setOnClickListener { mixFile?.let { f -> cb.onSticker(f) } }
+        mixBox.setOnClickListener {
+            val a = kA; val b = kB
+            mixFile?.let { f -> if (a != null && b != null) ClipStore.addMix(context, a, b); cb.onSticker(f) }
+        }
         val sz = ctx.dpi(52f); val gap = ctx.dpi(5f)
         kitchenBar.addView(slotA, LayoutParams(sz, sz))
         kitchenBar.addView(sign("+"), LayoutParams(ctx.dpi(28f), sz))
@@ -165,7 +331,7 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
     }
 
     private fun setKitchen(on: Boolean) {
-        kitchen = on; kaomoji = false; gridFilterFor = null; if (on) { kA = null; kB = null; kSel = 0 }
+        kitchen = on; kaomoji = false; gridFilterFor = null; if (on) { kA = null; kB = null; kSel = 0; bannerGen++; grid.setBanner(null) }
         topRow.visibility = if (on) GONE else VISIBLE
         kitchenBar.visibility = if (on) VISIBLE else GONE
         restyleBottom()
@@ -257,7 +423,9 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
 
     /** (Re)builds the section list: recents + the nine Unicode groups (+ OpenEmoji when that font is selected). */
     fun open() {
-        kaomoji = false; kitchen = false; topRow.visibility = VISIBLE; kitchenBar.visibility = GONE; restyleBottom()
+        kaomoji = false; kitchen = false; browsing = false; bSeq++
+        browseBar.visibility = GONE; stickers.visibility = GONE; grid.visibility = VISIBLE; bottom.visibility = VISIBLE
+        topRow.visibility = VISIBLE; kitchenBar.visibility = GONE; restyleBottom()
         EmojiData.load(context) { build() }
     }
 
@@ -288,6 +456,7 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
             tabs.addView(v, LayoutParams(context.dpi(46f), context.dpi(40f)).also { it.setMargins(context.dpi(2f), 0, context.dpi(2f), 0) })
         }
         highlight(0)
+        refreshBanner()
     }
 
     private fun highlight(sec: Int) {
@@ -314,7 +483,13 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
         for (i in 0 until kitchenBar.childCount) (kitchenBar.getChildAt(i) as? TextView)?.takeIf { it.tag == "sign" }?.setTextColor(t.hint)
         kitchenBar.setBackgroundColor(Color.TRANSPARENT)
         restyleBottom(); styleSlots()
-        grid.invalidate()
+        banner.theme = t; stickers.theme = t
+        browseBackIcon.set("back", t.keyText); browseBack.background = round(t.key, context.dpf(20f))
+        browseTitle.setTextColor(t.keyText)
+        browsePill.background = round(t.key, context.dpf(20f))
+        pillSearchIcon.set("search", t.hint); pillEmoji.setTextColor(t.keyText); pillClose.set("close", t.keyText)
+        styleBrowseTabs()
+        grid.invalidate(); stickers.invalidate()
     }
 }
 

@@ -157,9 +157,22 @@ object EmojiKitchen {
 
     fun hasIndex(ctx: Context) = openIdx(ctx) != null
 
-    /** Normalised tokens of every emoji that mixes with [emoji] (null while there's no index). Scans the index sequentially. */
+    /** Last few partner sets (a scan reads the whole index, so Browse / the Kitchen row reuse the result). */
+    private val pcache = object : LinkedHashMap<String, Set<String>>(16, 0.75f, true) {
+        override fun removeEldestEntry(e: MutableMap.MutableEntry<String, Set<String>>) = size > 12
+    }
+
+    /** Normalised tokens of every emoji that mixes with [emoji] (null while there's no index). Scans the index sequentially, then caches. */
     fun partners(ctx: Context, emoji: String): Set<String>? {
         val ix = openIdx(ctx) ?: return null
+        val ck = "${ix.built}:${ix.n}:" + partnerToken(emoji)
+        synchronized(pcache) { pcache[ck]?.let { return it } }
+        val out = scanPartners(ctx, ix, emoji) ?: return null
+        synchronized(pcache) { pcache[ck] = out }
+        return out
+    }
+
+    private fun scanPartners(ctx: Context, ix: Idx, emoji: String): Set<String>? {
         val me = forms(emoji).map { norm(it) }.toSet()
         val out = HashSet<String>()
         try {
@@ -168,7 +181,7 @@ object EmojiKitchen {
                 val rec = ByteArray(ix.w)
                 for (i in 0 until ix.n) {
                     var got = 0
-                    while (got < ix.w) { val r = ins.read(rec, got, ix.w - got); if (r < 0) return out; got += r }
+                    while (got < ix.w) { val r = ins.read(rec, got, ix.w - got); if (r < 0) return null; got += r }
                     val k = String(rec, 0, ix.w - 9, Charsets.US_ASCII).trimEnd()
                     val u = k.indexOf('_'); if (u < 0) continue
                     val l = norm(k.substring(0, u)); val r = norm(k.substring(u + 1))
@@ -176,11 +189,24 @@ object EmojiKitchen {
                     if (r in me) out.add(l)
                 }
             }
-        } catch (e: Exception) { DevLog.e(ctx, "Kitchen", "partners scan failed", e) }
+        } catch (e: Exception) { DevLog.e(ctx, "Kitchen", "partners scan failed", e); return null }
         return out
     }
 
     fun partnerToken(emoji: String) = norm(token(emoji))
+
+    /** The emoji without skin-tone modifiers: Emoji Kitchen only knows the base emoji. */
+    fun base(e: String): String {
+        val sb = StringBuilder()
+        var i = 0
+        while (i < e.length) { val cp = e.codePointAt(i); if (cp !in 0x1F3FB..0x1F3FF) sb.appendCodePoint(cp); i += Character.charCount(cp) }
+        return sb.toString()
+    }
+
+    /** Same key for (a,b) and (b,a): identifies a mix (favourites, recents, memory cache). */
+    fun pairKey(a: String, b: String) = cacheName(a, b)
+
+    fun isBuilding() = building.get()
 
     /** Downloads the metadata and rebuilds the index. Blocking: call from a background thread. */
     fun buildIndex(ctx: Context): Boolean {
@@ -207,6 +233,7 @@ object EmojiKitchen {
             val dst = File(kdir(app), "index.bin")
             if (!tmp.renameTo(dst)) { dst.delete(); if (!tmp.renameTo(dst)) { lastError = "Couldn't save index"; return false } }
             synchronized(misses) { misses.clear() }
+            synchronized(pcache) { pcache.clear() }
             lastError = ""
             return true
         } catch (e: Exception) {
@@ -368,6 +395,20 @@ object EmojiKitchen {
         val cm = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
         cm.activeNetwork != null
     } catch (e: Exception) { true }
+
+    /**
+     * Blocking: the sticker file of a pair (disk cache, else index lookup + download), or null when the pair doesn't mix / we're offline.
+     * Used by the Kitchen row and Browse; never probes the server (that needs the index).
+     */
+    fun fetch(ctx: Context, a: String, b: String): File? {
+        val app = ctx.applicationContext
+        cachedFile(app, a, b)?.let { return it }
+        val l = fromIndex(app, a, b) as? Lookup.Found ?: return null
+        val f = File(dir(app), cacheName(a, b))
+        if (!download(l.url, f)) return null
+        prune(app)
+        return f
+    }
 
     // ------------------------------------------------------------------ optional prefetch
     @Volatile private var prefetchGen = 0

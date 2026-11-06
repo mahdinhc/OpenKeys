@@ -191,6 +191,11 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
         strip = EmojiResultStrip(this) { e ->
             lg(e); commitComposing(false); currentInputConnection?.commitText(e, 1); ClipStore.addEmoji(this, e)
         }
+        strip.onHold = { e ->
+            if (prefs.bool("stickerOnHold", true)) EmojiSticker.make(this, e) { f ->
+                if (f != null) { ClipStore.addEmoji(this, e); pasteImage(Clip("k:" + f.name, "image", f.name, false, System.currentTimeMillis())) }
+            }
+        }
         strip.visibility = View.GONE
         content = FrameLayout(this).apply { clipChildren = false }
         kb = KeyboardView(this).also { it.listener = this }

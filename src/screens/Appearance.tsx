@@ -161,6 +161,7 @@ export default function Appearance({cfg, update}: any) {
         <Stepper label="Emoji panel height" value={cfg.emojiHeight} min={60} max={160} step={5} unit="%" onChange={(v: number) => update({emojiHeight: v})} />
         <Toggle label="Section titles" value={cfg.emojiHeaders} onChange={(v: boolean) => update({emojiHeaders: v})} />
         <Toggle label="Recent emoji section" value={cfg.emojiRecents} onChange={(v: boolean) => update({emojiRecents: v})} />
+        <Toggle label="Hold emoji to send as sticker" hint="Touch and hold any emoji (also OpenEmoji) to send it as a sticker image. Emoji with skin tones show the tone picker first - slide to the picture cell at the end to send the sticker" value={cfg.stickerOnHold !== false} onChange={(v: boolean) => update({stickerOnHold: v})} />
         <Text style={{color: '#9aa0a6', marginTop: 6}}>Categories shown</Text>
         <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
           {EMOJI_GROUPS.map((g, i) => {

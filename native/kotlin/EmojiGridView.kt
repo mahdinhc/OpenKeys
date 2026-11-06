@@ -14,6 +14,14 @@ import kotlin.math.min
 
 class EmojiSection(val title: String, val items: List<String>)
 
+/** A block that scrolls with the grid, above the first section (the "Emoji Kitchen" row). Coordinates passed in are relative to the block's top-left. */
+interface GridBanner {
+    fun height(w: Float): Float
+    fun draw(c: Canvas, top: Float, w: Float)
+    fun tap(x: Float, y: Float, w: Float): Boolean
+    fun hold(x: Float, y: Float, w: Float): Boolean
+}
+
 /** Fast scrolling emoji / emoticon grid with section headers and long-press skin-tone picker. */
 class EmojiGridView(ctx: Context) : View(ctx) {
     var onPick: ((String) -> Unit)? = null
@@ -21,6 +29,10 @@ class EmojiGridView(ctx: Context) : View(ctx) {
     var toneBase: ((String) -> Boolean)? = null          // does this emoji have skin tones?
     var displayOf: ((String) -> String)? = null           // preferred (toned) form
     var onTone: ((String, String) -> Unit)? = null        // base, chosen variant
+    var onHold: ((String) -> Unit)? = null                // hold an emoji -> send it as a sticker (the form currently shown)
+    var stickerHold: () -> Boolean = { false }            // is hold-to-sticker active right now?
+    private var banner: GridBanner? = null
+    private var bannerH = 0f
     var theme: Theme = Theme.DARK
     private var face: android.graphics.Typeface? = null   // emoji font (settings), null = system
 
@@ -42,6 +54,7 @@ class EmojiGridView(ctx: Context) : View(ctx) {
     private var popupRect = RectF()
     private var popupSel = 0
     private var popupCw = 0f
+    private var popupSticker = false                       // the tone popup gets one extra cell: "send as sticker"
 
     private fun cellW() = width / cols.toFloat()
     private fun cellH() = if (cellHFixed > 0) cellHFixed else cellW() * max(0.92f, textFrac * 1.45f)
@@ -53,10 +66,20 @@ class EmojiGridView(ctx: Context) : View(ctx) {
         scrollYf = 0f; lastSection = -1; relayout(); invalidate()
     }
 
+    /** Sets (or clears) the block above the first section; keeps the scroll position stable when it appears. */
+    fun setBanner(b: GridBanner?) {
+        val oldH = bannerH
+        banner = b
+        bannerH = if (b != null && width > 0) b.height(width.toFloat()) else 0f
+        if (scrollYf > 0f) scrollYf += bannerH - oldH
+        relayout(); invalidate()
+    }
+
     private fun relayout() {
         if (width == 0) return
+        bannerH = banner?.height(width.toFloat()) ?: 0f
         tops = FloatArray(sections.size)
-        var y = 0f
+        var y = bannerH
         sections.forEachIndexed { i, sec ->
             tops[i] = y
             if (sec.title.isNotEmpty()) y += headerH()
@@ -71,7 +94,7 @@ class EmojiGridView(ctx: Context) : View(ctx) {
     fun scrollToSection(i: Int) {
         if (i !in sections.indices) return
         scroller.forceFinished(true)
-        val target = min(tops[i], max(0f, total - height))
+        val target = if (i == 0) 0f else min(tops[i], max(0f, total - height))
         scroller.startScroll(0, scrollYf.toInt(), 0, (target - scrollYf).toInt(), 250)
         postInvalidateOnAnimation()
     }
@@ -94,6 +117,7 @@ class EmojiGridView(ctx: Context) : View(ctx) {
         if (sections.isEmpty()) return
         val cw = cellW(); val ch = cellH()
         val top = scrollYf; val bottom = scrollYf + height
+        banner?.let { if (top < bannerH) it.draw(c, -top, width.toFloat()) }
         for (i in sections.indices) {
             val sec = sections[i]
             val rows = (sec.items.size + cols - 1) / cols
@@ -147,6 +171,14 @@ class EmojiGridView(ctx: Context) : View(ctx) {
             if (i == popupSel) { fill.color = theme.accent; fill.alpha = 120; c.drawRoundRect(cr, 12f, 12f, fill); fill.alpha = 255 }
             c.drawText(e, cr.centerX(), cr.centerY() - (fm.ascent + fm.descent) / 2, paint)
         }
+        if (popupSticker) {                                    // last cell: send the emoji as a sticker
+            val i = items.size
+            val cr = RectF(popupRect.left + i * popupCw, popupRect.top, popupRect.left + (i + 1) * popupCw, popupRect.bottom)
+            fill.color = theme.hint; fill.alpha = 90
+            c.drawRect(cr.left - 1f, cr.top + cr.height() * 0.2f, cr.left + 1f, cr.bottom - cr.height() * 0.2f, fill); fill.alpha = 255
+            if (i == popupSel) { fill.color = theme.accent; fill.alpha = 120; c.drawRoundRect(cr, 12f, 12f, fill); fill.alpha = 255 }
+            Icons.draw(c, "image", cr.centerX(), cr.centerY(), popupCw * 0.5f, theme.keyText)
+        }
     }
 
     // ---------------------------------------------------------------- touch
@@ -176,20 +208,30 @@ class EmojiGridView(ctx: Context) : View(ctx) {
             postInvalidateOnAnimation(); return true
         }
         override fun onSingleTapUp(e: MotionEvent): Boolean {
+            if (e.y + scrollYf < bannerH) { banner?.tap(e.x, e.y + scrollYf, width.toFloat()); return true }
             itemAt(e.x, e.y)?.let { onPick?.invoke(displayOf?.invoke(it.first) ?: it.first) }; return true
         }
         override fun onLongPress(e: MotionEvent) {
+            if (e.y + scrollYf < bannerH) {
+                if (banner?.hold(e.x, e.y + scrollYf, width.toFloat()) == true) performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
+                return
+            }
             val it = itemAt(e.x, e.y) ?: return
-            if (toneBase?.invoke(it.first) != true) return
-            val v = EmojiData.variants(it.first)
-            if (v.size < 2) return
-            popup = v; popupBase = it.first
-            popupCw = min(cellW() * 1.1f, (width - 8f) / v.size)
-            val w = popupCw * v.size; val h = cellH() * 1.1f
+            val sticker = stickerHold()
+            val v = if (toneBase?.invoke(it.first) == true) EmojiData.variants(it.first) else emptyList()
+            if (v.size < 2) {                                  // no skin tones: holding sends the emoji as a sticker
+                if (sticker) { performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS); onHold?.invoke(displayOf?.invoke(it.first) ?: it.first) }
+                return
+            }
+            popup = v; popupBase = it.first; popupSticker = sticker
+            val cells = v.size + if (sticker) 1 else 0
+            popupCw = min(cellW() * 1.1f, (width - 8f) / cells)
+            val w = popupCw * cells; val h = cellH() * 1.1f
             val l = (it.second - w / 2).coerceIn(4f, max(4f, width - w - 4f))
             val t = if (it.third - h - 4f >= 0) it.third - h - 4f else it.third + cellH() + 4f
             popupRect = RectF(l, t, l + w, t + h)
-            popupSel = ((e.x - l) / popupCw).toInt().coerceIn(0, v.size - 1)
+            popupSel = ((e.x - l) / popupCw).toInt().coerceIn(0, cells - 1)
+            performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
             parent?.requestDisallowInterceptTouchEvent(true)
             invalidate()
         }
@@ -199,11 +241,11 @@ class EmojiGridView(ctx: Context) : View(ctx) {
         val pv = popup
         if (pv != null) {
             when (e.actionMasked) {
-                MotionEvent.ACTION_MOVE -> { popupSel = ((e.x - popupRect.left) / popupCw).toInt().coerceIn(0, pv.size - 1); invalidate() }
+                MotionEvent.ACTION_MOVE -> { popupSel = ((e.x - popupRect.left) / popupCw).toInt().coerceIn(0, pv.size + (if (popupSticker) 1 else 0) - 1); invalidate() }
                 MotionEvent.ACTION_UP -> {
-                    val chosen = pv[popupSel]
-                    onTone?.invoke(popupBase, chosen); popup = null; invalidate()
-                    onPick?.invoke(chosen)
+                    popup = null; invalidate()
+                    if (popupSticker && popupSel >= pv.size) onHold?.invoke(displayOf?.invoke(popupBase) ?: popupBase)   // the sticker cell
+                    else { val chosen = pv[popupSel]; onTone?.invoke(popupBase, chosen); onPick?.invoke(chosen) }
                 }
                 MotionEvent.ACTION_CANCEL -> { popup = null; invalidate() }
             }

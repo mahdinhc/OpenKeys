@@ -97,4 +97,33 @@ object ClipStore {
         if (variant == base) o.remove(base) else o.put(base, variant)
         sp(c).edit().putString("tones", o.toString()).apply()
     }
+
+    // ---- Emoji Kitchen: recently sent mixes and favourite mixes, stored as "a|b" pairs
+    private fun pairs(c: Context, k: String): List<Pair<String, String>> =
+        jsonStrings(try { JSONArray(sp(c).getString(k, "[]")) } catch (e: Exception) { null })
+            .mapNotNull { s -> val i = s.indexOf('|'); if (i > 0) s.substring(0, i) to s.substring(i + 1) else null }
+
+    private fun putPairs(c: Context, k: String, l: List<Pair<String, String>>) =
+        sp(c).edit().putString(k, JSONArray(l.map { it.first + "|" + it.second }).toString()).apply()
+
+    fun recentMixes(c: Context) = pairs(c, "mixRecent")
+    fun favMixes(c: Context) = pairs(c, "mixFav")
+    fun favMixKeys(c: Context): Set<String> = favMixes(c).map { EmojiKitchen.pairKey(it.first, it.second) }.toSet()
+
+    fun addMix(c: Context, a: String, b: String) {
+        val key = EmojiKitchen.pairKey(a, b)
+        val l = recentMixes(c).filter { EmojiKitchen.pairKey(it.first, it.second) != key }.toMutableList()
+        l.add(0, a to b)
+        while (l.size > 60) l.removeAt(l.size - 1)
+        putPairs(c, "mixRecent", l)
+    }
+
+    /** Adds or removes the mix from the favourites; returns true when it is now a favourite. */
+    fun toggleFavMix(c: Context, a: String, b: String): Boolean {
+        val key = EmojiKitchen.pairKey(a, b)
+        val l = favMixes(c)
+        val had = l.any { EmojiKitchen.pairKey(it.first, it.second) == key }
+        putPairs(c, "mixFav", if (had) l.filter { EmojiKitchen.pairKey(it.first, it.second) != key } else listOf(a to b) + l)
+        return !had
+    }
 }
