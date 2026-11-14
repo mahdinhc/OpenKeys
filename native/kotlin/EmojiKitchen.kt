@@ -47,7 +47,7 @@ object EmojiKitchen {
     }
 
     private val main = Handler(Looper.getMainLooper())
-    private val pool = Executors.newFixedThreadPool(8) { r -> Thread(r, "kitchen-probe").also { it.isDaemon = true } }
+    private val pool = Executors.newFixedThreadPool(12) { r -> Thread(r, "kitchen-probe").also { it.isDaemon = true } }
     private val misses = HashSet<String>()
     @Volatile private var dates: List<String>? = null
     private val building = AtomicBoolean(false)
@@ -64,8 +64,11 @@ object EmojiKitchen {
     }
 
     private fun tokenNoVs(emoji: String) = token(emoji.replace("\uFE0F", ""))
-    private fun norm(tok: String) = tok.replace("-fe0f", "")
-    private fun forms(e: String) = listOf(token(e), tokenNoVs(e)).distinct()
+    // the metadata gives every code point its own "u" (u2764-ufe0f, u1f43b-u200d-u2744-ufe0f), token() above doesn't: try both spellings
+    private fun tokenU(emoji: String) = token(emoji).replace("-", "-u")
+    private fun tokenUNoVs(emoji: String) = tokenNoVs(emoji).replace("-", "-u")
+    private fun norm(tok: String) = tok.replace("-ufe0f", "").replace("-fe0f", "").replace("-u", "-")
+    private fun forms(e: String) = listOf(token(e), tokenNoVs(e), tokenU(e), tokenUNoVs(e)).distinct()
 
     fun url(date: String, left: String, right: String) = "$BASE/$date/$left/${left}_$right.png"
 
@@ -328,23 +331,31 @@ object EmojiKitchen {
         } catch (e: Exception) { false } finally { c.disconnect(); if (tmp.exists()) tmp.delete() }
     }
 
+    /** Downloads [u] into the cache file of [key] once, even when several callers ask for the same pair at the same time. */
+    private fun getFile(app: Context, u: String, key: String): File? {
+        val f = File(dir(app), key)
+        synchronized(key.intern()) {
+            if (f.exists() && f.length() > 0) return f
+            return if (download(u, f)) f else null
+        }
+    }
+
     /** Resolves a mix in the background; [done] runs on the main thread. */
     fun mix(ctx: Context, a: String, b: String, done: (Result) -> Unit) {
         val app = ctx.applicationContext
         val key = cacheName(a, b)
         cachedFile(app, a, b)?.let { done(Result.Ok(it)); return }
         if (synchronized(misses) { key in misses }) { done(Result.NoMix); return }
-        Thread {
-            val res = try { resolve(app, a, b, key) } catch (e: Exception) { DevLog.e(app, "Kitchen", "mix failed", e); Result.Offline }
-            main.post { done(res) }
-        }.start()
+        pool.execute {
+            val res = try { resolve(app, a, b, key) } catch (e: Throwable) { DevLog.e(app, "Kitchen", "mix failed", e); Result.Offline }
+            main.post { try { done(res) } catch (e: Throwable) { DevLog.e(app, "Kitchen", "mix callback failed", e) } }
+        }
     }
 
     private fun resolve(app: Context, a: String, b: String, key: String): Result {
         when (val l = fromIndex(app, a, b)) {
             is Lookup.Found -> {
-                val f = File(dir(app), key)
-                if (download(l.url, f)) { prune(app); return Result.Ok(f) }
+                getFile(app, l.url, key)?.let { prune(app); return Result.Ok(it) }
                 // couldn't fetch the listed file: if the server is reachable it's gone, otherwise we're offline
                 val code = try { status(l.url, "HEAD") } catch (e: Exception) { return Result.Offline }
                 if (code !in 400..499) return Result.Offline
@@ -363,32 +374,45 @@ object EmojiKitchen {
         return out
     }
 
-    /** Fallback when there's no index yet: HEAD every known release folder in both orders. */
+    /** Fallback when there's no index yet: fetch every known release folder in both orders at once, the first hit wins. */
     private fun probe(app: Context, a: String, b: String, key: String): Result {
         val urls = candidates(app, a, b)
-        val hit = AtomicReference<String?>(null)
+        val hit = AtomicReference<File?>(null)
         val failed = AtomicInteger(0)
         val latch = CountDownLatch(urls.size)
-        for (u in urls) pool.execute {
+        val dst = File(dir(app), key)
+        for ((n, u) in urls.withIndex()) pool.execute {
             try {
                 if (hit.get() == null) {
-                    val code = status(u, "HEAD")
-                    if (code == 200) hit.compareAndSet(null, u) else if (code !in 400..499) failed.incrementAndGet()
+                    val part = File(dst.path + ".p$n")
+                    val code = try { fetchTo(u, part) } catch (e: Exception) { -1 }
+                    if (code == 200) {
+                        synchronized(hit) { if (hit.get() == null && part.renameTo(dst)) hit.set(dst) }
+                    } else if (code !in 400..499) failed.incrementAndGet()
+                    if (part.exists()) part.delete()
                 }
-            } catch (e: Exception) { failed.incrementAndGet() } finally { latch.countDown() }
+            } catch (e: Throwable) { failed.incrementAndGet() } finally { latch.countDown() }
         }
-        latch.await(25, TimeUnit.SECONDS)
-        val u = hit.get()
-        if (u == null) {
-            if (failed.get() > 0 || latch.count > 0 || hasIndex(app).not() && !isOnline(app)) return Result.Offline
-            // without an index a clean 404 everywhere is only remembered for this session
-            synchronized(misses) { misses.add(key) }
-            return Result.NoMix
-        }
-        val f = File(dir(app), key)
-        if (!download(u, f)) return Result.Offline
-        prune(app)
-        return Result.Ok(f)
+        while (hit.get() == null && !latch.await(100, TimeUnit.MILLISECONDS)) { /* wait for the first hit or all misses */ }
+        hit.get()?.let { prune(app); return Result.Ok(it) }
+        if (failed.get() > 0 || latch.count > 0 || hasIndex(app).not() && !isOnline(app)) return Result.Offline
+        // without an index a clean 404 everywhere is only remembered for this session
+        synchronized(misses) { misses.add(key) }
+        return Result.NoMix
+    }
+
+    /** GET [u] into [to]; returns the HTTP status (200 = saved). */
+    private fun fetchTo(u: String, to: File): Int {
+        val c = URL(u).openConnection() as HttpURLConnection
+        return try {
+            c.connectTimeout = 6000; c.readTimeout = 10000
+            val code = c.responseCode
+            if (code == 200) {
+                c.inputStream.use { ins -> to.outputStream().use { ins.copyTo(it) } }
+                if (to.length() == 0L) { to.delete(); return -1 }
+            }
+            code
+        } finally { c.disconnect() }
     }
 
     private fun isOnline(ctx: Context): Boolean = try {
@@ -404,8 +428,7 @@ object EmojiKitchen {
         val app = ctx.applicationContext
         cachedFile(app, a, b)?.let { return it }
         val l = fromIndex(app, a, b) as? Lookup.Found ?: return null
-        val f = File(dir(app), cacheName(a, b))
-        if (!download(l.url, f)) return null
+        val f = getFile(app, l.url, cacheName(a, b)) ?: return null
         prune(app)
         return f
     }
@@ -414,19 +437,17 @@ object EmojiKitchen {
     @Volatile private var prefetchGen = 0
 
     /** Pre-downloads (up to [limit]) uncached mixes of [emoji] with [others] so they open instantly / offline. Cancelled by the next call. */
-    fun prefetch(ctx: Context, emoji: String, others: List<String>, limit: Int = 150) {
+    fun prefetch(ctx: Context, emoji: String, others: List<String>, limit: Int = 30) {
         val app = ctx.applicationContext
         val gen = ++prefetchGen
-        Thread {
-            var n = 0
-            for (o in others) {
-                if (gen != prefetchGen || n >= limit) return@Thread
-                if (cachedFile(app, emoji, o) != null) continue
-                val key = cacheName(emoji, o)
-                val l = fromIndex(app, emoji, o) as? Lookup.Found ?: continue
-                if (download(l.url, File(dir(app), key))) n++ else if (!isOnline(app)) return@Thread
-            }
-            if (n > 0) prune(app)
-        }.apply { isDaemon = true; priority = Thread.MIN_PRIORITY }.start()
+        val n = AtomicInteger(0)
+        for (o in others) pool.execute {
+            try {
+                if (gen != prefetchGen || n.get() >= limit) return@execute
+                if (cachedFile(app, emoji, o) != null) return@execute
+                val l = fromIndex(app, emoji, o) as? Lookup.Found ?: return@execute
+                if (getFile(app, l.url, cacheName(emoji, o)) != null && n.incrementAndGet() % 10 == 0) prune(app)
+            } catch (e: Throwable) { }
+        }
     }
 }

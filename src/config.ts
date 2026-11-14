@@ -40,7 +40,7 @@ export const DEFAULTS: Config = {
   bgName: '', bgPath: '', bgRev: 0, bgFit: 'cover', bgBlend: 'normal',
   bgOpacity: 100, bgBlur: 0, bgGray: 0, bgSepia: 0, bgBright: 100, bgContrast: 100, bgSat: 100, bgHue: 0,
   bgInvert: false, bgDim: 0, bgTint: '#000000', bgTintAmt: 0, bgFlipX: false, bgScale: 100, bgPanels: 80,
-  emojiFont: 'system', kitchenCacheMb: 150, kitchenPrefetch: false, kitchenMetaUrl: '', kitchenSuggest: true, stickerOnHold: true,
+  emojiFont: 'system', kitchenCacheMb: 150, kitchenPrefetch: true, kitchenMetaUrl: '', kitchenSuggest: true, stickerOnHold: true,
   emojiCols: 8, emojiSize: 100, emojiHeaders: true, emojiRecents: true, emojiHidden: [],
   devMode: false, devLog: false, keyLogScope: 'skipPasswords', devDebugLog: false,
   topTools: ['emoji', 'clip', 'piano', 'settings'], topIconSize: 50, emojiHeight: 100, pianoHeight: 100,

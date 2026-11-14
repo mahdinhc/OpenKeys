@@ -27,7 +27,7 @@ enum class ClipFilter(val label: String) { ALL("All"), PINNED("Pinned"), TEXT("T
 
 /**
  * Clipboard panel, split into small modules:
- *  - [ClipboardPanel]: header, filter tabs, scrolling list, footer actions (state + wiring)
+ *  - [ClipboardPanel]: one slim top row (filter chips + clear), scrolling list (state + wiring)
  *  - [ClipCards]: builds one card per clip (text / image), no state
  *  - [ClipStore]: persistence (limits, corrupt-entry tolerance)
  * Every rebuild is wrapped so a bad item can never take the keyboard down.
@@ -39,9 +39,6 @@ class ClipboardPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx)
     private var filter = ClipFilter.ALL
     private var confirmClear = false
 
-    private val title = TextView(ctx)
-    private val count = TextView(ctx)
-    private val backIcon = IconView(ctx, "back", theme.keyText, 0.5f)
     private val tabs = LinearLayout(ctx)
     private val list = LinearLayout(ctx).apply { orientation = VERTICAL }
     private val clear = TextView(ctx)
@@ -49,35 +46,26 @@ class ClipboardPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx)
 
     init {
         orientation = VERTICAL
-        // header
-        val head = LinearLayout(ctx).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        backIcon.setOnClickListener { cb.onBack() }
-        head.addView(backIcon, LayoutParams(ctx.dpi(40f), ctx.dpi(40f)))
-        title.text = "Clipboard"; title.textSize = 17f; title.setTypeface(title.typeface, android.graphics.Typeface.BOLD)
-        head.addView(title, LayoutParams(0, WRAP, 1f))
-        count.textSize = 12f; count.setPadding(0, 0, ctx.dpi(12f), 0)
-        head.addView(count, LayoutParams(WRAP, WRAP))
-        addView(head, LayoutParams(MATCH, ctx.dpi(40f)))
-        // filter tabs
-        tabs.orientation = HORIZONTAL; tabs.setPadding(ctx.dpi(8f), 0, ctx.dpi(8f), ctx.dpi(4f))
-        addView(HorizontalScrollView(ctx).apply { isHorizontalScrollBarEnabled = false; addView(tabs) }, LayoutParams(MATCH, ctx.dpi(38f)))
-        // list
-        addView(ScrollView(ctx).apply { addView(list, ViewGroup.LayoutParams(MATCH, WRAP)) }, LayoutParams(MATCH, 0, 1f))
-        // footer
-        clear.textSize = 14f; clear.gravity = Gravity.CENTER
+        // one slim top row: filter chips (scroll) + a small clear chip. No title / back row: saves space.
+        val top = LinearLayout(ctx).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        tabs.orientation = HORIZONTAL; tabs.gravity = Gravity.CENTER_VERTICAL; tabs.setPadding(ctx.dpi(6f), 0, ctx.dpi(2f), 0)
+        top.addView(HorizontalScrollView(ctx).apply { isHorizontalScrollBarEnabled = false; addView(tabs, ViewGroup.LayoutParams(WRAP, MATCH)) }, LayoutParams(0, MATCH, 1f))
+        clear.textSize = 12f; clear.gravity = Gravity.CENTER; clear.setPadding(ctx.dpi(10f), 0, ctx.dpi(10f), 0)
         clear.setOnClickListener {
             if (!confirmClear) { confirmClear = true; styleFooter(); postDelayed({ confirmClear = false; styleFooter() }, 3000) }
             else { confirmClear = false; safe { ClipStore.clearUnpinned(context) }; refresh() }
         }
-        addView(clear, LayoutParams(MATCH, ctx.dpi(40f)))
+        top.addView(clear, LayoutParams(WRAP, ctx.dpi(26f)).also { it.setMargins(0, 0, ctx.dpi(6f), 0) })
+        addView(top, LayoutParams(MATCH, ctx.dpi(34f)))
+        addView(ScrollView(ctx).apply { addView(list, ViewGroup.LayoutParams(MATCH, WRAP)) }, LayoutParams(MATCH, 0, 1f))
     }
 
     private inline fun safe(f: () -> Unit) { try { f() } catch (e: Throwable) { DevLog.d(context, "CLIP", "error: " + e) } }
 
     private fun styleFooter() {
-        clear.text = if (confirmClear) "Tap again to delete all unpinned" else "Clear unpinned"
+        clear.text = if (confirmClear) "Delete all?" else "Clear"
         clear.setTextColor(if (confirmClear) theme.accentText else theme.hint)
-        clear.background = if (confirmClear) rounded(theme.accent, context.dpf(10f)) else null
+        clear.background = rounded(if (confirmClear) theme.accent else theme.key, context.dpf(13f))
     }
 
     private fun buildTabs(items: List<Clip>) {
@@ -90,30 +78,29 @@ class ClipboardPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx)
             val on = f == filter
             val tv = TextView(context).apply {
                 text = if (n > 0 && f != ClipFilter.ALL) "${f.label} $n" else f.label
-                textSize = 13f; gravity = Gravity.CENTER
-                setPadding(context.dpi(14f), 0, context.dpi(14f), 0)
+                textSize = 12f; gravity = Gravity.CENTER
+                setPadding(context.dpi(11f), 0, context.dpi(11f), 0)
                 setTextColor(if (on) theme.accentText else theme.keyText)
-                background = rounded(if (on) theme.accent else theme.key, context.dpf(16f))
+                background = rounded(if (on) theme.accent else theme.key, context.dpf(13f))
                 setOnClickListener { filter = f; refresh() }
             }
-            tabs.addView(tv, LayoutParams(WRAP, MATCH).also { it.setMargins(0, 0, context.dpi(6f), 0) })
+            tabs.addView(tv, LayoutParams(WRAP, context.dpi(26f)).also { it.setMargins(0, 0, context.dpi(5f), 0) })
         }
     }
 
     private fun sectionLabel(text: String) = TextView(context).apply {
-        this.text = text.uppercase(); textSize = 11f; setTextColor(theme.hint); letterSpacing = 0.08f
-        setPadding(context.dpi(14f), context.dpi(10f), 0, context.dpi(2f))
+        this.text = text.uppercase(); textSize = 10f; setTextColor(theme.hint); letterSpacing = 0.08f
+        setPadding(context.dpi(12f), context.dpi(6f), 0, context.dpi(1f))
     }
 
     private fun empty(msg: String) = TextView(context).apply {
-        text = msg; setTextColor(theme.hint); gravity = Gravity.CENTER; setPadding(context.dpi(20f), context.dpi(36f), context.dpi(20f), 0)
+        text = msg; setTextColor(theme.hint); gravity = Gravity.CENTER; setPadding(context.dpi(20f), context.dpi(22f), context.dpi(20f), 0)
     }
 
     fun refresh() {
         try {
             list.removeAllViews(); styleFooter()
             val all = ClipStore.items(context)
-            count.text = if (all.isEmpty()) "" else "${all.size} items"
             buildTabs(all)
             if (all.isEmpty()) { list.addView(empty("Copied text and images appear here.\nLong-press an item to pin it.")); return }
             val shown = when (filter) {
@@ -133,7 +120,7 @@ class ClipboardPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx)
     }
 
     private fun addGroup(items: List<Clip>) {
-        val m = context.dpi(6f)
+        val m = context.dpi(4f)
         val texts = items.filter { it.type == "text" }
         val imgs = items.filter { it.type == "image" }
         for (c in texts) safe {
@@ -144,7 +131,7 @@ class ClipboardPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx)
             for (k in 0 until 2) {
                 val c = pair.getOrNull(k)
                 if (c == null) { row.addView(View(context), LayoutParams(0, 1, 1f)); continue }
-                safe { row.addView(cards.image(c, theme, ::paste, ::pin, ::delete), LayoutParams(0, context.dpi(120f), 1f).also { it.setMargins(m, m / 2, m, m / 2) }) }
+                safe { row.addView(cards.image(c, theme, ::paste, ::pin, ::delete), LayoutParams(0, context.dpi(92f), 1f).also { it.setMargins(m, m / 2, m, m / 2) }) }
             }
             list.addView(row, LayoutParams(MATCH, WRAP))
         }
@@ -158,7 +145,6 @@ class ClipboardPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx)
     fun applyTheme(t: Theme) {
         theme = t
         setBackgroundColor(t.bg)
-        title.setTextColor(t.keyText); count.setTextColor(t.hint); backIcon.tint = t.keyText; backIcon.invalidate()
         cards.clearThumbs()
         styleFooter()
     }
@@ -195,18 +181,18 @@ class ClipCards(private val ctx: Context) {
         val col = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         val pin = IconView(ctx, "pin", if (c.pinned) t.accent else t.hint, 0.5f).apply { setOnClickListener { onPin(c) } }
         val del = IconView(ctx, "close", t.hint, 0.5f).apply { setOnClickListener { onDel(c) } }
-        col.addView(pin, LinearLayout.LayoutParams(ctx.dpi(34f), ctx.dpi(34f)))
-        col.addView(del, LinearLayout.LayoutParams(ctx.dpi(34f), ctx.dpi(34f)))
+        col.addView(pin, LinearLayout.LayoutParams(ctx.dpi(26f), ctx.dpi(26f)))
+        col.addView(del, LinearLayout.LayoutParams(ctx.dpi(26f), ctx.dpi(26f)))
         return col
     }
 
     fun text(c: Clip, t: Theme, onPaste: (Clip) -> Unit, onPin: (Clip) -> Unit, onDel: (Clip) -> Unit): View {
-        val root = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL; background = rounded(t.key, ctx.dpf(12f)) }
-        root.setPadding(ctx.dpi(12f), ctx.dpi(8f), ctx.dpi(4f), ctx.dpi(8f))
+        val root = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL; background = rounded(t.key, ctx.dpf(10f)) }
+        root.setPadding(ctx.dpi(10f), ctx.dpi(4f), ctx.dpi(2f), ctx.dpi(7f))
         val top = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         val meta = TextView(ctx).apply {
-            text = (if (c.pinned) "Pinned · " else "") + ago(c.ts) + " · " + c.length + " chars" + (if (c.isLarge) " · large" else "")
-            textSize = 11f; setTextColor(if (c.pinned) t.accent else t.hint)
+            text = (if (c.pinned) "Pinned · " else "") + ago(c.ts) + " · " + c.length + (if (c.isLarge) " ch · large" else " ch")
+            textSize = 10f; setTextColor(if (c.pinned) t.accent else t.hint)
         }
         top.addView(meta, LinearLayout.LayoutParams(0, WRAP, 1f))
         top.addView(actions(c, t, onPin, onDel))
@@ -214,7 +200,7 @@ class ClipCards(private val ctx: Context) {
         // only a short preview is ever laid out, so huge copies stay cheap
         val preview = if (c.value.length > 400) c.value.substring(0, 400) + "…" else c.value
         root.addView(TextView(ctx).apply {
-            text = preview; maxLines = 4; ellipsize = TextUtils.TruncateAt.END; textSize = 15f; setTextColor(t.keyText)
+            text = preview; maxLines = 3; ellipsize = TextUtils.TruncateAt.END; textSize = 14f; setTextColor(t.keyText)
             setPadding(0, 0, ctx.dpi(8f), 0)
         }, LinearLayout.LayoutParams(MATCH, WRAP))
         root.setOnClickListener { onPaste(c) }
@@ -223,10 +209,10 @@ class ClipCards(private val ctx: Context) {
     }
 
     fun image(c: Clip, t: Theme, onPaste: (Clip) -> Unit, onPin: (Clip) -> Unit, onDel: (Clip) -> Unit): View {
-        val f = FrameLayout(ctx).apply { background = rounded(t.key, ctx.dpf(12f)) }
+        val f = FrameLayout(ctx).apply { background = rounded(t.key, ctx.dpf(10f)) }
         val bmp = thumb(c)
         if (bmp == null) { try { ClipStore.remove(ctx, c.id) } catch (e: Throwable) { } }   // unreadable image: drop it so it never breaks the panel again
-        val iv = ImageView(ctx).apply { scaleType = ImageView.ScaleType.FIT_CENTER; setImageBitmap(bmp); setPadding(ctx.dpi(6f), ctx.dpi(6f), ctx.dpi(6f), ctx.dpi(6f)) }
+        val iv = ImageView(ctx).apply { scaleType = ImageView.ScaleType.FIT_CENTER; setImageBitmap(bmp); setPadding(ctx.dpi(4f), ctx.dpi(4f), ctx.dpi(4f), ctx.dpi(4f)) }
         f.addView(iv, FrameLayout.LayoutParams(MATCH, MATCH))
         f.addView(actions(c, t, onPin, onDel), FrameLayout.LayoutParams(WRAP, WRAP, Gravity.TOP or Gravity.END))
         f.setOnClickListener { onPaste(c) }

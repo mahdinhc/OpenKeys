@@ -368,7 +368,7 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
                 if (gridFilterFor != one || !kitchen) return@post
                 if (set == null || set.isEmpty()) { kitchenGrid(null); return@post }
                 kitchenGrid(set)
-                if (Prefs(context).bool("kitchenPrefetch", false))
+                if (Prefs(context).bool("kitchenPrefetch", true))
                     EmojiKitchen.prefetch(context, one, EmojiData.items.filter { it.group < 8 && EmojiKitchen.partnerToken(it.s) in set }.map { it.s })
             }
         }.start()
