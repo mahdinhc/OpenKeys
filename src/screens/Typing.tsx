@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Alert, ScrollView, Share, Text, TouchableOpacity, View} from 'react-native';
+import {Alert, ScrollView, Text, TouchableOpacity, View} from 'react-native';
 import {Icon} from '../Icon';
 import {Native} from '../native';
 import {Btn, C, Card, Field, Segmented, Stepper, Toggle} from '../ui';
@@ -18,7 +18,22 @@ export default function Typing({cfg, update}: any) {
   const removeShortcut = (k: string) => {
     const n = {...cfg.shortcuts}; delete n[k]; update({shortcuts: n});
   };
-  const doExport = async () => { const j = await Native.exportBackup(); setBackup(j); Share.share({message: j}).catch(() => {}); };
+  const doExport = async () => {
+    try {
+      const j = await Native.exportBackup();
+      const ok = await Native.saveTextFile(`openkeys-config-${new Date().toISOString().slice(0, 10)}.json`, 'application/json', j);
+      if (ok) Alert.alert('Exported', 'Keyboard config, layouts and plugins were saved to your file.');
+    } catch (e: any) { Alert.alert('Export failed', String(e?.message || e)); }
+  };
+  const doImportFile = async () => {
+    try {
+      const txt = await Native.openTextFile();
+      if (!txt) return;
+      JSON.parse(txt);
+      await Native.importBackup(txt);
+      Alert.alert('Imported', 'Restart this app to reload settings.');
+    } catch (e: any) { Alert.alert('Import failed', String(e?.message || e)); }
+  };
   const doImport = async () => {
     try { await Native.importBackup(backup); Alert.alert('Imported', 'Restart this app to reload settings.'); }
     catch (e: any) { Alert.alert('Import failed', String(e?.message || e)); }
@@ -82,10 +97,15 @@ export default function Typing({cfg, update}: any) {
         <Btn title="Add shortcut" onPress={addShortcut} />
       </Card>
 
+      <Card title="Clipboard">
+        <Toggle label="Store large copied text" hint="Keeps very long copies (up to about 5 million characters) in full. Off: copies are trimmed to 20,000 characters." value={cfg.clipLargeText !== false} onChange={T('clipLargeText')} />
+      </Card>
+
       <Card title="Backup">
-        <Btn title="Export settings + custom languages" onPress={doExport} />
-        <Field label="Paste a backup here to import" value={backup} onChangeText={setBackup} multiline mono />
-        <Btn kind="ghost" title="Import" onPress={doImport} />
+        <Btn title="Export config to file" onPress={doExport} />
+        <Btn kind="ghost" title="Import config from file" onPress={doImportFile} />
+        <Field label="Or paste a backup here" value={backup} onChangeText={setBackup} multiline mono />
+        <Btn kind="ghost" title="Import pasted text" onPress={doImport} />
       </Card>
     </ScrollView>
   );

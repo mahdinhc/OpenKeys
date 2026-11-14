@@ -154,11 +154,11 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             if (uri != null) {
                 if (uri.authority == "$packageName.clips") return   // our own paste fallback
                 val type = contentResolver.getType(uri)
-                if (type != null && type.startsWith("image/")) { ClipStore.addImage(this, uri); return }
+                if (type != null && type.startsWith("image/")) { val app = applicationContext; Thread { try { ClipStore.addImage(app, uri) } catch (e: Throwable) { } }.start(); return }
             }
             val t = item.coerceToText(this)?.toString()
             if (!t.isNullOrBlank()) ClipStore.addText(this, t)
-        } catch (e: Exception) { }
+        } catch (e: Throwable) { }
     }
 
     override fun onEvaluateFullscreenMode() = false
@@ -207,7 +207,14 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             override fun onSticker(f: File) { commitComposing(false); pasteImage(Clip("k:" + f.name, "image", f.name, false, System.currentTimeMillis())) }
         })
         clip = ClipboardPanel(this, object : ClipboardPanel.Callback {
-            override fun onPasteText(s: String) { lg("[paste:$s]"); commitComposing(false); currentInputConnection?.commitText(s, 1) }
+            override fun onPasteText(s: String) {
+                try {
+                    lg("[paste:${if (s.length > 200) s.substring(0, 200) + "…" else s}]"); commitComposing(false)
+                    val ic = currentInputConnection ?: return
+                    ic.beginBatchEdit()
+                    try { s.chunked(8000).forEach { ic.commitText(it, 1) } } finally { ic.endBatchEdit() }   // big pastes in pieces: one huge IPC call can fail
+                } catch (e: Throwable) { DevLog.d(this@OpenKeysIME, "CLIP", "paste failed: $e") }
+            }
             override fun onPasteImage(c: Clip) = pasteImage(c)
             override fun onBack() = showKeyboard()
         })
@@ -445,6 +452,13 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
 
     // ------------------------------------------------------------ images from the clipboard panel
     private fun pasteImage(c: Clip) {
+        try { pasteImageUnsafe(c) } catch (e: Throwable) {
+            DevLog.d(this, "CLIP", "image paste failed: $e")
+            try { Toast.makeText(this, "Could not paste this image.", Toast.LENGTH_SHORT).show() } catch (x: Throwable) { }
+        }
+    }
+
+    private fun pasteImageUnsafe(c: Clip) {
         val f = ClipStore.imageFile(this, c.value)
         if (!f.exists()) return
         val uri = FileProvider.getUriForFile(this, "$packageName.clips", f)
@@ -599,7 +613,7 @@ class OpenKeysIME : InputMethodService(), KeyboardView.Listener, SuggestionBar.L
             "picker" -> (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).showInputMethodPicker()
             "letters" -> { forced = null; enabled.getOrNull(idx)?.let { setLayout(it) } }
             "emoji" -> if (!searching) { emoji.open(); showPanel(emoji) }
-            "clip" -> { clip.refresh(); showPanel(clip) }
+            "clip" -> { try { clip.refresh() } catch (e: Throwable) { DevLog.d(this, "CLIP", "refresh: $e") }; showPanel(clip) }
             "piano" -> if (!searching) { piano.open(prefs); showPanel(piano) }
             "mic" -> startVoice()
             else -> if (type.startsWith("act:")) doAct(type.substring(4)) else if (type.startsWith("js:")) runAction(type.substring(3))

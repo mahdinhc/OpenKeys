@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Alert, ScrollView, Share, Text, TouchableOpacity, View} from 'react-native';
+import {Alert, ScrollView, Text, TouchableOpacity, View} from 'react-native';
 import {Native} from '../native';
 import {Btn, C, Card, Field, Segmented, Toggle} from '../ui';
 
@@ -185,7 +185,7 @@ function DebugLog({cfg, update}: any) {
 
   const addTest = () => Native.debugLogWrite('test entry from the Developer screen')
     .then(() => setTimeout(load, 200)).catch(err);
-  const share = () => { if (text) Share.share({message: text}).catch(() => {}); };
+  const share = () => { if (text) Native.saveTextFile(`openkeys-debuglog-${new Date().toISOString().slice(0, 10)}.txt`, 'text/plain', text).catch(() => {}); };
   const clear = () => Alert.alert('Clear the debug log?', 'This cannot be undone.', [
     {text: 'Cancel', style: 'cancel'},
     {text: 'Clear', style: 'destructive', onPress: () => Native.debugLogClear().then(() => setText('')).catch(err)},
@@ -217,7 +217,7 @@ function DebugLog({cfg, update}: any) {
         </View>
         <Text style={{color: C.sub, fontSize: 12, marginTop: 6}}>Newest entries are at the bottom. Red = errors / crashes.</Text>
         <Btn title="Refresh" onPress={load} />
-        <Btn kind="ghost" title="Share log" onPress={share} />
+        <Btn kind="ghost" title="Save log to file" onPress={share} />
         <Btn kind="ghost" title="Add test entry" onPress={addTest} />
         <Btn kind="danger" title="Clear log" onPress={clear} />
       </Card>
@@ -250,7 +250,18 @@ function KeyLogs({cfg, update}: any) {
   const lock = () => { setSession(''); setIndex({}); setEntries(null); setOpen(null); };
 
   const showHour = (d: string, h: string) => Native.logRead(session, d, h).then(items => setEntries({key: `${d} ${h}:00`, items})).catch(err);
-  const doExport = () => Native.logExport(session).then(j => Share.share({message: j})).catch(err);
+  const stamp = () => new Date().toISOString().slice(0, 10);
+  const doExport = () => Native.logExport(session)
+    .then(j => Native.saveTextFile(`openkeys-typelog-${stamp()}.json`, 'application/json', j))
+    .then(ok => { if (ok) Alert.alert('Exported', 'The encrypted log was saved to your file.'); })
+    .catch(err);
+  const doImportFile = () => {
+    if (!impPw) { Alert.alert('Enter the password the export was made with first'); return; }
+    Native.openTextFile().then(txt => {
+      if (!txt) return;
+      return Native.logImport(txt, impPw).then(n => { Alert.alert('Imported', `${n} new entries added.`); setImpPw(''); refresh(session); });
+    }).catch(err);
+  };
   const doImport = () => Native.logImport(imp, impPw).then(n => { Alert.alert('Imported', `${n} new entries added.`); setImp(''); setImpPw(''); refresh(session); }).catch(err);
   const doClear = () => Alert.alert('Delete all logged typing?', 'This cannot be undone.', [
     {text: 'Cancel', style: 'cancel'},
@@ -325,10 +336,11 @@ function KeyLogs({cfg, update}: any) {
           )}
 
           <Card title="Export / import">
-            <Btn title="Export (encrypted with your password)" onPress={doExport} />
-            <Field label="Paste an exported log to import" value={imp} onChangeText={setImp} multiline mono />
+            <Btn title="Export to file (encrypted with your password)" onPress={doExport} />
             <Field label="Password the export was made with" value={impPw} onChangeText={setImpPw} secureTextEntry />
-            <Btn kind="ghost" title="Import" onPress={doImport} />
+            <Btn kind="ghost" title="Import from file" onPress={doImportFile} />
+            <Field label="Or paste an exported log" value={imp} onChangeText={setImp} multiline mono />
+            <Btn kind="ghost" title="Import pasted text" onPress={doImport} />
           </Card>
 
           <Card>

@@ -135,7 +135,9 @@ object TypeLog {
     // ------------------------------------------------------------ reading
     private fun readFile(c: Context, f: File): List<JSONObject> {
         val k = dataKey(c)
-        return f.readLines().mapNotNull { try { JSONObject(String(dec(k, it))) } catch (e: Exception) { null } }
+        val out = ArrayList<JSONObject>()
+        try { f.forEachLine { l -> if (l.isNotBlank()) try { out.add(JSONObject(String(dec(k, l)))) } catch (e: Exception) { } } } catch (e: Exception) { }
+        return out
     }
 
     private fun need(c: Context, pw: String) { require(verify(c, pw)) { "Wrong password" } }
@@ -146,7 +148,7 @@ object TypeLog {
         val o = JSONObject()
         root(c).listFiles()?.filter { it.isDirectory }?.sortedByDescending { it.name }?.forEach { d ->
             val h = JSONObject()
-            d.listFiles()?.sortedBy { it.name }?.forEach { f -> h.put(f.nameWithoutExtension, f.readLines().size) }
+            d.listFiles()?.sortedBy { it.name }?.forEach { f -> h.put(f.nameWithoutExtension, try { f.readLines().count { l -> l.isNotBlank() } } catch (e: Exception) { 0 }) }
             o.put(d.name, h)
         }
         return o.toString()
@@ -184,13 +186,13 @@ object TypeLog {
         days.keys().forEach { date ->
             require(Regex("\\d{4}-\\d{2}-\\d{2}").matches(date))
             val hours = days.getJSONObject(date)
-            hours.keys().forEach { hr ->
+            hours.keys().forEach hrLoop@{ hr ->
                 require(Regex("\\d{2}").matches(hr))
                 val dir = File(root(c), date).also { it.mkdirs() }; val f = File(dir, "$hr.log")
                 val have = if (f.exists()) readFile(c, f).map { it.optLong("t") to it.optString("s") }.toHashSet() else HashSet()
-                val arr = hours.getJSONArray(hr)
+                val arr = hours.optJSONArray(hr) ?: return@hrLoop
                 for (i in 0 until arr.length()) {
-                    val e = arr.getJSONObject(i)
+                    val e = arr.optJSONObject(i) ?: continue
                     if (have.add(e.optLong("t") to e.optString("s"))) { f.appendText(enc(dk, e.toString().toByteArray()) + "\n"); added++ }
                 }
             }

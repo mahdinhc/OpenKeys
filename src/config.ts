@@ -5,7 +5,7 @@ export type Config = {
   oneHanded: 'off' | 'left' | 'right';
   showHints: boolean; popupPreview: boolean;
   haptic: boolean; hapticMs: number; sound: boolean; longPressMs: number;
-  suggestions: boolean; suggestMode: 'strict' | 'moderate' | 'everywhere'; autocorrect: boolean; autoCap: boolean; doubleSpacePeriod: boolean;
+  suggestions: boolean; clipLargeText: boolean; suggestMode: 'strict' | 'moderate' | 'everywhere'; autocorrect: boolean; autoCap: boolean; doubleSpacePeriod: boolean;
   numberRow: boolean; swipeTyping: boolean; learnWords: boolean; emojiSuggest: boolean; urbanWords: boolean; animeWords: boolean;
   fontFamily: string; fontBold: boolean; fontItalic: boolean; customFontName: string;
   keyAlpha: number; keyBorder: number; keyShadow: boolean;
@@ -33,7 +33,7 @@ export const DEFAULTS: Config = {
   oneHanded: 'off',
   showHints: true, popupPreview: true,
   haptic: true, hapticMs: 12, sound: false, longPressMs: 350,
-  suggestions: true, suggestMode: 'moderate', autocorrect: true, autoCap: true, doubleSpacePeriod: true,
+  suggestions: true, clipLargeText: true, suggestMode: 'moderate', autocorrect: true, autoCap: true, doubleSpacePeriod: true,
   numberRow: true, swipeTyping: true, learnWords: true, emojiSuggest: true, urbanWords: false, animeWords: false,
   fontFamily: 'default', fontBold: false, fontItalic: false, customFontName: '',
   keyAlpha: 100, keyBorder: 0, keyShadow: true,

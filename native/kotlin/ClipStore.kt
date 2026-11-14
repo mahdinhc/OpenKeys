@@ -6,7 +6,11 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 
-class Clip(val id: String, val type: String, val value: String, val pinned: Boolean, val ts: Long)
+/** [file] / [len] are only set for large texts kept in a file: [value] is then just a short preview. */
+class Clip(val id: String, val type: String, val value: String, val pinned: Boolean, val ts: Long, val file: String = "", val len: Int = 0) {
+    val isLarge get() = file.isNotEmpty()
+    val length get() = if (isLarge) len else value.length
+}
 
 /** Clipboard history (text + images) and emoji recents / skin-tone choices. */
 object ClipStore {
@@ -18,20 +22,28 @@ object ClipStore {
         val a = try { JSONArray(sp(c).getString("clips", "[]")) } catch (e: Exception) { JSONArray() }
         val out = ArrayList<Clip>()
         for (i in 0 until a.length()) {
-            val o = a.getJSONObject(i)
-            out.add(Clip(o.getString("id"), o.getString("type"), o.getString("value"), o.optBoolean("pin"), o.optLong("ts")))
+            try {
+                val o = a.getJSONObject(i)
+                val id = o.optString("id"); val type = o.optString("type"); val v = o.optString("value")
+                if (id.isEmpty() || v.isEmpty() || (type != "text" && type != "image")) continue
+                out.add(Clip(id, type, v, o.optBoolean("pin"), o.optLong("ts"), o.optString("file"), o.optInt("len")))
+            } catch (e: Exception) { }   // skip a corrupt entry instead of crashing the keyboard
         }
         return out
     }
 
     private fun save(c: Context, l: List<Clip>) {
         val a = JSONArray()
-        l.forEach { a.put(JSONObject().put("id", it.id).put("type", it.type).put("value", it.value).put("pin", it.pinned).put("ts", it.ts)) }
+        l.forEach { a.put(JSONObject().put("id", it.id).put("type", it.type).put("value", it.value).put("pin", it.pinned).put("ts", it.ts).put("file", it.file).put("len", it.len)) }
         sp(c).edit().putString("clips", a.toString()).apply()
     }
 
+    private fun dropFiles(c: Context, it: Clip) {
+        try { if (it.type == "image") imageFile(c, it.value).delete() else if (it.isLarge) File(dir(c), it.file).delete() } catch (e: Throwable) { }
+    }
+
     fun items(c: Context): List<Clip> {
-        val l = load(c)
+        val l = try { load(c) } catch (e: Throwable) { ArrayList() }
         return l.filter { it.pinned } + l.filter { !it.pinned }
     }
 
@@ -39,48 +51,88 @@ object ClipStore {
         val l = load(c)
         val old = l.firstOrNull { it.id == clip.id }
         l.removeAll { it.id == clip.id }
-        l.add(0, Clip(clip.id, clip.type, clip.value, old?.pinned ?: false, clip.ts))
+        l.add(0, Clip(clip.id, clip.type, clip.value, old?.pinned ?: false, clip.ts, clip.file, clip.len))
         // keep at most 40 texts and 20 images (pinned items are never dropped)
         var texts = 0; var imgs = 0
         val keep = ArrayList<Clip>()
         for (it in l) {
             val ok = it.pinned || (if (it.type == "text") ++texts <= 40 else ++imgs <= 20)
-            if (ok) keep.add(it) else if (it.type == "image") imageFile(c, it.value).delete()
+            if (ok) keep.add(it) else dropFiles(c, it)
         }
         save(c, keep)
     }
 
-    fun addText(c: Context, t: String) = add(c, Clip("t:" + t.hashCode() + ":" + t.length, "text", t, false, System.currentTimeMillis()))
+    const val MAX_TEXT = 20_000          // inline limit (kept inside preferences)
+    const val MAX_LARGE = 5_000_000      // absolute limit when "store large copies" is on
+    private const val PREVIEW = 1_000
+
+    /** Settings -> Typing -> "Store large copied text" (default on). */
+    fun largeEnabled(c: Context): Boolean = try { Prefs(c).bool("clipLargeText", true) } catch (e: Throwable) { true }
+
+    fun addText(c: Context, raw: String) {
+        try {
+            val large = largeEnabled(c)
+            if (raw.length > (if (large) MAX_LARGE else MAX_TEXT * 5)) return
+            if (raw.length <= MAX_TEXT) { addTextInternal(c, raw, raw.length); return }
+            if (!large) { addTextInternal(c, raw.substring(0, MAX_TEXT), MAX_TEXT); return }   // setting off: trim
+            val name = "text_" + System.currentTimeMillis() + ".txt"
+            File(dir(c), name).writeText(raw)
+            add(c, Clip("t:" + raw.hashCode() + ":" + raw.length, "text", raw.substring(0, PREVIEW), false, System.currentTimeMillis(), name, raw.length))
+        } catch (e: Throwable) { }
+    }
+
+    private fun addTextInternal(c: Context, t: String, len: Int) =
+        add(c, Clip("t:" + t.hashCode() + ":" + t.length, "text", t, false, System.currentTimeMillis()))
+
+    /** Full text of a clip (reads the file for large clips). */
+    fun fullText(c: Context, clip: Clip): String =
+        if (!clip.isLarge) clip.value else try { File(dir(c), clip.file).readText() } catch (e: Throwable) { clip.value }
 
     /** Copies the image into private storage; returns false if it could not be read. */
+    const val MAX_IMAGE = 20_000_000L
+
     fun addImage(c: Context, uri: Uri): Boolean {
+        var f: File? = null
         return try {
             val type = c.contentResolver.getType(uri) ?: "image/png"
             val ext = when { type.contains("jpeg") || type.contains("jpg") -> "jpg"; type.contains("gif") -> "gif"; type.contains("webp") -> "webp"; else -> "png" }
             val name = "clip_" + System.currentTimeMillis() + "." + ext
-            val f = imageFile(c, name)
-            c.contentResolver.openInputStream(uri)?.use { ins -> f.outputStream().use { ins.copyTo(it) } } ?: return false
-            if (f.length() == 0L) { f.delete(); return false }
+            val out = imageFile(c, name); f = out
+            c.contentResolver.openInputStream(uri)?.use { ins ->
+                out.outputStream().use { o ->
+                    val buf = ByteArray(16 * 1024); var total = 0L
+                    while (true) {
+                        val n = ins.read(buf); if (n < 0) break
+                        total += n; if (total > MAX_IMAGE) throw java.io.IOException("image too large")
+                        o.write(buf, 0, n)
+                    }
+                }
+            } ?: return false
+            if (out.length() == 0L) { out.delete(); return false }
+            // must be a decodable image, otherwise it would only break the panel
+            val bo = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            android.graphics.BitmapFactory.decodeFile(out.path, bo)
+            if (bo.outWidth <= 0 || bo.outHeight <= 0) { out.delete(); return false }
             add(c, Clip("i:$name", "image", name, false, System.currentTimeMillis()))
             true
-        } catch (e: Exception) { false }
+        } catch (e: Throwable) { try { f?.delete() } catch (x: Throwable) { }; false }
     }
 
     fun mimeOf(name: String) = when (name.substringAfterLast('.')) { "jpg" -> "image/jpeg"; "gif" -> "image/gif"; "webp" -> "image/webp"; else -> "image/png" }
 
     fun togglePin(c: Context, id: String) {
-        save(c, load(c).map { if (it.id == id) Clip(it.id, it.type, it.value, !it.pinned, it.ts) else it })
+        save(c, load(c).map { if (it.id == id) Clip(it.id, it.type, it.value, !it.pinned, it.ts, it.file, it.len) else it })
     }
 
     fun remove(c: Context, id: String) {
         val l = load(c)
-        l.firstOrNull { it.id == id && it.type == "image" }?.let { imageFile(c, it.value).delete() }
+        l.firstOrNull { it.id == id }?.let { dropFiles(c, it) }
         save(c, l.filter { it.id != id })
     }
 
     fun clearUnpinned(c: Context) {
         val l = load(c)
-        l.filter { !it.pinned && it.type == "image" }.forEach { imageFile(c, it.value).delete() }
+        l.filter { !it.pinned }.forEach { dropFiles(c, it) }
         save(c, l.filter { it.pinned })
     }
 

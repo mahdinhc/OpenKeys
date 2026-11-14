@@ -25,9 +25,38 @@ class KeyboardModule(private val rc: ReactApplicationContext) : ReactContextBase
 
     private var fontPromise: Promise? = null
     private var bgPromise: Promise? = null
+    private var savePromise: Promise? = null
+    private var saveContent: String = ""
+    private var openPromise: Promise? = null
     private val actListener: ActivityEventListener = object : BaseActivityEventListener() {
         override fun onActivityResult(a: Activity, req: Int, res: Int, data: Intent?) {
             if (req == 7702) { pickedBackground(res, data); return }
+            if (req == 7703) {
+                val pr = savePromise ?: return; savePromise = null
+                val content = saveContent; saveContent = ""
+                val uri: Uri? = data?.data
+                if (res != Activity.RESULT_OK || uri == null) { pr.resolve(false); return }
+                Thread {
+                    try {
+                        rc.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(content.toByteArray(Charsets.UTF_8)) }
+                        pr.resolve(true)
+                    } catch (e: Exception) { pr.reject("E_SAVE", e.message ?: "Could not write the file", e) }
+                }.start()
+                return
+            }
+            if (req == 7704) {
+                val pr = openPromise ?: return; openPromise = null
+                val uri: Uri? = data?.data
+                if (res != Activity.RESULT_OK || uri == null) { pr.resolve(""); return }
+                Thread {
+                    try {
+                        val bytes = rc.contentResolver.openInputStream(uri)!!.use { it.readBytes() }
+                        if (bytes.size > 50_000_000) throw IllegalArgumentException("File is too large")
+                        pr.resolve(String(bytes, Charsets.UTF_8))
+                    } catch (e: Exception) { pr.reject("E_OPEN", e.message ?: "Could not read the file", e) }
+                }.start()
+                return
+            }
             if (req != 7701) return
             val pr = fontPromise ?: return; fontPromise = null
             val uri: Uri? = data?.data
@@ -67,6 +96,25 @@ class KeyboardModule(private val rc: ReactApplicationContext) : ReactContextBase
         a.startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("image/*"), 7702)
     }
 
+    /** Lets the user choose where to save [content] (Storage Access Framework). Resolves false if cancelled. */
+    @ReactMethod fun saveTextFile(name: String, mime: String, content: String, p: Promise) {
+        val a = currentActivity ?: return p.reject("E_SAVE", "No activity")
+        savePromise = p; saveContent = content
+        try {
+            a.startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
+                .setType(mime).putExtra(Intent.EXTRA_TITLE, name), 7703)
+        } catch (e: Exception) { savePromise = null; saveContent = ""; p.reject("E_SAVE", e.message ?: "No file picker available", e) }
+    }
+
+    /** Lets the user choose a text file; resolves with its content, or "" if cancelled. */
+    @ReactMethod fun openTextFile(p: Promise) {
+        val a = currentActivity ?: return p.reject("E_OPEN", "No activity")
+        openPromise = p
+        try {
+            a.startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*"), 7704)
+        } catch (e: Exception) { openPromise = null; p.reject("E_OPEN", e.message ?: "No file picker available", e) }
+    }
+
     @ReactMethod fun clearBackground(p: Promise) { File(rc.filesDir, "bg").listFiles()?.forEach { it.delete() }; p.resolve(true) }
 
     init { rc.addActivityEventListener(actListener); DevLog.installCrashHandler(rc) }
@@ -100,8 +148,8 @@ class KeyboardModule(private val rc: ReactApplicationContext) : ReactContextBase
     @ReactMethod fun logIndex(pw: String, p: Promise) = try { p.resolve(TypeLog.index(rc, pw)) } catch (e: Exception) { p.reject("E_LOG", e.message, e) }
     @ReactMethod fun logRead(pw: String, date: String, hour: String, p: Promise) = try { p.resolve(TypeLog.read(rc, pw, date, hour)) } catch (e: Exception) { p.reject("E_LOG", e.message, e) }
     @ReactMethod fun logClear(pw: String, p: Promise) = try { TypeLog.clear(rc, pw); p.resolve(true) } catch (e: Exception) { p.reject("E_LOG", e.message, e) }
-    @ReactMethod fun logExport(pw: String, p: Promise) = try { p.resolve(TypeLog.export(rc, pw)) } catch (e: Exception) { p.reject("E_LOG", e.message, e) }
-    @ReactMethod fun logImport(json: String, pw: String, p: Promise) = try { p.resolve(TypeLog.import(rc, json, pw)) } catch (e: Exception) { p.reject("E_LOG", e.message ?: "Import failed", e) }
+    @ReactMethod fun logExport(pw: String, p: Promise) { Thread { try { p.resolve(TypeLog.export(rc, pw)) } catch (e: Throwable) { p.reject("E_LOG", e.message ?: "Export failed", e) } }.start() }
+    @ReactMethod fun logImport(json: String, pw: String, p: Promise) { Thread { try { p.resolve(TypeLog.import(rc, json, pw)) } catch (e: Throwable) { p.reject("E_LOG", e.message ?: "Import failed", e) } }.start() }
 
     // ---- developer debug log (plain text, never contains typed text; only written while enabled)
     @ReactMethod fun debugLogRead(maxChars: Int, p: Promise) = try { p.resolve(DevLog.read(rc, maxChars.coerceIn(1000, 200_000))) } catch (e: Exception) { p.reject("E_DEBUGLOG", e.message, e) }
