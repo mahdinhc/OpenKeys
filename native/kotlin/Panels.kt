@@ -92,6 +92,11 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
     private var sectionIndexForTab = ArrayList<Int>()
     private var kaomoji = false
     private var kitchen = false
+    private val mixCard: KitchenMixCard = KitchenMixCard(ctx, { grid.postInvalidateOnAnimation() }, { a, b -> sendMix(a, b); hideMix() }, { a, b -> toggleFav(a, b) }, { hideMix() })
+    init { mixCard.onPop = { try { grid.performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK) } catch (e: Throwable) { } } }
+    private var mixOn = false                // the mix card is the grid's top row (where the Emoji Kitchen row normally is)
+    private val hideMixRun = Runnable { hideMix() }
+    private var lastTap: String? = null     // the emoji tapped just before the current one: the next tap mixes the two
 
     init {
         orientation = VERTICAL
@@ -116,7 +121,7 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
         topRow.addView(hs, LayoutParams(0, MATCH, 1f))
         tabs.orientation = HORIZONTAL; tabs.gravity = Gravity.CENTER_VERTICAL
 
-        grid.onPick = { e -> if (kitchen) kitchenPick(e) else { cb.onEmoji(e); if (!kaomoji) ClipStore.addEmoji(context, e) } }
+        grid.onPick = { e -> if (kitchen) kitchenPick(e) else { cb.onEmoji(e); if (!kaomoji) { ClipStore.addEmoji(context, e); try { kitchenTap(e) } catch (x: Throwable) { } } } }
         grid.toneBase = { !kitchen && EmojiData.isToneBase(it) }
         grid.displayOf = { e -> if (!kitchen && EmojiData.isToneBase(e)) (ClipStore.tone(context, e) ?: e) else e }
         grid.onTone = { base, v -> ClipStore.setTone(context, base, v) }
@@ -175,11 +180,33 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
         val on = ClipStore.toggleFavMix(context, a, b)
         stickers.favKeys = ClipStore.favMixKeys(context); stickers.invalidate()
         if (browsing && bTab == 2 && !on) loadBrowse()           // removed from the favourites tab: refresh the list
-        Toast.makeText(context, if (on) "Added to favourites" else "Removed from favourites", Toast.LENGTH_SHORT).show()
+        if (mixOn) mixCard.markFav(on) else Toast.makeText(context, if (on) "Added to favourites" else "Removed from favourites", Toast.LENGTH_SHORT).show()
+    }
+
+    // ---------------------------------------------------------------- Emoji Kitchen: tap two emoji -> they mix
+    /** Every emoji typed from the grid: together with the emoji tapped just before it the pair mixes (animated card on top). */
+    private fun kitchenTap(e: String) {
+        val b = EmojiKitchen.base(e)
+        val a = lastTap
+        lastTap = b
+        removeCallbacks(hideMixRun); postDelayed(hideMixRun, 9000)       // two emoji only mix within 9 s of each other; the card then goes away by itself
+        if (a == null || !Prefs(context).bool("kitchenSuggest", true) || !EmojiKitchen.hasIndex(context)) { refreshBanner(); return }
+        mixCard.theme = theme
+        mixCard.show(a, b)
+        mixOn = true
+        grid.setBanner(mixCard)
+    }
+
+    private fun hideMix() {
+        removeCallbacks(hideMixRun)
+        mixCard.cancel()
+        lastTap = null
+        if (mixOn) { mixOn = false; grid.setBanner(null); refreshBanner() }
     }
 
     // ---------------------------------------------------------------- Emoji Kitchen: the row above Recent Emoji
     private fun refreshBanner() {
+        if (mixOn) return                                          // the mix card is showing in the banner spot
         val gen = ++bannerGen
         val pr = Prefs(context)
         if (!pr.bool("kitchenSuggest", true) || kaomoji || kitchen || browsing) { grid.setBanner(null); return }
@@ -193,7 +220,7 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
                 if (r.self || r.top.isNotEmpty()) { pick = e; res = r; break }
             }
             post {
-                if (gen != bannerGen || browsing || kaomoji || kitchen) return@post
+                if (gen != bannerGen || browsing || kaomoji || kitchen || mixOn) return@post
                 val e = pick; val r = res
                 if (e == null || r == null) { grid.setBanner(null); return@post }
                 banner.theme = theme
@@ -228,7 +255,7 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
     }
 
     private fun openBrowse(e: String) {
-        browsing = true; kaomoji = false; kitchen = false
+        hideMix(); browsing = true; kaomoji = false; kitchen = false
         bannerGen++
         topRow.visibility = GONE; kitchenBar.visibility = GONE; grid.visibility = GONE; bottom.visibility = GONE
         browseBar.visibility = VISIBLE; stickers.visibility = VISIBLE
@@ -288,7 +315,7 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
     }
 
     private fun setKaomoji(on: Boolean) {
-        kaomoji = on; kitchen = false
+        kaomoji = on; kitchen = false; hideMix()
         if (on) { bannerGen++; grid.setBanner(null) }
         topRow.visibility = if (on) GONE else VISIBLE
         kitchenBar.visibility = GONE
@@ -331,7 +358,7 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
     }
 
     private fun setKitchen(on: Boolean) {
-        kitchen = on; kaomoji = false; gridFilterFor = null; if (on) { kA = null; kB = null; kSel = 0; bannerGen++; grid.setBanner(null) }
+        kitchen = on; kaomoji = false; gridFilterFor = null; hideMix(); if (on) { kA = null; kB = null; kSel = 0; bannerGen++; grid.setBanner(null) }
         topRow.visibility = if (on) GONE else VISIBLE
         kitchenBar.visibility = if (on) VISIBLE else GONE
         restyleBottom()
@@ -423,7 +450,7 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
 
     /** (Re)builds the section list: recents + the nine Unicode groups (+ OpenEmoji when that font is selected). */
     fun open() {
-        kaomoji = false; kitchen = false; browsing = false; bSeq++
+        kaomoji = false; kitchen = false; browsing = false; bSeq++; hideMix()
         browseBar.visibility = GONE; stickers.visibility = GONE; grid.visibility = VISIBLE; bottom.visibility = VISIBLE
         topRow.visibility = VISIBLE; kitchenBar.visibility = GONE; restyleBottom()
         EmojiData.load(context) { build() }
@@ -483,7 +510,7 @@ class EmojiPanel(ctx: Context, private val cb: Callback) : LinearLayout(ctx) {
         for (i in 0 until kitchenBar.childCount) (kitchenBar.getChildAt(i) as? TextView)?.takeIf { it.tag == "sign" }?.setTextColor(t.hint)
         kitchenBar.setBackgroundColor(Color.TRANSPARENT)
         restyleBottom(); styleSlots()
-        banner.theme = t; stickers.theme = t
+        banner.theme = t; mixCard.theme = t; stickers.theme = t
         browseBackIcon.set("back", t.keyText); browseBack.background = round(t.key, context.dpf(20f))
         browseTitle.setTextColor(t.keyText)
         browsePill.background = round(t.key, context.dpf(20f))

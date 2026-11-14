@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.os.Handler
@@ -224,6 +225,267 @@ class KitchenBanner(
         for ((r, p) in slots) if (r.contains(x, y)) { onFav(p.first, p.second); return true }
         return false
     }
+}
+
+// ======================================================================================================== mix card (pinned over the emoji grid)
+/**
+ * Gboard-style mix: the last two emoji you tapped wind up, fly together, collide and burst into their Emoji Kitchen sticker
+ * (tap = send, hold = favourite). When the pair has no mix they bounce apart and shake their heads.
+ *
+ * Timeline (every duration is scaled by the system "animator duration scale", 0 = no animation):
+ *   enter   card fades / drops in
+ *   approach  wind-up (they lean back), then dash at each other along a little arc, tilting in
+ *   wait    overlapped, pulsing + a ripple, while the sticker loads (instant when it is cached)
+ *   pop     emoji squash and vanish, shock ring + sparkles, the sticker springs out with a wobble, hint fades in
+ *   bounce  (no mix) they spring apart, tilt away and the message fades in
+ */
+class KitchenMixCard(
+    private val ctx: Context,
+    private val invalidate: () -> Unit,
+    private val onSend: (String, String) -> Unit,
+    private val onFav: (String, String) -> Unit,
+    private val onClose: () -> Unit
+) : GridBanner {
+    var theme: Theme = Theme.DARK
+    /** Called once when the sticker pops out (the panel adds a light haptic tick). */
+    var onPop: (() -> Unit)? = null
+
+    private var a = ""
+    private var b = ""
+    private var seq = 0
+    private var t0 = 0L                       // when the animation started
+    private var tRes = 0L                     // when the answer arrived (0 = still waiting)
+    private var res: EmojiKitchen.Result? = null
+    private var bmp: Bitmap? = null
+    private var popped = false
+    private var favT = 0L                     // heart burst after a long-press
+    private var favOn = true
+    private var k = 1f                        // animation speed factor (system setting)
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val bmpPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+    private val card = RectF()
+    private val sticker = RectF()
+    private val close = RectF()
+    private val tmp = RectF()
+
+    private fun d(ms: Int) = max(1L, (ms * k).toLong())
+    private val enterMs get() = d(200)
+    private val windMs get() = d(70)
+    private val approachMs get() = d(340)
+    private val popMs get() = d(560)
+    private val bounceMs get() = d(520)
+
+    fun show(a: String, b: String) {
+        this.a = a; this.b = b
+        val my = ++seq
+        k = try { android.provider.Settings.Global.getFloat(ctx.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f).coerceIn(0f, 3f) } catch (e: Throwable) { 1f }
+        t0 = SystemClock.uptimeMillis(); tRes = 0L; res = null; bmp = null; popped = false; favT = 0L
+        EmojiKitchen.mix(ctx, a, b) { r ->
+            if (my != seq) return@mix                          // the user already tapped something else
+            val f = (r as? EmojiKitchen.Result.Ok)?.file
+            val dec = if (f != null) decode(f) else null
+            bmp = dec
+            res = if (f != null && dec == null) EmojiKitchen.Result.Offline else r
+            tRes = SystemClock.uptimeMillis()
+            invalidate()
+        }
+        invalidate()
+    }
+
+    fun cancel() { seq++ }
+
+    /** Heart burst on the sticker after it was added to (or removed from) the favourites. */
+    fun markFav(on: Boolean) { favOn = on; favT = SystemClock.uptimeMillis(); invalidate() }
+
+    private fun decode(f: java.io.File): Bitmap? = try {
+        val o = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(f.path, o)
+        var s = 1
+        while (o.outWidth / (s * 2) >= 256 && o.outHeight / (s * 2) >= 256) s *= 2
+        BitmapFactory.decodeFile(f.path, BitmapFactory.Options().apply { inSampleSize = s })
+    } catch (e: Throwable) { null }
+
+    override fun height(w: Float) = ctx.dpf(88f)
+
+    private fun layout(w: Float) {
+        val m = ctx.dpf(8f)
+        card.set(m, ctx.dpf(4f), w - m, ctx.dpf(84f))
+        val s = ctx.dpf(64f); val cx = w / 2f; val cy = ctx.dpf(44f)
+        sticker.set(cx - s / 2, cy - s / 2, cx + s / 2, cy + s / 2)
+        val cs = ctx.dpf(36f); val pad = ctx.dpf(2f)
+        close.set(card.right - cs - pad, card.top + pad, card.right - pad, card.top + pad + cs)
+    }
+
+    // ---- easing
+    private fun clamp01(x: Float) = x.coerceIn(0f, 1f)
+    private fun easeOut(t: Float): Float { val u = 1f - clamp01(t); return 1f - u * u * u }
+    private fun easeInBack(t: Float): Float { val c = 1.5f; val x = clamp01(t); return x * x * ((c + 1f) * x - c) }
+    /** Damped spring 0 -> ~1.18 -> 1. */
+    private fun spring(t: Float): Float { val x = clamp01(t); return 1f - Math.exp(-6.0 * x).toFloat() * Math.cos(12.0 * x).toFloat() }
+
+    private fun glyph(c: Canvas, s: String, cx: Float, cy: Float, scale: Float, alpha: Float, rot: Float = 0f) {
+        if (alpha <= 0f) return
+        paint.style = Paint.Style.FILL
+        paint.typeface = EmojiFont.get(ctx) ?: android.graphics.Typeface.DEFAULT
+        paint.textAlign = Paint.Align.CENTER; paint.textSize = ctx.dpf(32f)
+        paint.color = theme.keyText; paint.alpha = (alpha * 255).toInt().coerceIn(0, 255)
+        val fm = paint.fontMetrics
+        c.save(); c.translate(cx, cy); c.rotate(rot); c.scale(scale, scale)
+        c.drawText(s, 0f, -(fm.ascent + fm.descent) / 2, paint)
+        c.restore(); paint.alpha = 255
+    }
+
+    private fun ring(c: Canvas, cx: Float, cy: Float, r: Float, stroke: Float, color: Int, alpha: Float) {
+        if (alpha <= 0f || r <= 0f) return
+        paint.style = Paint.Style.STROKE; paint.strokeWidth = stroke; paint.color = color; paint.alpha = (alpha * 255).toInt().coerceIn(0, 255)
+        c.drawCircle(cx, cy, r, paint); paint.alpha = 255; paint.style = Paint.Style.FILL
+    }
+
+    override fun draw(c: Canvas, top: Float, w: Float) {
+        layout(w)
+        val now = SystemClock.uptimeMillis()
+        val el = now - t0
+        val answered = tRes != 0L
+        val bm = if (res is EmojiKitchen.Result.Ok) bmp else null
+        val ok = bm != null
+
+        val enter = easeOut(el.toFloat() / enterMs)
+        val pa = clamp01((el - windMs).toFloat() / approachMs)          // 0..1 approach progress
+        val arrivedAt = t0 + windMs + approachMs
+        val popAt = if (answered) max(tRes, arrivedAt) else Long.MAX_VALUE
+        val u = if (answered && now >= popAt) clamp01((now - popAt).toFloat() / (if (ok) popMs else bounceMs)) else -1f
+        val cx = w / 2f; val ey = ctx.dpf(40f); val spread = ctx.dpf(78f)
+        val accent = theme.accent
+
+        c.save(); c.translate(0f, top)
+        // card (drops in)
+        c.save()
+        c.translate(0f, -(1f - enter) * ctx.dpf(10f)); c.scale(0.96f + 0.04f * enter, 0.96f + 0.04f * enter, card.centerX(), card.centerY())
+        paint.style = Paint.Style.FILL; paint.color = theme.key; paint.alpha = (enter * 255).toInt()
+        c.drawRoundRect(card, ctx.dpf(20f), ctx.dpf(20f), paint); paint.alpha = 255
+
+        var gap: Float; var sc: Float; var al = 1f; var plusAl = 1f - pa; var rotA: Float; var rotB: Float; var dy: Float
+        if (pa < 1f) {                                                     // wind-up, then dash in on a small arc
+            val e = easeInBack(pa)
+            gap = spread * (1f - e); sc = 1f + 0.12f * pa
+            val lean = 16f * Math.sin(Math.PI * pa).toFloat()
+            rotA = lean; rotB = -lean; dy = -Math.sin(Math.PI * pa).toFloat() * ctx.dpf(9f)
+        } else {                                                           // waiting: overlapped, pulsing, wobbling
+            val ph = (now - arrivedAt) / 1000f
+            gap = ctx.dpf(5f) + ctx.dpf(3f) * Math.sin(ph * 14.0).toFloat()
+            sc = 1.12f + 0.07f * Math.sin(ph * 11.0).toFloat()
+            rotA = 7f * Math.sin(ph * 9.0).toFloat(); rotB = -rotA; dy = 0f
+            plusAl = 0f
+            if (u < 0f) {                                                  // ripple while the sticker loads
+                val rp = ((now - arrivedAt) % 800L) / 800f
+                ring(c, cx, ey, ctx.dpf(16f) + ctx.dpf(26f) * easeOut(rp), ctx.dpf(2f), accent, 0.35f * (1f - rp))
+            }
+        }
+        if (u >= 0f && ok) {                                               // squash and vanish
+            val ue = clamp01(u / 0.3f)
+            gap = ctx.dpf(2f) * (1f - ue); sc = 1.19f + 0.45f * ue; al = 1f - ue; plusAl = 0f; rotA = 0f; rotB = 0f; dy = 0f
+        }
+        if (u >= 0f && !ok) {                                              // no mix: spring apart, tilt away
+            val s = spring(u)
+            gap = spread * 0.9f * s; sc = 1.19f - 0.19f * u; plusAl = clamp01((u - 0.2f) * 2f)
+            rotA = -22f * s; rotB = 22f * s; dy = 0f
+        }
+        glyph(c, a, cx - gap, ey + dy, sc, al, rotA)
+        glyph(c, b, cx + gap, ey + dy, sc, al, rotB)
+        if (plusAl > 0f) {
+            paint.typeface = null; paint.textAlign = Paint.Align.CENTER; paint.textSize = ctx.dpf(24f)
+            paint.color = theme.hint; paint.alpha = (plusAl * 255).toInt().coerceIn(0, 255)
+            c.drawText("+", cx, ey + ctx.dpf(8f), paint); paint.alpha = 255
+        }
+
+        if (ok && u >= 0f) {
+            if (!popped) { popped = true; try { onPop?.invoke() } catch (e: Throwable) { } }
+            val sx = sticker.centerX(); val sy = sticker.centerY()
+            // glow + shock ring + sparkles
+            paint.style = Paint.Style.FILL; paint.color = accent; paint.alpha = (0.22f * (1f - u) * 255).toInt()
+            c.drawCircle(sx, sy, ctx.dpf(38f) * (0.6f + 0.6f * easeOut(u)), paint); paint.alpha = 255
+            ring(c, sx, sy, ctx.dpf(14f) + ctx.dpf(46f) * easeOut(u), ctx.dpf(3f) * (1f - u) + ctx.dpf(0.8f), accent, 0.6f * (1f - u))
+            val n = 10
+            for (i in 0 until n) {
+                val ang = Math.toRadians((i * 360.0 / n) + (if (i % 2 == 0) 0.0 else 14.0))
+                val reach = ctx.dpf(30f) + ctx.dpf(24f + 10f * (i % 3)) * easeOut(u)
+                val sz = ctx.dpf(if (i % 3 == 0) 4.2f else 3f) * (1f - u * 0.8f)
+                paint.color = if (i % 2 == 0) accent else theme.keyText; paint.alpha = (clamp01(1.4f - 1.4f * u) * 255).toInt()
+                c.drawCircle(sx + Math.cos(ang).toFloat() * reach, sy + Math.sin(ang).toFloat() * reach, sz, paint)
+            }
+            paint.alpha = 255
+            // sticker: soft shadow, then spring with a settling wobble
+            val us = clamp01((u - 0.1f) / 0.9f)
+            val s = spring(us).coerceAtLeast(0f)
+            val rot = 11f * Math.exp(-5.0 * us).toFloat() * Math.cos(16.0 * us).toFloat()
+            paint.color = Color.BLACK; paint.alpha = (0.14f * clamp01(us * 3f) * 255).toInt()
+            tmp.set(sx - ctx.dpf(22f) * s, sticker.bottom - ctx.dpf(3f), sx + ctx.dpf(22f) * s, sticker.bottom + ctx.dpf(3f))
+            c.drawOval(tmp, paint); paint.alpha = 255
+            bmpPaint.alpha = (clamp01(us * 4f) * 255).toInt()
+            c.save(); c.translate(sx, sy); c.rotate(rot); c.scale(s, s); c.translate(-sx, -sy)
+            c.drawBitmap(bm!!, null, sticker, bmpPaint)
+            c.restore(); bmpPaint.alpha = 255
+            // hint
+            val ha = clamp01((us - 0.5f) * 2f)
+            if (ha > 0f) {
+                paint.typeface = null; paint.textAlign = Paint.Align.LEFT; paint.textSize = ctx.dpf(11f)
+                paint.color = theme.hint; paint.alpha = (ha * 255).toInt()
+                c.drawText("Tap to send", card.left + ctx.dpf(16f), ctx.dpf(38f), paint)
+                c.drawText("Hold to save", card.left + ctx.dpf(16f), ctx.dpf(54f), paint); paint.alpha = 255
+            }
+            // favourite heart burst
+            if (favT != 0L) {
+                val ft = clamp01((now - favT).toFloat() / d(650))
+                if (ft < 1f) {
+                    val hs = ctx.dpf(22f) * (0.4f + 0.9f * spring(ft)) * (if (favOn) 1f else 0.8f)
+                    val hx = sticker.right + ctx.dpf(2f); val hy = sticker.top + ctx.dpf(6f) - ctx.dpf(14f) * easeOut(ft)
+                    Icons.draw(c, if (favOn) "heart" else "close", hx, hy, hs, if (favOn) Color.parseColor("#F28B82") else theme.hint)
+                }
+            }
+        }
+        if (answered && !ok && u >= 0f) {                                  // no mix for this pair
+            val ma = clamp01((u - 0.35f) / 0.65f)
+            val msg = if (res is EmojiKitchen.Result.NoMix) "Try a different emoji combo" else "Couldn't load this mix. Check your connection"
+            paint.typeface = null; paint.textAlign = Paint.Align.CENTER; paint.textSize = ctx.dpf(14f)
+            paint.color = theme.keyText; paint.alpha = (ma * 255).toInt()
+            c.drawText(msg, cx, ctx.dpf(74f) + (1f - ma) * ctx.dpf(6f), paint); paint.alpha = 255
+        }
+        Icons.draw(c, "close", close.centerX(), close.centerY(), ctx.dpf(18f), theme.hint)
+        c.restore()      // card transform
+        c.restore()      // top translate
+
+        val fav = favT != 0L && now - favT < d(650)
+        if (el < enterMs || !answered || pa < 1f || now < popAt || u < 1f || fav) invalidate()
+    }
+
+    override fun tap(x: Float, y: Float, w: Float): Boolean {
+        layout(w)
+        if (RectF(close).apply { inset(-ctx.dpf(6f), -ctx.dpf(6f)) }.contains(x, y)) { onClose(); return true }
+        if (res is EmojiKitchen.Result.Ok && bmp != null && RectF(sticker).apply { inset(-ctx.dpf(14f), -ctx.dpf(8f)) }.contains(x, y)) { onSend(a, b); return true }
+        return true
+    }
+
+    override fun hold(x: Float, y: Float, w: Float): Boolean {
+        layout(w)
+        if (res is EmojiKitchen.Result.Ok && bmp != null && RectF(sticker).apply { inset(-ctx.dpf(14f), -ctx.dpf(8f)) }.contains(x, y)) { onFav(a, b); return true }
+        return false
+    }
+}
+
+// ======================================================================================================== banner as its own view
+/** Hosts a [GridBanner] as a small view of its own, so only its area repaints while it animates (the emoji grid is left alone). */
+class GridBannerView(ctx: Context, private val banner: GridBanner) : View(ctx) {
+    override fun onDraw(c: Canvas) { banner.draw(c, 0f, width.toFloat()) }
+
+    private val gd = GestureDetector(ctx, object : GestureDetector.SimpleOnGestureListener() {
+        override fun onDown(e: MotionEvent): Boolean = true
+        override fun onSingleTapUp(e: MotionEvent): Boolean { banner.tap(e.x, e.y, width.toFloat()); return true }
+        override fun onLongPress(e: MotionEvent) {
+            if (banner.hold(e.x, e.y, width.toFloat())) performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+        }
+    })
+
+    override fun onTouchEvent(e: MotionEvent): Boolean = gd.onTouchEvent(e)
 }
 
 // ======================================================================================================== sticker grid (Browse)
